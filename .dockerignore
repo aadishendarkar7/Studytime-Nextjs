@@ -1,0 +1,7 @@
+node_modules
+.next
+.data
+.git
+tests/e2e/screenshots
+.env*
+!.env.example

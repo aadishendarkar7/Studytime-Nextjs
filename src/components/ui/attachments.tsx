@@ -1,0 +1,103 @@
+'use client';
+import { useCallback, useRef, useState, type ReactNode } from 'react';
+import { readAttachment, type Attachment } from '@/lib/ai/files';
+import { toast } from '@/lib/stores/ui';
+import { cn } from '@/lib/utils';
+import { Icon } from './icons';
+
+export function useAttachments(limit: number) {
+  const [files, setFiles] = useState<Attachment[]>([]);
+  const [reading, setReading] = useState(false);
+  const add = useCallback(
+    async (list: FileList | File[]) => {
+      setReading(true);
+      const next: Attachment[] = [];
+      for (const file of Array.from(list)) {
+        if (files.length + next.length >= limit) {
+          toast(`You can attach up to ${limit} files.`);
+          break;
+        }
+        try {
+          next.push(await readAttachment(file));
+        } catch (error) {
+          toast((error as Error).message, 'error');
+        }
+      }
+      setFiles((f) => [...f, ...next].slice(0, limit));
+      setReading(false);
+    },
+    [files.length, limit],
+  );
+  const remove = (i: number) => setFiles((f) => f.filter((_, j) => j !== i));
+  const clear = () => setFiles([]);
+  return { files, add, remove, clear, reading };
+}
+
+export function DropZone({ onFiles, accept, multiple = true, title, hint, inputId }: { onFiles: (f: FileList) => void; accept: string; multiple?: boolean; title: string; hint: string; inputId?: string }) {
+  const input = useRef<HTMLInputElement>(null);
+  const [over, setOver] = useState(false);
+  return (
+    <div
+      role="button"
+      tabIndex={0}
+      aria-label={title}
+      onClick={() => input.current?.click()}
+      onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && (e.preventDefault(), input.current?.click())}
+      onDragOver={(e) => (e.preventDefault(), setOver(true))}
+      onDragLeave={() => setOver(false)}
+      onDrop={(e) => {
+        e.preventDefault();
+        setOver(false);
+        if (e.dataTransfer.files.length) onFiles(e.dataTransfer.files);
+      }}
+      className={cn('my-3 flex min-h-32 flex-col items-center justify-center gap-1.5 rounded-2xl border-2 border-dashed px-5 py-6 text-center transition-colors', over ? 'border-accent bg-accent-soft' : 'border-line-strong bg-accent-soft/60 hover:bg-accent-soft')}
+    >
+      <Icon name="upload" className="size-6 text-accent-ink" />
+      <strong className="text-[15px] text-ink">{title}</strong>
+      <span className="text-xs text-muted">{hint}</span>
+      <input
+        id={inputId}
+        ref={input}
+        type="file"
+        accept={accept}
+        multiple={multiple}
+        hidden
+        onChange={(e) => {
+          if (e.target.files?.length) onFiles(e.target.files);
+          e.target.value = '';
+        }}
+      />
+    </div>
+  );
+}
+
+export function FileTray({ files, onRemove, reading }: { files: Attachment[]; onRemove: (i: number) => void; reading?: boolean }) {
+  if (!files.length && !reading) return null;
+  return (
+    <div className="my-2 flex flex-wrap gap-2">
+      {files.map((f, i) => (
+        <span key={`${f.name}-${i}`} className="relative flex max-w-56 items-center gap-2 rounded-xl border border-line bg-surface py-1.5 pr-8 pl-1.5 text-xs">
+          {f.kind === 'image' ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={f.preview} alt="" className="size-11 rounded-lg object-cover" />
+          ) : (
+            <b className="grid size-11 place-items-center rounded-lg bg-surface-3 text-[11px] text-ink-2">{f.kind === 'pdf' ? 'PDF' : 'DOC'}</b>
+          )}
+          <span className="truncate">{f.name}</span>
+          <button type="button" onClick={() => onRemove(i)} aria-label={`Remove ${f.name}`} className="absolute top-1 right-1 rounded p-0.5 text-muted hover:text-ink">
+            <Icon name="close" className="size-4" />
+          </button>
+        </span>
+      ))}
+      {reading && <span className="self-center text-xs text-muted">Reading file…</span>}
+    </div>
+  );
+}
+
+export function ErrorBox({ children, action }: { children: ReactNode; action?: ReactNode }) {
+  return (
+    <div className="rounded-xl border border-danger/30 bg-danger-soft px-4 py-3 text-sm text-danger" role="alert">
+      <strong>Something went wrong.</strong> {children} {action}
+    </div>
+  );
+}
