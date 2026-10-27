@@ -1,5 +1,5 @@
 'use client';
-import type { CircleMemberView, ClassView, Deck, LeaderboardResult, LeaderScope } from './types';
+import type { CircleMemberView, ClassView, Deck, LeaderboardResult, LeaderScope, PartnerInput, PartnerListing, PublicSpot, SpotInput } from './types';
 
 export class ApiError extends Error {
   constructor(message: string, public status: number) {
@@ -23,6 +23,19 @@ async function request<T>(path: string, options: RequestInit & { json?: unknown 
 const enc = encodeURIComponent;
 
 export const api = {
+  partners: {
+    search: (q: { school: string; course: string; format: string }) =>
+      request<{ listings: PartnerListing[] }>(`/api/partners?school=${enc(q.school)}&course=${enc(q.course)}&format=${enc(q.format)}`),
+    create: (body: PartnerInput) => request<{ id: string; token: string }>('/api/partners', { method: 'POST', json: body }),
+    mine: (id: string, token: string) => request<PartnerListing>(`/api/partners/${enc(id)}`, { headers: { 'X-Partner-Token': token } }),
+    update: (id: string, token: string, body: PartnerInput) => request<{ id: string }>(`/api/partners/${enc(id)}`, { method: 'PUT', headers: { 'X-Partner-Token': token }, json: body }),
+    remove: (id: string, token: string) => request<{ ok: true }>(`/api/partners/${enc(id)}`, { method: 'DELETE', headers: { 'X-Partner-Token': token } }),
+  },
+  spots: {
+    list: () => request<{ spots: PublicSpot[] }>('/api/spots'),
+    share: (body: SpotInput) => request<{ id: string; token: string }>('/api/spots', { method: 'POST', json: body }),
+    remove: (id: string, token: string) => request<{ ok: true }>(`/api/spots/${enc(id)}`, { method: 'DELETE', headers: { 'X-Spot-Token': token } }),
+  },
   circles: {
     create: (name: string) => request<{ code: string; memberId: string; publicId: string }>('/api/circles', { method: 'POST', json: { name } }),
     join: (code: string, name: string) => request<{ memberId: string; publicId: string }>(`/api/circles/${enc(code)}/join`, { method: 'POST', json: { name } }),

@@ -20,8 +20,8 @@ import { useAiRun } from './use-ai-run';
 
 function QuizDialog({ concept, onClose }: { concept: Concept | null; onClose: () => void }) {
   return (
-    <Dialog open={Boolean(concept)} onClose={onClose} eyebrow="CONCEPT QUIZ" title={concept?.name ?? ''}>
-      <div id="conceptDialogBody" className="rounded-2xl border border-line bg-surface-2 p-5">
+    <Dialog open={Boolean(concept)} onClose={onClose} title={concept?.name ?? ''}>
+      <div id="conceptDialogBody" className="border border-line bg-surface-2 p-5 rounded-lg">
         {concept && <QuizBody key={concept.id} concept={concept} onClose={onClose} />}
       </div>
     </Dialog>
@@ -48,7 +48,7 @@ function QuizBody({ concept, onClose }: { concept: Concept; onClose: () => void 
   if (state.index >= state.questions.length)
     return (
       <div className="py-4 text-center">
-        <h3 className="text-xl font-bold">{state.correct} of {state.questions.length} correct</h3>
+        <h3 className="text-xl font-semibold">{state.correct} of {state.questions.length} correct</h3>
         <p className="mt-1 text-sm text-muted">Mastery is now {concept.mastery}% ({delta >= 0 ? '+' : ''}{delta}).</p>
         <Button className="mt-4" data-cq="close" onClick={onClose}>Done</Button>
       </div>
@@ -56,11 +56,11 @@ function QuizBody({ concept, onClose }: { concept: Concept; onClose: () => void 
   const q = state.questions[state.index];
   return (
     <>
-      <p className="text-[11px] font-bold tracking-[0.08em] text-muted uppercase">Question {state.index + 1} of {state.questions.length}</p>
-      <h3 className="mt-2 mb-4 font-bold">{q.q}</h3>
+      <p className="text-[12px] font-semibold text-muted">Question {state.index + 1} of {state.questions.length}</p>
+      <h3 className="mt-2 mb-4 font-semibold">{q.q}</h3>
       <div className="grid gap-2 sm:grid-cols-2">
         {q.options.map((o, i) => (
-          <button key={i} type="button" data-cq-choice={i} disabled={state.picked !== null} onClick={() => setState({ ...state, picked: i, correct: state.correct + (i === q.answer ? 1 : 0) })} className={cn('min-h-12 rounded-xl border bg-surface p-3 text-left text-sm font-semibold', state.picked !== null && i === q.answer ? 'border-ok bg-ok-soft' : state.picked === i ? 'border-danger bg-danger-soft' : 'border-line-strong enabled:hover:bg-accent-soft')}>{o}</button>
+          <button key={i} type="button" data-cq-choice={i} disabled={state.picked !== null} onClick={() => setState({ ...state, picked: i, correct: state.correct + (i === q.answer ? 1 : 0) })} className={cn('min-h-12 border bg-surface p-3 text-left text-sm font-semibold rounded-xl', state.picked !== null && i === q.answer ? 'border-ok bg-ok-soft' : state.picked === i ? 'border-danger bg-danger-soft' : 'border-line-strong enabled:hover:bg-accent-soft')}>{o}</button>
         ))}
       </div>
       {state.picked !== null && (
@@ -113,7 +113,7 @@ export function ConceptsTool() {
     if (!ai.concepts.length && !ai.solves.length) return;
     const concepts = ai.concepts.slice(0, 120).map((c) => `- ${c.name} [${c.subject}] mastery ${c.mastery}%, seen ${c.seen}x`).join('\n');
     const solves = ai.solves.slice(0, 12).map((s) => `- ${s.question.slice(0, 140)}${s.verdict && !s.verdict.agree ? ' (answer was disputed)' : ''}${s.mode === 'hint' ? ' (needed hints)' : ''}`).join('\n');
-    gaps.run({ tier: 'main', maxTokens: 2500, system: tutorSystem(ai, "You analyze a student's learning data to find knowledge gaps."), messages: [{ role: 'user', content: `Here is my concept mastery and recent problems.\n\nConcepts:\n${concepts || '(none)'}\n\nRecent problems:\n${solves || '(none)'}\n\nWrite: "## Where you're strong" (short), "## Gaps to close" (ranked, with why each matters and which prerequisite might be missing), "## Your next 30 minutes" (a concrete step-by-step plan), and "## Quick explanations" (a 2–3 sentence breakdown for each of the top 3 gaps).` }] });
+    gaps.run({ tier: 'main', maxTokens: 2500, system: tutorSystem(ai, "You analyze a student's learning data to find knowledge gaps."), messages: [{ role: 'user', content: `Here is my concept mastery and recent problems.\n\nConcepts:\n${concepts || '(none)'}\n\nRecent problems:\n${solves || '(none)'}\n\nWrite: "## Where you're strong" (short), "## Gaps to close" (ranked, with why each matters and which prerequisite might be missing), "## Your next 30 minutes" (a concrete step-by-step plan), and "## Quick explanations" (a 2-3 sentence breakdown for each of the top 3 gaps).` }] });
   };
   const toSet = () => {
     const cards = list.filter((c) => c.summary).map((c) => ({ front: c.name, back: c.summary }));
@@ -125,10 +125,10 @@ export function ConceptsTool() {
   return (
     <>
       <Card>
-        <CardHeader eyebrow="YOUR KNOWLEDGE MAP" title="Concept cards" description="Created from every problem you solve. Quiz yourself to raise mastery, and let the tutor find your gaps." action={<div className="flex gap-2"><Button onClick={findGaps}>Find my gaps</Button><Button variant="secondary" onClick={toSet}>Make flashcards</Button></div>} />
+        <CardHeader title="Concept cards" description="Created from every problem you solve. Quiz yourself to raise mastery, and let the tutor find your gaps." action={<div className="flex gap-2"><Button onClick={findGaps}>Find my gaps</Button><Button variant="secondary" onClick={toSet}>Make flashcards</Button></div>} />
         <div className="grid grid-cols-2 gap-2.5 md:grid-cols-4">
           {[[ai.concepts.length, 'concepts'], [ai.concepts.filter((c) => c.mastery >= 80).length, 'mastered'], [ai.concepts.filter((c) => c.mastery < 50).length, 'need work'], [`${avg}%`, 'avg. mastery']].map(([v, l]) => (
-            <div key={l} className="rounded-xl bg-surface-2 px-4 py-3"><strong className="block font-display text-2xl">{v}</strong><span className="text-xs text-muted">{l}</span></div>
+            <div key={l} className="bg-surface-2 px-4 py-3 rounded-lg"><strong className="block font-display text-2xl">{v}</strong><span className="text-xs text-muted">{l}</span></div>
           ))}
         </div>
         <div className="mt-4 flex flex-wrap gap-2">
@@ -145,28 +145,28 @@ export function ConceptsTool() {
       </Card>
       {showGaps && (
         <Card className="relative mt-5" id="conceptGapOutput">
-          <button type="button" aria-label="Close" onClick={() => (setShowGaps(false), gaps.stop())} className="absolute top-4 right-4 rounded-lg p-1 text-muted hover:bg-surface-3"><Icon name="close" /></button>
+          <button type="button" aria-label="Close" onClick={() => (setShowGaps(false), gaps.stop())} className="absolute top-4 right-4 p-1 text-muted hover:bg-surface-3"><Icon name="close" /></button>
           {!ai.concepts.length && !ai.solves.length ? <p className="text-sm text-muted">Solve a few problems first so there’s something to analyze.</p> : <AiOutput run={gaps} thinking="Looking for patterns in your work…" placeholder={null} />}
         </Card>
       )}
       <div className="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {list.length ? list.map((c) => (
-          <article key={c.id} className={cn('flex flex-col gap-2 rounded-2xl border border-t-[3px] border-line bg-surface p-5 shadow-card', c.mastery >= 80 ? 'border-t-ok' : c.mastery >= 50 ? 'border-t-[#c9b84f]' : 'border-t-[#d9a24f]')} data-concept-card>
-            <div className="flex justify-between text-xs font-bold text-muted"><Badge>{c.subject}</Badge><span>{c.mastery}%</span></div>
-            <h3 className="mt-1 font-bold">{c.name}</h3>
+          <article key={c.id} className={cn('flex flex-col gap-2 border border-t-[3px] border-line bg-surface p-5', c.mastery >= 80 ? 'border-t-accent' : c.mastery >= 50 ? 'border-t-glow' : 'border-t-line')} data-concept-card>
+            <div className="flex justify-between text-xs font-semibold text-muted"><Badge>{c.subject}</Badge><span>{c.mastery}%</span></div>
+            <h3 className="mt-1 font-semibold">{c.name}</h3>
             <p className="text-[13px] leading-relaxed text-ink-2">{c.summary}</p>
             {c.example && <p className="text-[13px] text-muted italic">e.g. {c.example}</p>}
             <Bar value={c.mastery} className="mt-auto" />
             <div className="mt-1 flex flex-wrap gap-1.5">
               <Button size="sm" variant="secondary" data-concept="quiz" onClick={() => (resolveConnection().mode === 'none' ? toast('Connect the AI tutor in Settings first.', 'error') : setQuizId(c.id))}>Quiz me</Button>
               <Button size="sm" variant="secondary" onClick={() => router.push(`/ai/chat?ask=${encodeURIComponent(`Give me a deeper breakdown of "${c.name}" (${c.subject}). Start with intuition, then the formal idea, a worked example, and the mistakes students usually make.`)}`)}>Go deeper</Button>
-              <Button size="sm" variant="secondary" onClick={() => ai.updateConcept(c.id, { mastery: 100 })}>{c.mastery >= 100 ? 'Mastered ✓' : 'I know this'}</Button>
-              <button type="button" aria-label={`Delete ${c.name}`} onClick={() => ai.deleteConcept(c.id)} className="ml-auto rounded p-1 text-muted hover:text-danger"><Icon name="trash" className="size-4" /></button>
+              <Button size="sm" variant="secondary" onClick={() => ai.updateConcept(c.id, { mastery: 100 })}>{c.mastery >= 100 ? 'Mastered' : 'I know this'}</Button>
+              <button type="button" aria-label={`Delete ${c.name}`} onClick={() => ai.deleteConcept(c.id)} className="ml-auto p-1 text-muted hover:text-danger"><Icon name="trash" className="size-4" /></button>
             </div>
           </article>
         )) : (
           <Card className="text-center sm:col-span-2 xl:col-span-3">
-            <h3 className="font-bold">{ai.concepts.length ? 'No matching concepts' : 'No concept cards yet'}</h3>
+            <h3 className="font-semibold">{ai.concepts.length ? 'No matching concepts' : 'No concept cards yet'}</h3>
             <p className="mt-1 text-sm text-muted">Concept cards are created automatically when you solve problems, or add one yourself above.</p>
             <Link href="/ai"><Button className="mt-4">Solve a problem</Button></Link>
           </Card>

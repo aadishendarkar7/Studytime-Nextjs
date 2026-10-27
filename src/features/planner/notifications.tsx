@@ -12,8 +12,8 @@ export function NotificationSettings() {
     : permission === 'denied' ? 'Browser alerts are blocked in your browser settings.'
     : 'Browser alerts are off. Turn them on to get desktop reminders while Studytime is open.';
   return (
-    <details className="mt-5 rounded-2xl border border-line bg-surface px-6 py-4 shadow-card">
-      <summary className="text-sm font-bold">Notification settings</summary>
+    <details className="mt-5 border border-line bg-surface px-6 py-4 rounded-xl">
+      <summary className="text-sm font-semibold">Notification settings</summary>
       <p className="mt-3 text-sm text-muted">{status}</p>
       <div className="mt-3 flex flex-wrap gap-2">
         <Button variant="secondary" disabled={permission !== 'default'} onClick={async () => setPermission(await Notification.requestPermission())}>

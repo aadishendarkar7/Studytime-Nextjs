@@ -57,7 +57,7 @@ function StudyCircle() {
   };
   return (
     <Card>
-      <CardHeader eyebrow="YOUR STUDY CIRCLE" title="Study with friends" description={circle ? `You’re in circle ${circle.code}. Progress refreshes every 10 seconds.` : 'Create a circle and share the invite link, or join with a friend’s code.'} />
+      <CardHeader title="Study with friends" description={circle ? `You’re in circle ${circle.code}. Progress refreshes every 10 seconds.` : 'Create a circle and share the invite link, or join with a friend’s code.'} />
       <div className="flex flex-wrap gap-2">
         <Button onClick={create}>Create circle</Button>
         <Button variant="secondary" disabled={!circle} onClick={async () => toast((await copyText(`Join my Studytime study circle! ${location.origin}/friends?circle=${circle!.code} (code ${circle!.code})`)) ? 'Invite link copied.' : 'Could not copy.')}>Copy invite link</Button>
@@ -128,12 +128,12 @@ function ClassStudy() {
   const round = view?.round;
   return (
     <section id="class" className="scroll-mt-6">
-      <PageHeader eyebrow="LEARN AS A CLASS" title="Class Study" description="Host a live quiz from one of your study sets, or join with a class code." />
+      <PageHeader level={2} title="Class Study" description="Host a live quiz from one of your study sets, or join with a class code." />
       <div className="grid items-start gap-5 lg:grid-cols-2">
         <Card>
-          <CardHeader eyebrow="CLASS ROOM" title="Join or host" description={view ? `In ${view.name} (${view.code}). ${view.isHost ? 'You are hosting.' : 'Waiting for the host to run questions.'}` : 'Classmates open this site and enter your code.'} />
+          <CardHeader title="Join or host" description={view ? `In ${view.name} (${view.code}). ${view.isHost ? 'You are hosting.' : 'Waiting for the host to run questions.'}` : 'Classmates open this site and enter your code.'} />
           <Field label="Your name in class" htmlFor="classStudentName"><Input id="classStudentName" maxLength={30} value={studentName} onChange={(e) => setStudentName(e.target.value)} /></Field>
-          <div className="mt-5 rounded-xl border border-line p-4">
+          <div className="mt-5 border border-line p-4 rounded-xl">
             <strong className="text-sm">Host a class</strong>
             <Field label="Class name" htmlFor="className"><Input id="className" maxLength={60} value={className} onChange={(e) => setClassName(e.target.value)} placeholder="e.g. Biology 101 review" /></Field>
             <Field label="Study set to share" htmlFor="classSetSelect"><Select id="classSetSelect" value={setId} onChange={(e) => setSetId(e.target.value)}>{l.sets.map((s) => <option key={s.id} value={s.id}>{s.name} ({s.cards.length})</option>)}</Select></Field>
@@ -155,17 +155,17 @@ function ClassStudy() {
           {error && <Note className="text-danger">{error}</Note>}
         </Card>
         <Card>
-          <CardHeader eyebrow="LIVE ROUND" title={view ? `${view.name} · ${view.code}` : 'Waiting for a class'} description={view ? `${view.members.length} classmate${view.members.length === 1 ? '' : 's'} joined · ${view.setName}` : undefined} />
-          <div className="min-h-48 rounded-2xl border border-line bg-surface-2 p-5" id="classStage">
+          <CardHeader title={view ? `${view.name} · ${view.code}` : 'Waiting for a class'} description={view ? `${view.members.length} classmate${view.members.length === 1 ? '' : 's'} joined · ${view.setName}` : undefined} />
+          <div className="min-h-48 border border-line bg-surface-2 p-5 rounded-lg" id="classStage">
             {!view ? <p className="text-sm text-muted">Host a class or enter a code to begin.</p> : view.finished ? (
-              <div className="py-6 text-center"><h3 className="text-xl font-bold">Class quiz complete!</h3><p className="mt-1 text-sm text-muted">Great work together. Keep practicing this set in Study games.</p></div>
+              <div className="py-6 text-center"><h3 className="text-xl font-semibold">Class quiz complete!</h3><p className="mt-1 text-sm text-muted">Great work together. Keep practicing this set in Study games.</p></div>
             ) : !round ? <p className="text-sm text-muted">The host can start the quiz when everyone has joined.</p> : (
               <>
-                <p className="text-[11px] font-bold tracking-[0.08em] text-muted uppercase">Question {round.index + 1} of {round.total} · {round.answers} answered</p>
-                <h3 className="mt-2 mb-4 text-lg font-bold">{round.question}</h3>
+                <p className="text-[12px] font-semibold text-muted">Question {round.index + 1} of {round.total} · {round.answers} answered</p>
+                <h3 className="mt-2 mb-4 text-lg font-semibold">{round.question}</h3>
                 <div className="grid gap-2 sm:grid-cols-2">
                   {round.options.map((o) => (
-                    <button key={o} type="button" disabled={round.status !== 'question' || Boolean(round.yourAnswer)} onClick={() => session && act(() => api.classes.answer(session.code, session.token, o))} className={cn('min-h-12 rounded-xl border bg-surface p-3 text-left text-sm font-semibold', round.status === 'reveal' && o === round.correct ? 'border-ok bg-ok-soft' : round.yourAnswer === o ? 'border-accent bg-accent-soft' : 'border-line-strong enabled:hover:bg-accent-soft')}>{o}</button>
+                    <button key={o} type="button" disabled={round.status !== 'question' || Boolean(round.yourAnswer)} onClick={() => session && act(() => api.classes.answer(session.code, session.token, o))} className={cn('min-h-12 border bg-surface p-3 text-left text-sm font-semibold rounded-xl', round.status === 'reveal' && o === round.correct ? 'border-ok bg-ok-soft' : round.yourAnswer === o ? 'border-accent bg-accent-soft' : 'border-line-strong enabled:hover:bg-accent-soft')}>{o}</button>
                   ))}
                 </div>
                 <p className="mt-3 text-sm">{round.status === 'reveal' ? <strong className="text-ok">Answer: {round.correct}</strong> : round.yourAnswer ? <span className="text-muted">Answer saved. Waiting for the host to reveal it.</span> : null}</p>
@@ -177,7 +177,7 @@ function ClassStudy() {
               {!round ? 'Start quiz' : round.status === 'question' ? 'Reveal answer' : round.index + 1 >= round.total ? 'Finish quiz' : 'Next question'}
             </Button>
           )}
-          <div className="mt-6 text-[11px] font-bold tracking-[0.12em] text-muted">CLASS SCORES</div>
+          <div className="mt-6 text-[12px] font-semibold text-muted">CLASS SCORES</div>
           {view ? [...view.members].sort((a, b) => b.score - a.score).map((m, i) => (
             <div key={`${m.name}-${i}`} className="flex justify-between border-b border-line py-2.5 text-sm last:border-0"><strong>{i + 1}. {m.name}{m.isHost ? ' · host' : ''}</strong><span className="text-muted">{m.score} pts</span></div>
           )) : <p className="mt-2 text-sm text-muted">Scores appear when a class starts.</p>}
@@ -190,7 +190,7 @@ function ClassStudy() {
 export function FriendsPage() {
   return (
     <>
-      <PageHeader eyebrow="STUDY TOGETHER" title="Friends & classmates" description="Invite friends with a link, then host a live class review with a join code." />
+      <PageHeader title="Friends & classmates" description="Invite friends with a link, then host a live class review with a join code." />
       <StudyCircle />
       <ClassStudy />
     </>

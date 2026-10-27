@@ -1,5 +1,6 @@
 'use client';
 import { AI_KEY, useAi } from './ai';
+import { EXTRAS_KEY, useExtras } from './extras';
 import { LEARNING_KEY, useLearning } from './learning';
 import { PROFILE_KEY, useProfile } from './profile';
 
@@ -61,7 +62,7 @@ let hydrating: Promise<void> | null = null;
 export function hydrateStores() {
   if (!hydrating) {
     migrateLegacy();
-    hydrating = Promise.all([useProfile.persist.rehydrate(), useLearning.persist.rehydrate(), useAi.persist.rehydrate()]).then(() => undefined);
+    hydrating = Promise.all([useProfile.persist.rehydrate(), useLearning.persist.rehydrate(), useAi.persist.rehydrate(), useExtras.persist.rehydrate()]).then(() => undefined);
   }
   return hydrating;
 }
@@ -71,7 +72,7 @@ export function exportBackup() {
   const strip = <T extends object>(s: T) => JSON.parse(JSON.stringify(s, (_k, v) => (typeof v === 'function' ? undefined : v)));
   const ai = strip(useAi.getState());
   ai.keys = {}; // never export API keys
-  return JSON.stringify({ app: 'studytime', version: 1, exportedAt: new Date().toISOString(), profile: strip(useProfile.getState()), learning: strip(useLearning.getState()), ai }, null, 2);
+  return JSON.stringify({ app: 'studytime', version: 1, exportedAt: new Date().toISOString(), profile: strip(useProfile.getState()), learning: strip(useLearning.getState()), ai, extras: strip(useExtras.getState()) }, null, 2);
 }
 
 export async function importBackup(text: string) {
@@ -81,5 +82,6 @@ export async function importBackup(text: string) {
   write(PROFILE_KEY, data.profile);
   if (data.learning) write(LEARNING_KEY, data.learning);
   if (data.ai) write(AI_KEY, { ...data.ai, keys });
-  await Promise.all([useProfile.persist.rehydrate(), useLearning.persist.rehydrate(), useAi.persist.rehydrate()]);
+  if (data.extras) write(EXTRAS_KEY, data.extras);
+  await Promise.all([useProfile.persist.rehydrate(), useLearning.persist.rehydrate(), useAi.persist.rehydrate(), useExtras.persist.rehydrate()]);
 }

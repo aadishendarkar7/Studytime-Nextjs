@@ -8,14 +8,14 @@ import type { AiError } from '@/lib/ai/client';
 
 export function AiErrorBox({ error }: { error: AiError | Error }) {
   const needsSetup = 'needsSetup' in error && (error as AiError).needsSetup;
-  return <ErrorBox action={needsSetup ? <Link href="/settings#ai" className="font-bold underline">Open AI settings</Link> : undefined}>{error.message}</ErrorBox>;
+  return <ErrorBox action={needsSetup ? <Link href="/settings#ai" className="font-semibold underline">Open AI settings</Link> : undefined}>{error.message}</ErrorBox>;
 }
 
 export function Placeholder({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <div className="rounded-2xl border border-dashed border-line-strong px-6 py-10 text-center">
-      <strong className="block font-display text-base text-ink">{title}</strong>
-      <p className="mx-auto mt-1.5 max-w-md text-sm text-muted">{children}</p>
+    <div className="border border-dashed border-line px-5 py-8 rounded-xl">
+      <strong className="block font-display text-[18px] leading-6 font-semibold text-ink">{title}</strong>
+      <p className="mt-1.5 max-w-[68ch] text-[13px] leading-5 text-muted">{children}</p>
     </div>
   );
 }

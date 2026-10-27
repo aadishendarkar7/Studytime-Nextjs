@@ -39,7 +39,7 @@ export const NOTE_PROMPTS = {
 } as const;
 
 export const WRITE_PROMPTS = {
-  feedback: 'Give detailed feedback on this writing. Start with a "## Scores" table rating 1–5 for: Thesis & focus, Organization, Evidence & analysis, Clarity & style, Grammar & mechanics (with a one-line reason each). Then "## What works" (2–3 bullets), and "## Top revisions" — the 3–5 most important changes, each quoting the original sentence and showing a suggested rewrite. Do not rewrite the whole piece.',
+  feedback: 'Give detailed feedback on this writing. Start with a "## Scores" table rating 1–5 for: Thesis & focus, Organization, Evidence & analysis, Clarity & style, Grammar & mechanics (with a one-line reason each). Then "## What works" (2–3 bullets), and "## Top revisions": the 3–5 most important changes, each quoting the original sentence and showing a suggested rewrite. Do not rewrite the whole piece.',
   clarity: "Revise this writing for clarity and flow while keeping the author's voice, meaning, and length roughly the same. Output \"## Revised version\" then \"## What I changed\" (bullets).",
   grammar: 'Correct grammar, spelling, punctuation, and word choice only. Do not change meaning or style. Output "## Corrected version" then "## Fixes" (a bullet list of each change: original → fixed, with the rule).',
   concise: 'Make this writing tighter and more concise without losing meaning. Output "## Concise version", then the word count before and after, then "## What I cut".',

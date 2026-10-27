@@ -107,10 +107,10 @@ export function SolveTool() {
     <>
       <div className="grid items-start gap-5 xl:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
         <Card>
-          <CardHeader eyebrow="HOMEWORK HELP" title="Snap & solve" />
+          <CardHeader title="Snap & solve" />
           <DropZone onFiles={att.add} accept="image/*,.pdf" title="Drop, paste, or upload a photo" hint="Homework, worksheets, or textbook pages · JPG, PNG, or PDF" inputId="solveFile" />
           <div className="flex flex-wrap items-center gap-3">
-            <label className="inline-flex h-10 cursor-pointer items-center gap-2 rounded-[10px] bg-surface-3 px-4 text-sm font-semibold text-ink-2 hover:bg-accent-soft">
+            <label className="inline-flex h-10 cursor-pointer items-center gap-2 bg-surface-3 px-4 text-sm font-semibold text-ink-2 hover:bg-accent-soft rounded-lg">
               <Icon name="camera" className="size-4" /> Take a photo
               <input type="file" accept="image/*" capture="environment" hidden onChange={(e) => e.target.files && att.add(e.target.files)} />
             </label>
@@ -129,23 +129,22 @@ export function SolveTool() {
         </Card>
         <Card>
           <CardHeader
-            eyebrow="SOLUTION"
             title={mode === 'hint' ? 'Your hints' : mode === 'check' ? 'Work check' : 'Step-by-step solution'}
-            action={checking ? <Badge>Cross-checking…</Badge> : verdict ? <Badge tone={verdict.agree ? 'ok' : 'warn'}>{verdict.agree ? '✓ Cross-check agrees' : '⚠ Cross-check disagrees'}</Badge> : null}
+            action={checking ? <Badge>Cross-checking</Badge> : verdict ? <Badge tone={verdict.agree ? 'ok' : 'warn'}>{verdict.agree ? 'Cross-check agrees' : 'Cross-check disagrees'}</Badge> : null}
           />
           <div id="solveOutput">
             <AiOutput run={run} thinking={att.files.length ? 'Reading your photo…' : 'Working through it…'} placeholder={<Placeholder title="Your solution appears here.">Each problem is explained step by step, cross-checked with a second pass, and broken into concept cards you can review later.</Placeholder>} />
           </div>
           {verdict && (
-            <div className={`mt-4 rounded-xl px-4 py-3 text-sm ${verdict.agree ? 'bg-ok-soft text-ok' : 'bg-warn-soft text-warn'}`}>
+            <div className={`mt-4  px-4 py-3 text-sm ${verdict.agree ? 'bg-ok-soft text-ok' : 'bg-warn-soft text-warn'}`}>
               <strong>{verdict.agree ? 'Cross-checked.' : 'The second check disagrees.'}</strong> {verdict.note}
               {!verdict.agree && verdict.finalAnswer && <> Its answer: <b>{verdict.finalAnswer}</b>. Ask a follow-up to work out which is right.</>}
             </div>
           )}
           {current && current.concepts.length > 0 && (
             <div className="mt-4 flex flex-wrap items-center gap-2">
-              <span className="text-xs font-bold text-muted">Concept cards:</span>
-              {current.concepts.map((c) => <Link key={c} href="/ai/concepts" className="rounded-full border border-line-strong bg-surface-2 px-3 py-1.5 text-[13px] font-semibold text-ink-2 hover:bg-accent-soft">{c}</Link>)}
+              <span className="text-xs font-semibold text-muted">Concept cards:</span>
+              {current.concepts.map((c) => <Link key={c} href="/ai/concepts" className="border border-line-strong bg-surface-2 px-3 py-1.5 text-[13px] font-semibold text-ink-2 hover:bg-accent-soft rounded-lg">{c}</Link>)}
             </div>
           )}
           {current && (
@@ -159,8 +158,8 @@ export function SolveTool() {
             <div className="mt-5 border-t border-line pt-5" id="practiceBox">
               <AiOutput run={{ ...practice, text: practiceMain ?? '' }} thinking="Writing practice problems…" placeholder={null} />
               {practiceAnswers && practice.status === 'done' && (
-                <details className="mt-3 rounded-xl border border-line px-4 py-3">
-                  <summary className="text-sm font-bold text-accent-ink">Show answers</summary>
+                <details className="mt-3 border border-line px-4 py-3 rounded-xl">
+                  <summary className="text-sm font-semibold text-accent-ink">Show answers</summary>
                   <Markdown className="mt-3">{practiceAnswers}</Markdown>
                 </details>
               )}
@@ -177,13 +176,13 @@ function SolveHistory({ onOpen }: { onOpen: (s: Solve) => void }) {
   const solves = useAi((s) => s.solves);
   return (
     <Card className="mt-5">
-      <CardHeader eyebrow="HISTORY" title="Recent problems" />
+      <CardHeader title="Recent problems" />
       {solves.length ? (
         solves.slice(0, 12).map((s) => (
           <button key={s.id} type="button" data-solve-id={s.id} onClick={() => onOpen(s)} className="flex w-full items-center justify-between gap-3 border-b border-line py-3 text-left last:border-0 hover:text-accent-ink">
             <span className="min-w-0">
               <strong className="block truncate text-sm">{s.question}</strong>
-              <small className="text-xs text-muted">{shortDate(s.at)} · {s.mode === 'hint' ? 'Hints' : s.mode === 'check' ? 'Work check' : 'Solution'}{s.verdict ? (s.verdict.agree ? ' · ✓ cross-checked' : ' · ⚠ disagreement') : ''}</small>
+              <small className="text-xs text-muted">{shortDate(s.at)} · {s.mode === 'hint' ? 'Hints' : s.mode === 'check' ? 'Work check' : 'Solution'}{s.verdict ? (s.verdict.agree ? ' · cross-checked' : ' · cross-check disagreed') : ''}</small>
             </span>
             <Icon name="arrow" className="size-4 shrink-0 text-muted" />
           </button>

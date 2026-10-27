@@ -69,7 +69,7 @@ function SetManager() {
 
   return (
     <Card>
-      <CardHeader eyebrow="YOUR STUDY SETS" title="Your sets" />
+      <CardHeader title="Your sets" />
       <FieldRow>
         <Field label="Folder" htmlFor="gameFolderSelect">
           <Select id="gameFolderSelect" value={l.folderFilter} onChange={(e) => l.update({ folderFilter: e.target.value })}>
@@ -110,8 +110,8 @@ function SetManager() {
           <Button variant="secondary" onClick={addCard}>Add</Button>
         </div>
       </Field>
-      <details open className="mt-4 rounded-xl bg-accent-soft px-4 py-3">
-        <summary className="text-sm font-bold text-accent-ink">✦ Generate cards with AI</summary>
+      <details open className="mt-4 bg-accent-soft px-4 py-3 rounded-lg">
+        <summary className="min-h-11 text-[13px] font-medium text-accent">Generate cards with AI</summary>
         <div className="mt-3 flex flex-wrap gap-2">
           <Input className="min-w-48 flex-[2]" maxLength={2000} value={topic} onChange={(e) => setTopic(e.target.value)} placeholder="A topic or pasted notes, e.g. The French Revolution" aria-label="Topic for AI flashcards" />
           <Select className="w-auto" value={count} onChange={(e) => setCount(Number(e.target.value))} aria-label="Number of cards">
@@ -121,7 +121,7 @@ function SetManager() {
         </div>
       </details>
       <details className="mt-3 text-sm">
-        <summary className="font-bold text-ink-2">Paste many cards at once</summary>
+        <summary className="font-semibold text-ink-2">Paste many cards at once</summary>
         <Note>One card per line: <code>term - answer</code>, <code>term: answer</code>, or tab-separated.</Note>
         <Textarea className="mt-2" rows={5} value={bulk} onChange={(e) => setBulk(e.target.value)} placeholder="Mitosis - Cell division that makes two identical cells" />
         <Button variant="secondary" className="mt-2" onClick={() => {
@@ -141,7 +141,7 @@ function SetManager() {
           <div key={c.id} className="grid grid-cols-[1fr_1fr_auto] items-center gap-3 border-b border-line py-2.5 text-[13px] last:border-0">
             <strong className="break-words">{i + 1}. {c.front}</strong>
             <span className="break-words text-muted">{c.back}</span>
-            <button type="button" onClick={() => l.removeCard(set.id, c.id)} aria-label={`Remove card ${i + 1}`} className="rounded p-1 text-muted hover:text-danger"><Icon name="close" className="size-4" /></button>
+            <button type="button" onClick={() => l.removeCard(set.id, c.id)} aria-label={`Remove card ${i + 1}`} className="p-1 text-muted hover:text-danger"><Icon name="close" className="size-4" /></button>
           </div>
         )) : <Empty>Add a term and answer to begin.</Empty>}
       </div>
@@ -163,22 +163,22 @@ function DeckLibrary() {
   const decks = (tab === 'starter' ? STARTER_DECKS : shared ?? []).filter((d) => !q || `${d.name} ${d.subject} ${d.author ?? ''}`.toLowerCase().includes(q.toLowerCase()));
   return (
     <Card className="mt-5">
-      <CardHeader eyebrow="DECK LIBRARY" title="Ready-made decks" description="Start from a free deck or one shared by other students." action={<Segmented value={tab} onChange={setTab} options={[{ value: 'starter', label: 'Starter decks' }, { value: 'shared', label: 'Shared by students' }]} />} />
+      <CardHeader title="Ready-made decks" description="Start from a free deck or one shared by other students." action={<Segmented value={tab} onChange={setTab} options={[{ value: 'starter', label: 'Starter decks' }, { value: 'shared', label: 'Shared by students' }]} />} />
       <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search decks" aria-label="Search decks" />
       <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {tab === 'shared' && shared === null ? <p className="text-sm text-muted">Loading…</p> : decks.length ? decks.map((d) => {
           const added = l.sets.some((s) => s.sourceDeck === d.id);
           return (
-            <article key={d.id} className="flex flex-col gap-1.5 rounded-xl border border-line p-4">
+            <article key={d.id} className="flex flex-col gap-1.5 border border-line p-4 rounded-xl">
               <Badge className="self-start">{d.subject || 'General'}</Badge>
-              <h3 className="mt-1 font-bold">{d.name}</h3>
+              <h3 className="mt-1 font-semibold">{d.name}</h3>
               <p className="text-[13px] text-muted">{d.cards.length} cards{d.author ? ` · by ${d.author}` : ''}</p>
               <p className="flex-1 text-xs text-muted">{d.cards.slice(0, 3).map((c) => c.front).join(' · ')}</p>
               <Button variant="secondary" className="mt-2" onClick={() => {
                 if (added && !confirm('You already added this deck. Add another copy?')) return;
                 l.addSet(d.name, d.cards, d.subject || DEFAULT_FOLDER, d.id);
                 toast(`“${d.name}” added to your sets.`);
-              }}>{added ? 'Added ✓' : 'Add to my sets'}</Button>
+              }}>{added ? 'Added' : 'Add to my sets'}</Button>
             </article>
           );
         }) : <p className="text-sm text-muted sm:col-span-2">{tab === 'shared' ? 'No shared decks yet. Share one of your sets to start the library.' : 'No decks match your search.'}</p>}
@@ -195,19 +195,19 @@ export function GamesPage() {
   const totalDue = useMemo(() => sets.reduce((n, s) => n + s.cards.filter((c) => isDue(c)).length, 0), [sets]);
   return (
     <>
-      <PageHeader eyebrow="PRACTICE YOUR WAY" title="Study games" description="Spaced-repetition review, flashcards, quizzes, matching, and speed rounds from one set of cards." action={<Badge tone="accent" className="px-3.5 py-2 text-[13px]">Due today: {totalDue}</Badge>} />
+      <PageHeader title="Study games" description="Spaced-repetition review, flashcards, quizzes, matching, and speed rounds from one set of cards." action={<Badge tone="accent" className="px-3.5 py-2 text-[13px]">Due today: {totalDue}</Badge>} />
       <div className="grid items-start gap-5 lg:grid-cols-2">
         <SetManager />
         <Card className="lg:sticky lg:top-6">
-          <CardHeader eyebrow="CHOOSE A GAME" title="Start practicing" />
+          <CardHeader title="Start practicing" />
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-3" role="tablist" aria-label="Game mode">
             {MODES.map((m) => (
-              <button key={m.id} type="button" role="tab" aria-selected={mode === m.id} onClick={() => setMode(m.id)} className={cn('rounded-xl border px-3 py-2.5 text-[13px] font-semibold', mode === m.id ? 'border-accent bg-accent-soft text-accent-ink' : 'border-line-strong bg-surface-2 text-ink-2 hover:bg-surface-3')}>
+              <button key={m.id} type="button" role="tab" aria-selected={mode === m.id} onClick={() => setMode(m.id)} className={cn('border px-3 py-2.5 text-[13px] font-semibold rounded-xl', mode === m.id ? 'border-accent bg-accent-soft text-accent-ink' : 'border-line-strong bg-surface-2 text-ink-2 hover:bg-surface-3')}>
                 {m.label}
               </button>
             ))}
           </div>
-          <div className="mt-4 min-h-64 rounded-2xl border border-line bg-surface-2 p-5">
+          <div className="mt-4 min-h-64 border border-line bg-surface-2 p-5 rounded-lg">
             <GameStage set={set} mode={mode} />
           </div>
         </Card>

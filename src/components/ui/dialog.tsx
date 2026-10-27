@@ -1,9 +1,8 @@
 'use client';
 import { useEffect, useRef, type ReactNode } from 'react';
-import { Eyebrow } from './card';
 import { Icon } from './icons';
 
-export function Dialog({ open, onClose, eyebrow, title, children }: { open: boolean; onClose: () => void; eyebrow?: string; title: string; children: ReactNode }) {
+export function Dialog({ open, onClose, title, children }: { open: boolean; onClose: () => void; title: string; children: ReactNode }) {
   const ref = useRef<HTMLDialogElement>(null);
   useEffect(() => {
     const d = ref.current;
@@ -16,16 +15,13 @@ export function Dialog({ open, onClose, eyebrow, title, children }: { open: bool
       ref={ref}
       onClose={onClose}
       onClick={(e) => e.target === ref.current && onClose()}
-      className="m-auto w-[min(560px,calc(100vw-32px))] rounded-2xl border border-line bg-surface p-0 text-ink shadow-2xl"
+      className="m-auto w-[min(560px,calc(100vw-32px))] rounded-3xl border border-line bg-surface p-0 text-ink shadow-lg"
     >
       {open && (
-        <div className="p-6">
+        <div className="p-6 max-sm:p-4">
           <div className="mb-4 flex items-start justify-between gap-4">
-            <div>
-              {eyebrow && <Eyebrow>{eyebrow}</Eyebrow>}
-              <h2 className="mt-1 text-xl font-bold">{title}</h2>
-            </div>
-            <button type="button" onClick={onClose} aria-label="Close" className="rounded-lg p-1.5 text-muted hover:bg-surface-3">
+            <h2 className="text-[24px] leading-8 font-semibold">{title}</h2>
+            <button type="button" onClick={onClose} aria-label="Close" className="-mt-1 -mr-2 grid size-11 place-items-center rounded-full text-muted hover:bg-surface-3 hover:text-ink">
               <Icon name="close" />
             </button>
           </div>

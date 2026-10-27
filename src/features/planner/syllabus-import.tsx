@@ -98,24 +98,24 @@ export function SyllabusImport() {
   return (
     <section id="syllabus" className="grid scroll-mt-6 gap-5 lg:grid-cols-2">
       <Card>
-        <CardHeader eyebrow="FROM SYLLABUS TO PLAN" title="Import a syllabus" description="Drop a PDF or Word file, then review each deadline before adding it." />
+        <CardHeader title="Import a syllabus" description="Drop a PDF or Word file, then review each deadline before adding it." />
         <Field label="Course name" htmlFor="syllabusCourse"><Input id="syllabusCourse" list="courseList" value={course} onChange={(e) => setCourse(e.target.value)} placeholder="e.g. BIO 101" /></Field>
         <datalist id="courseList">{courses.map((c) => <option key={c} value={c} />)}</datalist>
         <DropZone onFiles={(f) => read(f[0])} accept=".pdf,.docx,.txt,.csv,.md" multiple={false} title="Drop your syllabus here" hint="or click to choose a PDF, Word, or text file" inputId="syllabusFile" />
         <Note className="mt-0">{status}</Note>
-        <Button variant="secondary" className="mt-3" loading={aiBusy} onClick={findWithAi}>✦ Find with AI</Button>
+        <Button variant="secondary" className="mt-3" loading={aiBusy} onClick={findWithAi}>Find with AI</Button>
         <details className="mt-5 text-sm">
-          <summary className="font-bold text-ink-2">Having trouble? Paste the schedule</summary>
-          <Textarea className="mt-3" rows={6} value={pasted} onChange={(e) => setPasted(e.target.value)} placeholder="Week 3 — Essay due October 30, 2026" />
+          <summary className="font-semibold text-ink-2">Having trouble? Paste the schedule</summary>
+          <Textarea className="mt-3" rows={6} value={pasted} onChange={(e) => setPasted(e.target.value)} placeholder="Week 3: Essay due October 30, 2026" />
           <Button variant="secondary" className="mt-2" onClick={() => (setFile(null), scan(pasted))}>Scan pasted text</Button>
         </details>
       </Card>
       <Card>
-        <CardHeader eyebrow="REVIEW FIRST" title="Deadlines found" description="Edit titles and dates. Only checked items will be added." />
+        <CardHeader title="Deadlines found" description="Edit titles and dates. Only checked items will be added." />
         {items.length ? (
           <div className="max-h-[420px] space-y-2 overflow-y-auto pr-1">
             {items.map((c, i) => (
-              <div key={i} className="flex gap-3 rounded-xl border border-line p-3">
+              <div key={i} className="flex gap-3 border border-line p-3 rounded-xl">
                 <input type="checkbox" className="mt-3 size-4 accent-[var(--accent)]" checked={c.selected} onChange={(e) => patch(i, { selected: e.target.checked })} aria-label={`Include deadline ${i + 1}`} />
                 <div className="grid flex-1 gap-2">
                   <Input value={c.title} onChange={(e) => patch(i, { title: e.target.value })} aria-label="Assignment title" />

@@ -4,7 +4,7 @@ import { Badge, Card, CardHeader, Empty, PageHeader } from '@/components/ui/card
 import { Button } from '@/components/ui/button';
 import { Field, FieldRow, Input, Note, Select } from '@/components/ui/field';
 import { Segmented } from '@/components/ui/segmented';
-import { MAJORS } from '@/features/settings/settings-page';
+import { MAJORS } from '@/lib/constants';
 import { CircleBoard } from '@/features/social/friends-page';
 import { syncCircle, syncLeaderboardProfile } from '@/features/social/sync';
 import { usePolling } from '@/features/social/use-polling';
@@ -45,10 +45,10 @@ export function LeaderboardPage() {
 
   return (
     <>
-      <PageHeader eyebrow="SEE YOUR STUDY COMMUNITY" title="Leaderboards" description="Compare weekly focus time with students at your school, in your major, and in your year." />
+      <PageHeader title="Leaderboards" description="Compare weekly focus time with students at your school, in your major, and in your year." />
       <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)]">
         <Card>
-          <CardHeader eyebrow="YOUR SCHOOL PROFILE" title="Choose your groups" />
+          <CardHeader title="Choose your groups" />
           <Field label="School or campus" htmlFor="leaderboardSchool"><Input id="leaderboardSchool" maxLength={80} value={school} onChange={(e) => setSchool(e.target.value)} placeholder="Your school name" /></Field>
           <FieldRow>
             <Field label="Major" htmlFor="leaderboardMajor">
@@ -65,13 +65,13 @@ export function LeaderboardPage() {
           <Note>Boards rank this week’s focus minutes among students using this Studytime site. Your name and minutes are visible to others in your groups.</Note>
         </Card>
         <Card>
-          <CardHeader eyebrow="WEEKLY FOCUS" title={result ? `${result.label || 'Your'} ${scope === 'year' ? 'year' : scope} leaderboard` : 'Leaderboard'} action={<Segmented value={scope} onChange={(s) => (setScope(s), setResult(null), setStatus('Loading rankings…'))} options={[{ value: 'school', label: 'School' }, { value: 'major', label: 'Major' }, { value: 'class', label: 'Class' }, { value: 'year', label: 'Year' }]} />} />
+          <CardHeader title={result ? `${result.label || 'Your'} ${scope === 'year' ? 'year' : scope} leaderboard` : 'Leaderboard'} action={<Segmented value={scope} onChange={(s) => (setScope(s), setResult(null), setStatus('Loading rankings…'))} options={[{ value: 'school', label: 'School' }, { value: 'major', label: 'Major' }, { value: 'class', label: 'Class' }, { value: 'year', label: 'Year' }]} />} />
           {(status || result?.message) && <Note className="mt-0 mb-3">{status || result?.message}</Note>}
           {result && !result.message && (result.entries.length ? (
             <ol id="leaderboardScopeList">
               {result.entries.map((s, i) => (
                 <li key={s.id} className="flex items-center justify-between gap-3 border-b border-line py-3 text-sm last:border-0">
-                  <strong className="flex items-center gap-2"><span className={i < 3 ? 'grid size-7 place-items-center rounded-full bg-accent-soft text-accent-ink' : 'w-7 text-center text-muted'}>{i + 1}</span>{s.name}{s.id === p.leaderboard?.id && <Badge tone="accent">you</Badge>}</strong>
+                  <strong className="flex items-center gap-2"><span className={i < 3 ? 'grid size-7 place-items-center  bg-accent-soft text-accent-ink' : 'w-7 text-center text-muted'}>{i + 1}</span>{s.name}{s.id === p.leaderboard?.id && <Badge tone="accent">you</Badge>}</strong>
                   <span className="text-muted">{s.minutes} min{scope === 'class' ? ` · ${s.quizScore ?? 0} quiz pts` : ''}</span>
                 </li>
               ))}
@@ -80,7 +80,7 @@ export function LeaderboardPage() {
         </Card>
       </div>
       <Card className="mt-5">
-        <CardHeader eyebrow="YOUR STUDY CIRCLE" title="Friends progress" />
+        <CardHeader title="Friends progress" />
         <CircleBoard members={p.circle ? circle : null} meId={p.circle?.publicId} />
       </Card>
     </>

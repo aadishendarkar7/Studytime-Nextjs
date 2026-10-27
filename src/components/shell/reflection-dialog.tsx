@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Dialog } from '@/components/ui/dialog';
-import { Field, Input, Note, Select } from '@/components/ui/field';
+import { Field, Input, Select } from '@/components/ui/field';
 import { useProfile } from '@/lib/stores/profile';
 import { toast, useUi } from '@/lib/stores/ui';
 import type { Reflection } from '@/lib/types';
@@ -16,7 +16,7 @@ export function ReflectionDialog() {
   const [note, setNote] = useState('');
   const [mood, setMood] = useState<Reflection['mood']>('good');
   return (
-    <Dialog open={open} onClose={() => setOpen(false)} eyebrow="SESSION COMPLETE" title="How did it go?">
+    <Dialog open={open} onClose={() => setOpen(false)} title="Session complete">
       <form
         onSubmit={(e) => {
           e.preventDefault();
@@ -24,13 +24,13 @@ export function ReflectionDialog() {
           setNote('');
           setOpen(false);
           router.push('/');
-          toast('Check-in saved. Plan your next session whenever you are ready.');
+          toast('Check-in saved.');
         }}
       >
         <Field label="What did you finish or learn?" htmlFor="reflectionNote">
-          <Input id="reflectionNote" maxLength={160} value={note} onChange={(e) => setNote(e.target.value)} placeholder="One small win is enough" />
+          <Input id="reflectionNote" maxLength={160} value={note} onChange={(e) => setNote(e.target.value)} placeholder="For example: finished problem set 4" />
         </Field>
-        <Field label="How do you feel now?" htmlFor="reflectionMood">
+        <Field label="How do you feel?" htmlFor="reflectionMood">
           <Select id="reflectionMood" value={mood} onChange={(e) => setMood(e.target.value as Reflection['mood'])}>
             <option value="good">Good</option>
             <option value="okay">Okay</option>
@@ -38,7 +38,7 @@ export function ReflectionDialog() {
           </Select>
         </Field>
         <Button type="submit" block className="mt-5">Save check-in</Button>
-        <Note>Reflect briefly, then plan when to return for your next session.</Note>
+        
       </form>
     </Dialog>
   );

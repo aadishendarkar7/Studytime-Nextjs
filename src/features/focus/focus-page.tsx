@@ -1,77 +1,61 @@
 'use client';
-import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, Eyebrow, PageHeader } from '@/components/ui/card';
+import { Card, CardHeader, Empty, PageHeader } from '@/components/ui/card';
 import { Field, Input, Note } from '@/components/ui/field';
-import { Ring } from '@/components/ui/progress';
-import { CALMING_THOUGHTS } from '@/features/shared';
+import { SessionRow } from '@/features/shared';
+import { useExtras } from '@/lib/stores/extras';
 import { useProfile } from '@/lib/stores/profile';
-import { cn, fmtClock } from '@/lib/utils';
-import { AWARD, DURATIONS } from './logic';
+import { cn, fmtMinutes, todayKey } from '@/lib/utils';
+import { DURATIONS, minutesOn } from './logic';
+import { TimerReadout } from './timer-readout';
 
 const MAJOR_SUGGESTIONS: Record<string, string[]> = { Biology: ['Biology', 'Chemistry', 'Lab'], Business: ['Accounting', 'Economics', 'Marketing'], 'Computer Science': ['Programming', 'Algorithms', 'Mathematics'], Engineering: ['Calculus', 'Physics', 'Design'], Psychology: ['Psychology', 'Statistics', 'Research'], 'Arts & Humanities': ['Writing', 'History', 'Studio'] };
 export const subjectSuggestions = (major: string, courses: string[]) => [...new Set([...(MAJOR_SUGGESTIONS[major] ?? []), ...courses])];
 
 export function FocusPage() {
   const p = useProfile();
-  const [thought, setThought] = useState(0);
+  const spots = useExtras((s) => s.spots);
   const t = p.timer;
-  const total = p.duration * 60;
-  const pct = Math.min(100, Math.max(0, (1 - t.remaining / total) * 100));
   const locked = t.mode !== 'ready';
+  const today = p.sessions.filter((s) => s.day === todayKey());
   return (
     <>
-      <PageHeader eyebrow="DEEP WORK STARTS HERE" title="Focus timer" description="Pick your study time, settle in, and make it count." />
-      <div className="grid gap-5 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
-        <Card className="flex flex-col items-center py-8">
-          <div className="flex w-full justify-between text-[11px] font-bold tracking-[0.12em] text-muted">
-            <span className="flex items-center gap-2"><i className={cn('size-2 rounded-full', t.mode === 'running' ? 'animate-pulse bg-accent' : 'bg-line-strong')} /> {t.mode === 'running' ? 'FOCUSING NOW' : t.mode === 'paused' ? 'SESSION PAUSED' : 'READY TO FOCUS'}</span>
-            <span className="text-accent-ink">+{AWARD[p.duration]} points</span>
-          </div>
-          <div className="my-8">
-            <Ring value={pct} size={300} stroke={16}>
-              <div>
-                <span className="text-[11px] font-bold tracking-[0.14em] text-muted">FOCUS SESSION</span>
-                <strong className="my-2 block font-display text-6xl font-extrabold tabular-nums" aria-live="off">{fmtClock(t.remaining)}</strong>
-                <small className="text-sm text-muted">{t.mode === 'running' ? 'Stay with it' : t.mode === 'paused' ? 'Pick up where you left off' : 'Time to get started'}</small>
-              </div>
-            </Ring>
-          </div>
-          <div className="flex gap-3">
-            <Button size="lg" onClick={p.startOrPause}>{t.mode === 'running' ? 'Pause session' : t.mode === 'paused' ? 'Resume focusing' : 'Start focusing'}</Button>
+      <PageHeader title="Focus timer" description="Choose a length, name the subject, start. A session only earns points if you finish it." />
+      <div className="grid gap-6 lg:grid-cols-12">
+        <Card className="lg:col-span-7">
+          <TimerReadout />
+          <div className="mt-8 flex flex-wrap gap-3">
+            <Button size="lg" onClick={p.startOrPause}>{t.mode === 'running' ? 'Pause' : t.mode === 'paused' ? 'Resume' : 'Start session'}</Button>
             <Button size="lg" variant="secondary" onClick={p.resetTimer}>Reset</Button>
           </div>
           <Note>The timer pauses when you switch away from this tab.</Note>
         </Card>
-        <div className="grid content-start gap-5">
-          <Card>
-            <Eyebrow>MAKE IT YOURS</Eyebrow>
-            <h2 className="mt-1.5 mb-4 text-lg font-bold">Session setup</h2>
-            <Field label="What are you studying?" htmlFor="subject">
-              <Input id="subject" list="subjectSuggestions" maxLength={60} disabled={locked} value={p.subject} onChange={(e) => p.update({ subject: e.target.value })} placeholder="e.g. Biology, Calculus, History" />
-            </Field>
-            <datalist id="subjectSuggestions">{subjectSuggestions(p.major, p.courses).map((x) => <option key={x} value={x} />)}</datalist>
-            <Field label="Where on campus are you studying?" htmlFor="location">
-              <Input id="location" maxLength={80} disabled={locked} value={p.location} onChange={(e) => p.update({ location: e.target.value })} placeholder="e.g. Main Library" />
-            </Field>
-            <Field label="Focus duration">
-              <div className="grid grid-cols-4 gap-2" role="radiogroup" aria-label="Focus duration">
-                {DURATIONS.map((d) => (
-                  <button key={d} type="button" role="radio" aria-checked={p.duration === d} disabled={locked} onClick={() => p.setDuration(d)} className={cn('rounded-xl border py-3 font-display text-lg font-bold disabled:opacity-50', p.duration === d ? 'border-accent bg-accent-soft text-accent-ink' : 'border-line-strong bg-surface-2 text-ink-2')}>
-                    {d} <small className="text-xs font-medium">min</small>
-                  </button>
-                ))}
-              </div>
-            </Field>
-            <Note>Finish the full session to earn points.</Note>
-          </Card>
-          <Card className="bg-accent-soft">
-            <Eyebrow>A MOMENT FOR YOU</Eyebrow>
-            <h3 className="mt-1.5 font-bold">Take a breath.</h3>
-            <p className="mt-2 text-accent-ink">{CALMING_THOUGHTS[thought]}</p>
-            <Button variant="link" className="mt-3" onClick={() => setThought((thought + 1) % CALMING_THOUGHTS.length)}>Another thought →</Button>
-          </Card>
-        </div>
+
+        <Card className="lg:col-span-5">
+          <CardHeader title="Session setup" />
+          <Field label="Subject" htmlFor="subject">
+            <Input id="subject" list="subjectSuggestions" maxLength={60} disabled={locked} value={p.subject} onChange={(e) => p.update({ subject: e.target.value })} placeholder="e.g. Biology, Calculus, History" />
+          </Field>
+          <datalist id="subjectSuggestions">{subjectSuggestions(p.major, p.courses).map((x) => <option key={x} value={x} />)}</datalist>
+          <Field label="Location" hint="optional" htmlFor="location">
+            <Input id="location" maxLength={80} disabled={locked} value={p.location} onChange={(e) => p.update({ location: e.target.value })} placeholder="Where you are studying" list="spotNames" />
+            <datalist id="spotNames">{spots.map((s) => <option key={s.id} value={s.name} />)}</datalist>
+          </Field>
+          <Field label="Length">
+            <div className="grid grid-cols-4 gap-2" role="radiogroup" aria-label="Session length">
+              {DURATIONS.map((d) => (
+                <button key={d} type="button" role="radio" aria-checked={p.duration === d} disabled={locked} onClick={() => p.setDuration(d)} className={cn('tnum h-11 border border-line text-[14px] font-medium transition-colors disabled:opacity-50 rounded-xl', p.duration === d ? 'bg-ink text-white' : 'bg-surface text-ink hover:bg-surface-3')}>
+                  {d} min
+                </button>
+              ))}
+            </div>
+          </Field>
+        </Card>
+
+        <Card className="lg:col-span-12">
+          <CardHeader title="Today" description={today.length ? `${today.length} ${today.length === 1 ? 'session' : 'sessions'}, ${fmtMinutes(minutesOn(p.sessions, todayKey()))} of ${fmtMinutes(p.dailyGoal)} goal.` : undefined} />
+          {today.length ? today.map((s) => <SessionRow key={s.id} s={s} />) : <Empty>No sessions yet today. Finished sessions are logged here.</Empty>}
+        </Card>
       </div>
     </>
   );

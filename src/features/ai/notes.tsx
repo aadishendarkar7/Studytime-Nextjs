@@ -91,8 +91,8 @@ export function NotesTool() {
   return (
     <div className="grid items-start gap-5 xl:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
       <Card>
-        <CardHeader eyebrow="FROM CLASS MATERIALS" title="Create notes" />
-        <Field label="Title" htmlFor="notesTitle"><Input id="notesTitle" maxLength={80} value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Unit 4 — Cell respiration" /></Field>
+        <CardHeader title="Create notes" />
+        <Field label="Title" htmlFor="notesTitle"><Input id="notesTitle" maxLength={80} value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Unit 4: Cell respiration" /></Field>
         <Field label="Folder" htmlFor="notesFolder">
           <div className="flex gap-2">
             <Select id="notesFolder" value={folder} onChange={(e) => setFolder(e.target.value)}>{ai.noteFolders.map((f) => <option key={f}>{f}</option>)}</Select>
@@ -106,11 +106,11 @@ export function NotesTool() {
         <Button size="lg" block className="mt-5" loading={run.running || cards.status === 'running'} onClick={generate}>Generate</Button>
       </Card>
       <Card>
-        <CardHeader eyebrow="ORGANIZED BY FOLDER" title={viewing ? viewing.title : run.status !== 'idle' || cards.status !== 'idle' ? 'Generating…' : 'Notes library'} action={(viewing || run.status !== 'idle' || cards.status !== 'idle') && <Button variant="link" size="sm" onClick={() => (setViewId(null), run.reset(), setCards({ status: 'idle', list: [] }))}>← All notes</Button>} />
+        <CardHeader title={viewing ? viewing.title : run.status !== 'idle' || cards.status !== 'idle' ? 'Generating…' : 'Notes library'} action={(viewing || run.status !== 'idle' || cards.status !== 'idle') && <Button variant="link" size="sm" onClick={() => (setViewId(null), run.reset(), setCards({ status: 'idle', list: [] }))}>← All notes</Button>} />
         <div id="noteView">
           {cards.status === 'running' ? <Thinking label="Writing flashcards…" /> : cards.status === 'error' && cards.error ? <AiErrorBox error={cards.error} /> : cards.status === 'done' ? (
             <>
-              <div className="rounded-xl bg-ok-soft px-4 py-3 text-sm text-ok"><strong>{cards.list.length} flashcards added to Study games.</strong></div>
+              <div className="bg-ok-soft px-4 py-3 text-sm text-ok"><strong>{cards.list.length} flashcards added to Study games.</strong></div>
               <div className="my-3 max-h-80 overflow-y-auto">{cards.list.map((c, i) => <div key={i} className="grid grid-cols-2 gap-3 border-b border-line py-2 text-[13px]"><strong>{c.front}</strong><span className="text-muted">{c.back}</span></div>)}</div>
               <Link href="/games"><Button>Practice now</Button></Link>
             </>

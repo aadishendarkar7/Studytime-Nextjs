@@ -1,30 +1,26 @@
 import type { Metadata, Viewport } from 'next';
-import '@fontsource-variable/dm-sans';
-import '@fontsource-variable/plus-jakarta-sans';
+import '@fontsource-variable/fraunces/full.css';
+import '@fontsource-variable/figtree';
 import 'katex/dist/katex.min.css';
 import './globals.css';
+import { APPEARANCE_SCRIPT } from '@/lib/appearance';
 
 export const metadata: Metadata = {
-  title: { default: 'Studytime — AI study companion', template: '%s · Studytime' },
-  description: 'Focus timer, planner, AI tutor, flashcards with spaced repetition, and study groups.',
+  title: { default: 'Studytime | Focus timer, planner and AI tutor', template: '%s | Studytime' },
+  description: 'Focus timer with ambient sounds, deadline planner, AI tutor, grade and GPA calculators, flashcards, study partners and study spots.',
   applicationName: 'Studytime',
 };
 
 export const viewport: Viewport = {
-  themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#f6f7f2' },
-    { media: '(prefers-color-scheme: dark)', color: '#0f1714' },
-  ],
+  themeColor: '#f8f2e8',
 };
-
-// Applies the saved theme and accent color before the first paint (no flash).
-const THEME_SCRIPT = `try{var p=JSON.parse(localStorage.getItem('studytime:profile')||'null');var s=p&&p.state;if(!s){var o=JSON.parse(localStorage.getItem('studytime-v1')||'null');s=o}if(s){if(s.theme==='dark')document.documentElement.dataset.theme='dark';if(/^#[0-9a-f]{6}$/i.test(s.accent||''))document.documentElement.style.setProperty('--accent',s.accent)}}catch(e){}`;
 
 export default function RootLayout({ children }: LayoutProps<'/'>) {
   return (
-    <html lang="en" data-theme="light" suppressHydrationWarning>
+    <html lang="en" data-backdrop="contours" data-wash="medium" suppressHydrationWarning>
       <head>
-        <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
+        {/* Applies the saved colors and backdrop before the first paint. */}
+        <script dangerouslySetInnerHTML={{ __html: APPEARANCE_SCRIPT }} />
       </head>
       <body>{children}</body>
     </html>

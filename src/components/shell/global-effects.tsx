@@ -1,6 +1,9 @@
 'use client';
 import { useEffect } from 'react';
 import { syncAfterSession } from '@/features/social/sync';
+import { pauseSound, startSound, useSoundPlaying } from '@/features/sounds/controller';
+import { applyAppearance } from '@/lib/appearance';
+import { useExtras } from '@/lib/stores/extras';
 import { useProfile } from '@/lib/stores/profile';
 import { toast, useUi } from '@/lib/stores/ui';
 
@@ -15,23 +18,33 @@ export function sendBrowserAlert(title: string, body: string) {
   }
 }
 
-/** App-wide background work: focus timer, reminders, planned sessions, theme. */
+/** App-wide background work: focus timer, reminders, planned sessions. */
 export function GlobalEffects() {
-  const theme = useProfile((s) => s.theme);
+  // Colors and backdrop follow the profile.
   const accent = useProfile((s) => s.accent);
+  const glow = useProfile((s) => s.glow);
+  const backdrop = useProfile((s) => s.backdrop);
+  const wash = useProfile((s) => s.wash);
+  useEffect(() => applyAppearance(accent, glow, backdrop, wash), [accent, glow, backdrop, wash]);
 
-  useEffect(() => {
-    document.documentElement.dataset.theme = theme;
-    document.documentElement.style.setProperty('--accent', accent);
-  }, [theme, accent]);
+  // Focus sounds can follow the timer: start with a session, stop when it pauses or ends.
+  useEffect(
+    () =>
+      useProfile.subscribe((state, prev) => {
+        if (state.timer.mode === prev.timer.mode || !useExtras.getState().soundWithTimer) return;
+        if (state.timer.mode === 'running') void startSound();
+        else if (useSoundPlaying.getState().playing) pauseSound();
+      }),
+    [],
+  );
 
   // Focus timer: tick every second; pause when the tab is hidden.
   useEffect(() => {
     const tick = () => {
       const result = useProfile.getState().tick();
       if (!result) return;
-      toast(`Session complete! +${result.base + result.bonus} points${result.bonus ? ' including a bonus' : ''}.`);
-      sendBrowserAlert('Focus session complete', `Nice work: ${result.session.minutes} minutes of ${result.session.subject}.`);
+      toast(`Session complete. +${result.base + result.bonus} points${result.bonus ? ' including a bonus' : ''}.`);
+      sendBrowserAlert('Focus session complete', `${result.session.minutes} minutes of ${result.session.subject} logged.`);
       useUi.getState().setReflectionOpen(true);
       syncAfterSession();
     };
@@ -61,8 +74,8 @@ export function GlobalEffects() {
       }
       if (p.nextPlanAt && !p.nextPlanNotified && now >= p.nextPlanAt) {
         p.update({ nextPlanNotified: true });
-        toast('Your planned study time is here. Ready for one small step?');
-        sendBrowserAlert('Time to study', 'Open Studytime and begin your planned focus session.');
+        toast('Your planned study time is now.');
+        sendBrowserAlert('Time to study', 'Open Studytime to start your planned focus session.');
       }
     };
     check();

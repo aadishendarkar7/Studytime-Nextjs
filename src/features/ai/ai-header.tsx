@@ -29,28 +29,28 @@ export function AiHeader() {
   ] as const;
   return (
     <>
-      <PageHeader eyebrow="AI STUDY COMPANION" title="AI Tutor" description="Snap a problem, chat with a tutor, and turn class materials into notes, flashcards, and study guides." action={<ConnectionPill />} />
+      <PageHeader title="AI Tutor" description="Solve problems from a photo, chat with a tutor, and turn class files into notes, flashcards and study guides." action={<ConnectionPill />} />
       {conn.mode === 'none' && conn.status && (
-        <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-warn/30 bg-warn-soft px-5 py-4 text-sm text-warn">
-          <span><strong>Connect a free AI key to start.</strong> Get one from Google AI Studio in about 2 minutes — no credit card.</span>
-          <Link href="/settings#ai" className="rounded-lg bg-brand px-3.5 py-2 font-semibold text-white">Set up AI</Link>
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3 border border-line bg-surface-3 px-4 py-3 text-[13px] leading-5 text-ink rounded-lg">
+          <span><strong>No AI key is connected.</strong> A free Google AI Studio key takes about two minutes and needs no credit card.</span>
+          <Link href="/settings#ai" className="inline-flex h-11 items-center border border-brand bg-brand px-4 font-medium text-bg hover:bg-brand-hover rounded-xl">Set up AI</Link>
         </div>
       )}
-      <div className="mb-4 grid grid-cols-2 gap-3 rounded-2xl border border-line bg-surface p-4 shadow-card md:grid-cols-4">
+      <div className="mb-4 grid grid-cols-2 gap-3 border border-line bg-surface p-4 md:grid-cols-4 rounded-xl">
         {selects.map((s) => (
           <div key={s.id}>
-            <label htmlFor={s.id} className="mb-1.5 block text-[11px] font-bold tracking-[0.08em] text-muted uppercase">{s.label}</label>
+            <label htmlFor={s.id} className="mb-1.5 block text-[12px] leading-4 font-medium text-muted">{s.label}</label>
             <Select id={s.id} value={ai[s.key]} onChange={(e) => ai.update({ [s.key]: e.target.value })}>
               {s.list.map((x) => <option key={x}>{x}</option>)}
             </Select>
           </div>
         ))}
       </div>
-      <nav aria-label="AI tools" className="mb-5 flex gap-1 overflow-x-auto rounded-2xl bg-surface-3 p-1 [scrollbar-width:none]">
+      <nav aria-label="AI tools" className="mb-5 flex overflow-x-auto border-b border-line [scrollbar-width:none]">
         {AI_TABS.map((t) => {
           const active = pathname === t.href;
           return (
-            <Link key={t.href} href={t.href} aria-current={active ? 'page' : undefined} className={cn('flex-1 shrink-0 rounded-xl px-4 py-2.5 text-center text-sm font-semibold whitespace-nowrap transition-colors', active ? 'bg-surface text-ink shadow-sm' : 'text-ink-2/75 hover:text-ink')}>
+            <Link key={t.href} href={t.href} aria-current={active ? 'page' : undefined} className={cn('flex min-h-11 shrink-0 items-center border-b-2 px-4 text-[13px] font-medium whitespace-nowrap transition-colors', active ? 'border-accent text-ink' : 'border-transparent text-muted hover:text-ink')}>
               {t.label}
             </Link>
           );

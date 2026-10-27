@@ -13,9 +13,9 @@ export function ConnectionPill({ className }: { className?: string }) {
   const conn = useConnection();
   const label = PROVIDERS[conn.provider].label;
   return (
-    <span className={cn('inline-flex items-center gap-2 rounded-full border px-3.5 py-2 text-[13px] font-semibold', conn.mode === 'none' ? 'border-warn/30 bg-warn-soft text-warn' : 'border-ok/25 bg-ok-soft text-ok', className)}>
-      <i className={cn('size-2 rounded-full', conn.mode === 'none' ? 'bg-warn' : 'bg-ok')} />
-      {conn.mode === 'own' ? `${label} · your key` : conn.mode === 'server' ? `${label} · provided by this site` : 'AI not connected'}
+    <span className={cn('inline-flex min-h-9 items-center gap-2 border px-3 text-[13px] font-medium rounded-xl', conn.mode === 'none' ? 'border-line bg-surface-3 text-ink' : 'border-line text-ink', className)}>
+      <i className={cn('size-2', conn.mode === 'none' ? 'bg-danger' : 'bg-accent')} />
+      {conn.mode === 'own' ? `${label}, your key` : conn.mode === 'server' ? `${label}, provided by this site` : 'AI not connected'}
     </span>
   );
 }
@@ -27,18 +27,18 @@ export function AiSettings() {
 
   return (
     <Card id="ai" className="scroll-mt-6 lg:col-span-2">
-      <CardHeader eyebrow="AI TUTOR" title="Connect the AI" description="Pick a provider and paste its API key. Google Gemini is free and reads photos and PDFs." action={<ConnectionPill />} />
+      <CardHeader title="Connect the AI" description="Pick a provider and paste its API key. Google Gemini is free and reads photos and PDFs." action={<ConnectionPill />} />
       <div className="grid gap-2.5 sm:grid-cols-2 xl:grid-cols-4" role="radiogroup" aria-label="AI provider">
         {PROVIDER_IDS.map((id) => {
           const p = PROVIDERS[id];
           const active = ai.provider === id;
           return (
-            <button key={id} type="button" role="radio" aria-checked={active} onClick={() => ai.update({ provider: id as ProviderId })} className={cn('rounded-xl border p-4 text-left transition-colors', active ? 'border-accent bg-accent-soft' : 'border-line-strong bg-surface-2 hover:bg-surface-3')}>
+            <button key={id} type="button" role="radio" aria-checked={active} onClick={() => ai.update({ provider: id as ProviderId })} className={cn('border p-4 text-left transition-colors rounded-xl', active ? 'border-accent bg-accent-soft' : 'border-line-strong bg-surface-2 hover:bg-surface-3')}>
               <span className="flex items-center justify-between gap-2">
                 <strong className="text-sm">{p.label}</strong>
                 <Badge tone={p.free ? 'ok' : 'default'}>{p.free ? 'Free' : 'Paid'}</Badge>
               </span>
-              <span className="mt-1.5 block text-xs text-muted">{p.images ? 'Text, photos & PDFs' : 'Text only'}{ai.keys[id] ? ' · key saved ✓' : conn.status?.serverProviders.includes(id) ? ' · provided by site' : ''}</span>
+              <span className="mt-1.5 block text-xs text-muted">{p.images ? 'Text, photos & PDFs' : 'Text only'}{ai.keys[id] ? ' · key saved' : conn.status?.serverProviders.includes(id) ? ' · provided by site' : ''}</span>
             </button>
           );
         })}
@@ -69,7 +69,7 @@ function ProviderForm() {
     if (!key) return toast('Paste your API key first.', 'error');
     ai.setKey(ai.provider, key);
     setKeyInput('');
-    toast(provider.keyPattern.test(key) ? `${provider.label} key saved in this browser.` : `Key saved. It doesn’t look like a typical ${provider.label} key (${provider.keyHint}) — use Test connection to check it.`);
+    toast(provider.keyPattern.test(key) ? `${provider.label} key saved in this browser.` : `Key saved. It doesn’t look like a typical ${provider.label} key (${provider.keyHint}): use Test connection to check it.`);
   };
   const test = async () => {
     setTesting(true);

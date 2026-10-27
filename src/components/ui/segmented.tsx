@@ -12,8 +12,8 @@ export function Segmented<T extends string>({ options, value, onChange, label, c
           aria-checked={value === o.value}
           onClick={() => onChange(o.value)}
           className={cn(
-            'rounded-[9px] border px-3 py-2 text-[13px] font-semibold transition-colors',
-            value === o.value ? 'border-accent bg-accent-soft text-accent-ink' : 'border-line-strong bg-surface-2 text-ink-2 hover:bg-surface-3',
+            'min-h-11 rounded-lg border px-3.5 text-[14px] font-medium transition-colors sm:min-h-9',
+            value === o.value ? 'border-accent bg-accent-soft text-accent-ink' : 'border-line bg-surface text-ink-2 hover:bg-surface-3 hover:text-ink',
           )}
         >
           {o.label}

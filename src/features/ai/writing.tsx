@@ -32,7 +32,7 @@ export function WritingTool() {
   return (
     <div className="grid items-start gap-5 xl:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
       <Card>
-        <CardHeader eyebrow="ESSAYS & PAPERS" title="Writing assistant" />
+        <CardHeader title="Writing assistant" />
         <Field label="Assignment prompt" hint="optional" htmlFor="writePrompt"><Input id="writePrompt" maxLength={600} value={prompt} onChange={(e) => setPrompt(e.target.value)} placeholder="e.g. Analyze the causes of the French Revolution" /></Field>
         <Field label="Your writing" htmlFor="writeText"><Textarea id="writeText" rows={13} value={text} onChange={(e) => setText(e.target.value)} placeholder="Paste your essay, paragraph, or notes" /></Field>
         <Note className="mt-1" >{countWords(text)} words</Note>
@@ -42,7 +42,7 @@ export function WritingTool() {
         <Button size="lg" block className="mt-5" loading={run.running} onClick={go}>Review my writing</Button>
       </Card>
       <Card>
-        <CardHeader eyebrow="RESULT" title="Suggestions" action={run.status === 'done' && (
+        <CardHeader title="Suggestions" action={run.status === 'done' && (
           <div className="flex gap-2">
             <Button size="sm" variant="secondary" onClick={async () => toast((await copyText(run.text)) ? 'Copied.' : 'Could not copy.')}>Copy</Button>
             <Button size="sm" variant="secondary" onClick={() => (ai.saveNote({ title: `Writing ${mode} · ${new Date().toLocaleDateString()}`, folder: 'General', kind: 'writing', content: run.text }), toast('Saved to Notes.'))}>Save to notes</Button>

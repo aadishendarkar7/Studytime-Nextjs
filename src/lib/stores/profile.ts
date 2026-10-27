@@ -1,6 +1,7 @@
 'use client';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
+import { isHex, type Backdrop, type Wash } from '@/lib/appearance';
 import { AWARD, completeSession, isDuration, type Duration } from '@/features/focus/logic';
 import type { Reflection, Reminder, ReminderType, Session, ThemeName, TimerState } from '@/lib/types';
 import { uid } from '@/lib/utils';
@@ -19,6 +20,9 @@ export interface ProfileData {
   location: string;
   theme: ThemeName;
   accent: string;
+  glow: string;
+  backdrop: Backdrop;
+  wash: Wash;
   reminders: Reminder[];
   major: string;
   school: string;
@@ -35,7 +39,7 @@ export interface ProfileData {
 
 export const defaultProfile = (): ProfileData => ({
   name: 'Student', dailyGoal: 60, weeklyGoal: 300, points: 0, sessions: [], bonusDays: [], duration: 30, subject: '', location: '',
-  theme: 'light', accent: '#7eab58', reminders: [], major: '', school: '', year: '', courses: [], leaderboard: null, circle: null,
+  theme: 'light', accent: '#b4532a', glow: '#e7b76a', backdrop: 'contours', wash: 'medium', reminders: [], major: '', school: '', year: '', courses: [], leaderboard: null, circle: null,
   rewardGoalId: '', nextPlanAt: null, nextPlanNotified: false, reflections: [], timer: { mode: 'ready', remaining: 30 * 60, deadline: null },
 });
 
@@ -135,7 +139,11 @@ export function sanitizeProfile<T extends ProfileData>(p: T): T {
   const out = { ...p };
   for (const key of ['sessions', 'bonusDays', 'reminders', 'courses', 'reflections'] as const) if (!Array.isArray(out[key])) (out as ProfileData)[key] = base[key] as never;
   if (out.theme !== 'light' && out.theme !== 'dark') out.theme = 'light';
-  if (!/^#[0-9a-f]{6}$/i.test(out.accent)) out.accent = base.accent;
+  // The accent from the earlier blue-and-ink design becomes the new default.
+  if (!isHex(out.accent) || out.accent.toLowerCase() === '#1e4fd1') out.accent = base.accent;
+  if (!isHex(out.glow)) out.glow = base.glow;
+  if (!['contours', 'grid', 'dots', 'plain'].includes(out.backdrop)) out.backdrop = base.backdrop;
+  if (!['soft', 'medium', 'strong'].includes(out.wash)) out.wash = base.wash;
   if (!isDuration(out.duration)) out.duration = 30;
   if (!out.timer || !['ready', 'running', 'paused'].includes(out.timer.mode)) out.timer = { mode: 'ready', remaining: out.duration * 60, deadline: null };
   // A timer that was running when the page closed resumes as paused.

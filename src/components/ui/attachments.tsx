@@ -50,10 +50,10 @@ export function DropZone({ onFiles, accept, multiple = true, title, hint, inputI
         setOver(false);
         if (e.dataTransfer.files.length) onFiles(e.dataTransfer.files);
       }}
-      className={cn('my-3 flex min-h-32 flex-col items-center justify-center gap-1.5 rounded-2xl border-2 border-dashed px-5 py-6 text-center transition-colors', over ? 'border-accent bg-accent-soft' : 'border-line-strong bg-accent-soft/60 hover:bg-accent-soft')}
+      className={cn('my-3 flex min-h-32 flex-col items-center justify-center gap-1.5 rounded-xl border border-dashed px-5 py-6 text-center transition-colors', over ? 'border-accent bg-accent-soft' : 'border-line-strong/60 bg-surface hover:bg-surface-3')}
     >
-      <Icon name="upload" className="size-6 text-accent-ink" />
-      <strong className="text-[15px] text-ink">{title}</strong>
+      <Icon name="upload" className="size-6 text-ink" />
+      <strong className="text-[14px] font-semibold text-ink">{title}</strong>
       <span className="text-xs text-muted">{hint}</span>
       <input
         id={inputId}
@@ -76,27 +76,27 @@ export function FileTray({ files, onRemove, reading }: { files: Attachment[]; on
   return (
     <div className="my-2 flex flex-wrap gap-2">
       {files.map((f, i) => (
-        <span key={`${f.name}-${i}`} className="relative flex max-w-56 items-center gap-2 rounded-xl border border-line bg-surface py-1.5 pr-8 pl-1.5 text-xs">
+        <span key={`${f.name}-${i}`} className="relative flex max-w-56 items-center gap-2 rounded-lg border border-line bg-surface py-1.5 pr-10 pl-1.5 text-xs">
           {f.kind === 'image' ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={f.preview} alt="" className="size-11 rounded-lg object-cover" />
+            <img src={f.preview} alt="" className="size-11 object-cover" />
           ) : (
-            <b className="grid size-11 place-items-center rounded-lg bg-surface-3 text-[11px] text-ink-2">{f.kind === 'pdf' ? 'PDF' : 'DOC'}</b>
+            <b className="grid size-11 place-items-center bg-surface-3 text-[12px] text-ink-2">{f.kind === 'pdf' ? 'PDF' : 'DOC'}</b>
           )}
           <span className="truncate">{f.name}</span>
-          <button type="button" onClick={() => onRemove(i)} aria-label={`Remove ${f.name}`} className="absolute top-1 right-1 rounded p-0.5 text-muted hover:text-ink">
+          <button type="button" onClick={() => onRemove(i)} aria-label={`Remove ${f.name}`} className="absolute top-0 right-0 grid size-9 place-items-center text-muted hover:text-ink">
             <Icon name="close" className="size-4" />
           </button>
         </span>
       ))}
-      {reading && <span className="self-center text-xs text-muted">Reading file…</span>}
+      {reading && <span className="self-center text-xs text-muted">Reading file</span>}
     </div>
   );
 }
 
 export function ErrorBox({ children, action }: { children: ReactNode; action?: ReactNode }) {
   return (
-    <div className="rounded-xl border border-danger/30 bg-danger-soft px-4 py-3 text-sm text-danger" role="alert">
+    <div className="border border-danger bg-danger-soft px-4 py-3 text-[13px] leading-5 text-danger" role="alert">
       <strong>Something went wrong.</strong> {children} {action}
     </div>
   );

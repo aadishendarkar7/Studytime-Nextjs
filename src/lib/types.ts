@@ -113,3 +113,23 @@ export interface LeaderboardResult {
   entries: LeaderboardEntry[];
   message?: string;
 }
+
+// ---------- Study partners ----------
+export type PartnerFormat = 'in-person' | 'online' | 'either';
+export interface PartnerInput {
+  name: string;
+  school: string;
+  major: string;
+  year: string;
+  courses: string[];
+  format: PartnerFormat;
+  availability: string;
+  contact: string;
+  note: string;
+}
+export interface PartnerListing extends PartnerInput { id: string; updatedAt: number }
+
+// ---------- Study spots ----------
+export const SPOT_TAGS = ['Quiet', 'Group friendly', 'Outlets', 'Wi-Fi', 'Open late', 'Food nearby', 'Outdoor'] as const;
+export interface SpotInput { name: string; lat: number; lng: number; note: string; tags: string[]; school: string }
+export interface PublicSpot extends SpotInput { id: string; createdAt: number }

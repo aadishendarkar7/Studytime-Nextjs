@@ -26,7 +26,7 @@ function ReminderForm() {
   const [lead, setLead] = useState(1440);
   return (
     <Card>
-      <CardHeader eyebrow="ADD A REMINDER" title="What is coming up?" />
+      <CardHeader title="What is coming up?" />
       <form
         onSubmit={(e) => {
           e.preventDefault();
@@ -77,11 +77,11 @@ function ReminderList() {
   );
   return (
     <Card className="mt-5">
-      <CardHeader eyebrow="YOUR UPCOMING WORK" title="Reminders" action={<div className="flex items-center gap-3"><Badge>{upcoming.length} upcoming</Badge><Button size="sm" variant="secondary" onClick={exportIcs}><Icon name="download" className="size-4" /> Export to calendar</Button></div>} />
+      <CardHeader title="Reminders" action={<div className="flex items-center gap-3"><Badge>{upcoming.length} upcoming</Badge><Button size="sm" variant="secondary" onClick={exportIcs}><Icon name="download" className="size-4" /> Export to calendar</Button></div>} />
       {upcoming.length || done.length ? (
         <>
           {upcoming.map((r) => <ReminderRow key={r.id} r={r} actions={actions(r.id, false)} />)}
-          {done.length > 0 && <div className="mt-5 mb-1 text-[11px] font-bold tracking-[0.12em] text-muted">COMPLETED</div>}
+          {done.length > 0 && <div className="mt-5 mb-1 text-[12px] font-semibold text-muted">COMPLETED</div>}
           {done.map((r) => <ReminderRow key={r.id} r={r} actions={actions(r.id, true)} />)}
         </>
       ) : (
@@ -104,11 +104,10 @@ function Activity() {
   const [showAll, setShowAll] = useState(false);
   return (
     <section id="activity" className="scroll-mt-6">
-      <PageHeader eyebrow="LOOK HOW FAR YOU'VE COME" title="Your activity" description="Every session is proof that you showed up." />
+      <PageHeader level={2} title="Your activity" description="Study minutes by day, and your full session history." />
       <div className="grid gap-5 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
         <Card>
           <CardHeader
-            eyebrow="STUDY CALENDAR"
             title={month.toLocaleDateString(undefined, { month: 'long', year: 'numeric' })}
             action={
               <div className="flex gap-1">
@@ -117,14 +116,14 @@ function Activity() {
               </div>
             }
           />
-          <div className="grid grid-cols-7 gap-1.5 text-center text-[11px] font-bold text-muted">{['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((d) => <span key={d}>{d}</span>)}</div>
+          <div className="grid grid-cols-7 gap-1.5 text-center text-[12px] font-semibold text-muted">{['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((d) => <span key={d}>{d}</span>)}</div>
           <div className="mt-2 grid grid-cols-7 gap-1.5">
             {Array.from({ length: first }, (_, i) => <span key={`b${i}`} />)}
             {Array.from({ length: count }, (_, i) => {
               const key = dateKey(new Date(y, m, i + 1));
               const n = minutesOn(sessions, key);
               return (
-                <span key={key} title={n ? `${n} minutes studied` : 'No study sessions'} className={cn('grid aspect-square place-items-center rounded-lg text-[13px] font-semibold', n ? 'bg-accent text-white' : 'bg-surface-2 text-ink-2', key === todayKey() && 'ring-2 ring-brand ring-offset-1 ring-offset-surface')}>
+                <span key={key} title={n ? `${n} minutes studied` : 'No study sessions'} className={cn('tnum grid aspect-square place-items-center border text-[13px] font-medium rounded-xl', n ? 'border-accent bg-accent text-bg' : 'border-line text-ink-2', key === todayKey() && 'border-line outline-2 -outline-offset-3 outline-ink')}>
                   {i + 1}
                 </span>
               );
@@ -132,7 +131,7 @@ function Activity() {
           </div>
         </Card>
         <Card>
-          <CardHeader eyebrow="ALL-TIME PROGRESS" title="Your numbers" />
+          <CardHeader title="Your numbers" />
           {[
             ['Total study time', fmtMinutes(total)],
             ['Sessions completed', String(sessions.length)],
@@ -144,7 +143,7 @@ function Activity() {
         </Card>
       </div>
       <Card className="mt-5">
-        <CardHeader eyebrow="SESSION LOG" title="Study history" />
+        <CardHeader title="Study history" />
         {sessions.length ? (showAll ? sessions : sessions.slice(0, 15)).map((s) => <SessionRow key={s.id} s={s} />) : <Empty>No sessions yet. Your history starts with one focus session.</Empty>}
         {sessions.length > 15 && !showAll && <Button variant="link" className="mt-3" onClick={() => setShowAll(true)}>Show all {sessions.length} sessions</Button>}
       </Card>
@@ -159,7 +158,7 @@ export function PlannerPage() {
   }, []);
   return (
     <>
-      <PageHeader eyebrow="STAY A STEP AHEAD" title="Study planner" description="Keep homework, exams, and assignments in one calm place." />
+      <PageHeader title="Study planner" description="Homework, exams and assignments with reminders. Import them from a syllabus or add them by hand." />
       <SyllabusImport />
       <div className="mt-5"><ReminderForm /></div>
       <ReminderList />

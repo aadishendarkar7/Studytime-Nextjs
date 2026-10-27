@@ -17,21 +17,21 @@ export const MODES: { id: Mode; label: string }[] = [
   { id: 'speed', label: 'Speed round' },
 ];
 
-const Progress = ({ children }: { children: React.ReactNode }) => <p className="text-[11px] font-bold tracking-[0.08em] text-muted uppercase">{children}</p>;
+const Progress = ({ children }: { children: React.ReactNode }) => <p className="text-[12px] font-semibold text-muted">{children}</p>;
 const Result = ({ title, children }: { title: string; children: React.ReactNode }) => (
   <div className="py-6 text-center">
-    <h3 className="text-xl font-bold">{title}</h3>
+    <h3 className="text-xl font-semibold">{title}</h3>
     <div className="mt-2 text-sm text-muted">{children}</div>
   </div>
 );
 const Feedback = ({ ok, children }: { ok: boolean | null; children: React.ReactNode }) => (
-  <p className={cn('mt-3 min-h-5 text-sm', ok === true && 'font-bold text-ok', ok === false && 'font-bold text-danger', ok === null && 'text-muted')}>{children}</p>
+  <p className={cn('mt-3 min-h-5 text-sm', ok === true && 'font-semibold text-ok', ok === false && 'font-semibold text-danger', ok === null && 'text-muted')}>{children}</p>
 );
 
 function FlipCard({ front, back, flipped, onFlip, hint }: { front: string; back: string; flipped: boolean; onFlip: () => void; hint: string }) {
   return (
-    <button type="button" onClick={onFlip} className="mt-3 flex min-h-48 w-full flex-col items-center justify-center gap-3 rounded-2xl border-2 border-line-strong bg-surface p-6 text-center transition-colors hover:border-accent">
-      <small className="text-[10px] font-bold tracking-[0.1em] text-muted">{flipped ? 'ANSWER' : 'QUESTION'} · {hint}</small>
+    <button type="button" onClick={onFlip} className="mt-3 flex min-h-48 w-full flex-col items-center justify-center gap-3 border-2 border-line-strong bg-surface p-6 text-center transition-colors hover:border-accent">
+      <small className="text-[12px] font-semibold text-muted">{flipped ? 'ANSWER' : 'QUESTION'} · {hint}</small>
       <strong className="font-display text-xl leading-snug text-ink">{flipped ? back : front}</strong>
       {flipped && <em className="text-[13px] text-muted not-italic">{front}</em>}
     </button>
@@ -91,9 +91,9 @@ export function ReviewMode({ set }: { set: StudySet }) {
       {flipped ? (
         <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
           {RATINGS.map((r, i) => (
-            <button key={r.id} type="button" onClick={() => rate(r.id)} className={cn('grid gap-0.5 rounded-xl border bg-surface px-2 py-2.5', r.id === 'again' ? 'border-danger/40' : r.id === 'good' ? 'border-ok/40' : 'border-line-strong')}>
+            <button key={r.id} type="button" onClick={() => rate(r.id)} className={cn('grid gap-0.5 border bg-surface px-2 py-2.5 rounded-xl', r.id === 'again' ? 'border-danger/40' : r.id === 'good' ? 'border-ok/40' : 'border-line-strong')}>
               <strong className={cn('text-sm', r.id === 'again' && 'text-danger', r.id === 'good' && 'text-ok')}>{r.label}</strong>
-              <small className="text-[11px] text-muted">{previewInterval(card.srs, r.id)} · {i + 1}</small>
+              <small className="text-[12px] text-muted">{previewInterval(card.srs, r.id)} · {i + 1}</small>
             </button>
           ))}
         </div>
@@ -137,10 +137,10 @@ export function QuizMode({ set }: { set: StudySet }) {
   return (
     <>
       <Progress>Question {index + 1} of {order.length} · {score} correct</Progress>
-      <h3 className="mt-3 mb-4 text-lg font-bold">{card.front}</h3>
+      <h3 className="mt-3 mb-4 text-lg font-semibold">{card.front}</h3>
       <div className="grid gap-2 sm:grid-cols-2">
         {choices.map((c) => (
-          <button key={c} type="button" disabled={picked !== null} onClick={() => (setPicked(c), c === card.back && setScore(score + 1))} className={cn('min-h-14 rounded-xl border bg-surface p-3 text-left text-sm font-semibold transition-colors enabled:hover:bg-accent-soft', picked !== null && c === card.back ? 'border-ok bg-ok-soft' : picked === c ? 'border-danger bg-danger-soft' : 'border-line-strong')}>
+          <button key={c} type="button" disabled={picked !== null} onClick={() => (setPicked(c), c === card.back && setScore(score + 1))} className={cn('min-h-14 border bg-surface p-3 text-left text-sm font-semibold transition-colors enabled:hover:bg-accent-soft rounded-xl', picked !== null && c === card.back ? 'border-ok bg-ok-soft' : picked === c ? 'border-danger bg-danger-soft' : 'border-line-strong')}>
             {c}
           </button>
         ))}
@@ -168,7 +168,7 @@ export function BlankMode({ set }: { set: StudySet }) {
   return (
     <>
       <Progress>Question {index + 1} of {order.length} · {score} correct</Progress>
-      <h3 className="mt-3 mb-4 text-lg font-bold">{card.front}</h3>
+      <h3 className="mt-3 mb-4 text-lg font-semibold">{card.front}</h3>
       <form
         className="flex flex-wrap gap-2"
         onSubmit={(e) => {
@@ -216,7 +216,7 @@ export function MatchingMode({ set }: { set: StudySet }) {
       <Progress>Match each term with its answer · {matched.size} of {tiles.length / 2} pairs</Progress>
       <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
         {tiles.map((t, i) => (
-          <button key={i} type="button" disabled={matched.has(t.pair)} onClick={() => click(i)} className={cn('min-h-16 rounded-xl border p-3 text-sm font-semibold transition-colors', matched.has(t.pair) ? 'border-transparent bg-ok-soft text-ok' : picked === i ? 'border-accent bg-accent-soft' : 'border-line-strong bg-surface hover:bg-surface-2')}>
+          <button key={i} type="button" disabled={matched.has(t.pair)} onClick={() => click(i)} className={cn('min-h-16 border p-3 text-sm font-semibold transition-colors rounded-xl', matched.has(t.pair) ? 'border-transparent bg-ok-soft text-ok' : picked === i ? 'border-accent bg-accent-soft' : 'border-line-strong bg-surface hover:bg-surface-2')}>
             {t.text}
           </button>
         ))}
@@ -285,15 +285,15 @@ export function SpeedMode({ set }: { set: StudySet }) {
   };
   return (
     <>
-      <div className="flex items-center justify-between text-sm font-bold">
+      <div className="flex items-center justify-between text-sm font-semibold">
         <span className={cn('font-display text-2xl', left <= 10 ? 'text-danger' : 'text-accent-ink')}>{left}s</span>
-        <span>{score} pts{streak > 1 ? ` · ${streak} streak 🔥` : ''}</span>
+        <span>{score} pts{streak > 1 ? ` · ${streak} in a row` : ''}</span>
       </div>
-      <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-surface-3"><div className="h-full bg-accent transition-[width] duration-200" style={{ width: `${(left / 60) * 100}%` }} /></div>
-      <h3 className="mt-4 mb-4 text-lg font-bold">{card.front}</h3>
+      <div className="mt-2 h-1.5 overflow-hidden bg-surface-3"><div className="h-full bg-accent transition-[width] duration-200" style={{ width: `${(left / 60) * 100}%` }} /></div>
+      <h3 className="mt-4 mb-4 text-lg font-semibold">{card.front}</h3>
       <div className="grid gap-2 sm:grid-cols-2">
         {choices.map((c) => (
-          <button key={c} type="button" onClick={() => answer(c)} className="min-h-14 rounded-xl border border-line-strong bg-surface p-3 text-left text-sm font-semibold hover:bg-accent-soft">
+          <button key={c} type="button" onClick={() => answer(c)} className="min-h-14 border border-line-strong bg-surface p-3 text-left text-sm font-semibold hover:bg-accent-soft rounded-xl">
             {c}
           </button>
         ))}

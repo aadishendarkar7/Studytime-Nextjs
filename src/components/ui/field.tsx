@@ -1,13 +1,13 @@
 import { forwardRef, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes } from 'react';
 import { cn } from '@/lib/utils';
 
-const control = 'w-full min-w-0 rounded-[10px] border border-line-strong bg-surface-2 px-3.5 text-sm text-ink outline-none transition-colors focus:border-accent focus:bg-surface disabled:opacity-60';
+const control = 'w-full min-w-0 rounded-xl border border-line-strong bg-surface px-3.5 text-[15px] text-ink outline-none transition-colors focus:border-accent focus:ring-3 focus:ring-accent/15 disabled:opacity-50';
 
 export function Label({ htmlFor, children, hint, className }: { htmlFor?: string; children: ReactNode; hint?: string; className?: string }) {
   return (
-    <label htmlFor={htmlFor} className={cn('mb-2 block text-[13px] font-bold text-ink', className)}>
+    <label htmlFor={htmlFor} className={cn('mb-1.5 block text-[14px] leading-5 font-semibold text-ink', className)}>
       {children}
-      {hint && <span className="ml-1 font-medium text-muted">{hint}</span>}
+      {hint && <span className="ml-1 font-normal text-muted">{hint}</span>}
     </label>
   );
 }
@@ -35,12 +35,12 @@ export const Select = forwardRef<HTMLSelectElement, SelectHTMLAttributes<HTMLSel
 });
 
 export const Textarea = forwardRef<HTMLTextAreaElement, TextareaHTMLAttributes<HTMLTextAreaElement>>(function Textarea({ className, ...props }, ref) {
-  return <textarea ref={ref} className={cn(control, 'py-3 leading-relaxed', className)} {...props} />;
+  return <textarea ref={ref} className={cn(control, 'py-3 leading-6', className)} {...props} />;
 });
 
 export function Checkbox({ label, ...props }: { label: ReactNode } & InputHTMLAttributes<HTMLInputElement>) {
   return (
-    <label className="mt-4 flex items-center gap-2.5 text-[13px] font-semibold text-ink">
+    <label className="mt-4 flex min-h-11 items-center gap-2.5 text-[14px] font-medium text-ink">
       <input type="checkbox" className="size-4 accent-[var(--accent)]" {...props} />
       {label}
     </label>
@@ -48,5 +48,5 @@ export function Checkbox({ label, ...props }: { label: ReactNode } & InputHTMLAt
 }
 
 export function Note({ children, className }: { children: ReactNode; className?: string }) {
-  return <p className={cn('mt-3 text-[13px] leading-relaxed text-muted', className)}>{children}</p>;
+  return <p className={cn('mt-3 max-w-[68ch] text-[14px] leading-[22px] text-muted', className)}>{children}</p>;
 }
