@@ -28,12 +28,14 @@ export default function PrivacyPage() {
       </Section>
 
       <Section title="Your account">
-        <p>To use Studytime you create an account. We store your email, name, and either your password (as a salted scrypt hash, never in plain text) or, if you use Google, your Google account ID. We also store your profile (school, major, year and classes) and a copy of your progress from the list above, without API keys, lecture recordings, check-ins or parked thoughts. Only you can read it. To delete your account and everything in it, write to <Contact />.</p>
+        <p>To use Studytime you create an account. We store your email, name, and either your password (as a salted scrypt hash, never in plain text) or, if you use Google, your Google account ID. We also store your profile (school, major, year and classes) and a copy of your progress from the list above, without API keys, lecture recordings, check-ins or parked thoughts. Only you can read it. You can delete your account and everything in it from Settings › Account.</p>
+        <p>If you ask for a password reset, we email you a single-use link that expires in an hour; only a scrambled copy of the link is stored. If you leave weekly recap emails on, we read your saved progress once a week to write a short summary and email it to you. Invite links contain your account ID; when someone joins from one, both accounts follow each other and we count how many people you invited.</p>
       </Section>
 
       <Section title="Stored on our server">
         <p>The server stores data only when you use a shared feature:</p>
         <ul>
+          <li><strong>Reports and blocks.</strong> If you report a highlight, we store your account, the reason, and a copy of the highlight for review. Highlights reported by several people are hidden. If you block someone, we store that so you stop seeing each other.</li>
           <li><strong>Study highlights.</strong> When you save a session as a highlight: your name, school, major, the time, what you studied, the topics, the place, the names you add as study partners, and your note. You choose who sees each one: people who follow you, your school, or everyone. People who can see it can tap &ldquo;Nice work&rdquo;, which stores their name on it. Highlights are deleted after 90 days, or right away when you delete them. We also store who you follow, and people can find your name, school and major when they search for classmates.</li>
           <li><strong>Chat.</strong> A random chat ID kept in your browser, plus your display name, school, major, year, courses, and a short status (focusing, the place of a drop you are part of, or online), updated every 30 seconds while the app is open. Everyone using Studytime can see this while you show as online; turn off &ldquo;Show me as online&rdquo; to hide it. Messages you send are stored with your name: channel messages can be read by anyone who opens that channel, and direct messages only by the two of you. Each channel keeps its latest 300 messages. You can delete your own messages, and reported messages are kept for review.</li>
           <li><strong>Focus Buddy.</strong> While you opt in and a session runs: your display name, your subject or course, your school (only used to find a match, never shown), and when your session started and ends. Your buddy sees your name, task and timer. Nothing else is shared, there is no camera or chat, and the record is deleted 30 minutes after the session ends.</li>
@@ -59,6 +61,7 @@ export default function PrivacyPage() {
         </p>
         <p>If you paste your own API key, it is saved in your browser and sent with each request so the server can pass it to the provider. The server does not store it. If the site&rsquo;s operator has set a shared key, your requests use that key instead.</p>
         <p>The same applies to &ldquo;Break it down&rdquo; in the planner: the assignment title, due date and any details you paste are sent to the AI provider.</p>
+        <p>When you press &ldquo;Make notes&rdquo; on a lecture recording, the audio is converted to a small, lower-quality copy in your browser and sent in pieces to Google Gemini to be written out as text. The recording itself stays in your browser.</p>
         <p>Do not send anything through the AI tutor that you would not want a third-party AI provider to process.</p>
       </Section>
 

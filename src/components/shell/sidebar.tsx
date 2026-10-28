@@ -125,7 +125,7 @@ export function Topbar() {
     return () => window.removeEventListener('keydown', onKey);
   }, [open]);
   const section = NAV.find((n) => n.href !== '/' && isActive(pathname, n.href));
-  const title = pathname === '/' ? 'Home' : section?.label ?? EXTRA_TITLES[pathname] ?? '';
+  const title = pathname === '/' ? 'Home' : section?.label ?? EXTRA_TITLES[pathname] ?? (pathname.startsWith('/class/') ? 'Classes' : '');
   return (
     <>
       <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-line/70 bg-bg/60 px-4 backdrop-blur-md sm:px-6 lg:px-8">

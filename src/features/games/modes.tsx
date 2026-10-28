@@ -140,7 +140,7 @@ export function QuizMode({ set }: { set: StudySet }) {
       <h3 className="mt-3 mb-4 text-lg font-semibold">{card.front}</h3>
       <div className="grid gap-2 sm:grid-cols-2">
         {choices.map((c) => (
-          <button key={c} type="button" disabled={picked !== null} onClick={() => (setPicked(c), c === card.back && setScore(score + 1))} className={cn('min-h-14 border bg-surface p-3 text-left text-sm font-semibold transition-colors enabled:hover:bg-accent-soft rounded-xl', picked !== null && c === card.back ? 'border-ok bg-ok-soft' : picked === c ? 'border-danger bg-danger-soft' : 'border-line-strong')}>
+          <button key={c} type="button" disabled={picked !== null} onClick={() => { setPicked(c); if (c === card.back) setScore(score + 1); else useLearning.getState().addMistake({ q: card.front, a: card.back, given: c, source: `Quiz · ${set.name}`, setId: set.id, cardId: card.id }); }} className={cn('min-h-14 border bg-surface p-3 text-left text-sm font-semibold transition-colors enabled:hover:bg-accent-soft rounded-xl', picked !== null && c === card.back ? 'border-ok bg-ok-soft' : picked === c ? 'border-danger bg-danger-soft' : 'border-line-strong')}>
             {c}
           </button>
         ))}
@@ -177,6 +177,7 @@ export function BlankMode({ set }: { set: StudySet }) {
           const ok = norm(value) === norm(card.back);
           setResult(ok);
           if (ok) setScore(score + 1);
+          else useLearning.getState().addMistake({ q: card.front, a: card.back, given: value.trim(), source: `Fill in the blank · ${set.name}`, setId: set.id, cardId: card.id });
         }}
       >
         <Input autoFocus className="min-w-40 flex-1" value={value} disabled={result !== null} onChange={(e) => setValue(e.target.value)} placeholder="Type the answer" aria-label="Your answer" />

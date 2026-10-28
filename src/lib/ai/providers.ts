@@ -97,7 +97,8 @@ export const MODEL_PATTERN = /^[\w.\-:/]{1,100}$/;
 export type AiPart =
   | { type: 'text'; text: string }
   | { type: 'image'; mediaType: string; data: string }
-  | { type: 'pdf'; data: string; name?: string };
+  | { type: 'pdf'; data: string; name?: string }
+  | { type: 'audio'; mediaType: string; data: string };
 
 export interface AiMessage {
   role: 'user' | 'assistant';

@@ -19,7 +19,7 @@ export function NotificationSettings() {
         <Button variant="secondary" disabled={permission !== 'default'} onClick={async () => setPermission(await Notification.requestPermission())}>
           {permission === 'granted' ? 'Browser alerts enabled' : 'Enable browser alerts'}
         </Button>
-        <Button variant="ghost" onClick={() => (toast('Test reminder: Studytime is ready.'), sendBrowserAlert('Studytime test', 'Your study reminders are ready.'))}>Send a test alert</Button>
+        <Button variant="ghost" onClick={() => (toast('Test reminder: Studytime is ready.'), sendBrowserAlert('Studytime test', 'Your study reminders are ready.', true))}>Send a test alert</Button>
       </div>
     </details>
   );

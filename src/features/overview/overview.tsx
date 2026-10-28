@@ -17,6 +17,7 @@ import { useExtras } from '@/lib/stores/extras';
 import { useProfile } from '@/lib/stores/profile';
 import { useNow } from '@/lib/use-now';
 import { cn, dateKey, fmtMinutes, plural, todayKey } from '@/lib/utils';
+import { ExamMode } from './exam-mode';
 import { Nudges } from './nudges';
 
 function greeting(h: number) {
@@ -212,6 +213,7 @@ export function Overview() {
         <PetCompanion className="max-sm:hidden" />
       </header>
       <div className="grid gap-4 lg:grid-cols-12 [&>*]:min-w-0">
+        <ExamMode />
         <Nudges />
         <FocusHero />
         <OutNow />

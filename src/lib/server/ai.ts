@@ -57,6 +57,10 @@ async function upstreamError(response: Response, provider: ProviderId) {
 
 type Stream = AsyncGenerator<string>;
 
+const noAudio = (): never => {
+  throw new HttpError(400, 'Only Google Gemini can listen to recordings. Switch the AI to Gemini in Settings.');
+};
+
 async function* anthropic(req: AiRequest, key: string): Stream {
   const response = await fetch(`${base('anthropic')}/v1/messages`, {
     method: 'POST',
@@ -69,7 +73,9 @@ async function* anthropic(req: AiRequest, key: string): Stream {
       messages: req.messages.map((m) => ({
         role: m.role,
         content: parts(m.content).map((p) =>
-          p.type === 'text'
+          p.type === 'audio'
+            ? noAudio()
+            : p.type === 'text'
             ? { type: 'text', text: p.text }
             : p.type === 'image'
               ? { type: 'image', source: { type: 'base64', media_type: p.mediaType, data: p.data } }
@@ -96,7 +102,7 @@ async function* gemini(req: AiRequest, key: string): Stream {
       contents: req.messages.map((m) => ({
         role: m.role === 'assistant' ? 'model' : 'user',
         parts: parts(m.content).map((p) =>
-          p.type === 'text' ? { text: p.text } : { inline_data: { mime_type: p.type === 'image' ? p.mediaType : 'application/pdf', data: p.data } },
+          p.type === 'text' ? { text: p.text } : { inline_data: { mime_type: p.type === 'pdf' ? 'application/pdf' : p.mediaType, data: p.data } },
         ),
       })),
       // Thinking models count reasoning toward output tokens, so leave headroom.
@@ -118,6 +124,7 @@ async function* openaiCompatible(provider: 'groq' | 'openrouter', req: AiRequest
     if (typeof content === 'string') return content;
     return content.map((p) => {
       if (p.type === 'text') return { type: 'text', text: p.text };
+      if (p.type === 'audio') return noAudio();
       if (p.type === 'image') return { type: 'image_url', image_url: { url: `data:${p.mediaType};base64,${p.data}` } };
       if (provider === 'openrouter') return { type: 'file', file: { filename: p.name || 'document.pdf', file_data: `data:application/pdf;base64,${p.data}` } };
       return { type: 'text', text: `[A PDF named ${p.name || 'document.pdf'} was attached, but this provider cannot read PDFs. Ask the student to paste the text.]` };

@@ -15,15 +15,20 @@ export function authSecret() {
 const b64 = (s: string) => Buffer.from(s).toString('base64url');
 const mac = (body: string, secret: string) => crypto.createHmac('sha256', secret).update(body).digest('base64url');
 
-export function signSession(userId: string, now = Date.now()) {
+export function signSession(userId: string, now = Date.now(), version = 0) {
   const secret = authSecret();
   if (!secret) throw new Error('AUTH_SECRET is not set. Add it in your hosting settings (Vercel → Settings → Environment Variables).');
-  const body = b64(JSON.stringify({ u: userId, e: now + SESSION_DAYS * 86_400_000 }));
+  const body = b64(JSON.stringify({ u: userId, e: now + SESSION_DAYS * 86_400_000, v: version }));
   return `${body}.${mac(body, secret)}`;
 }
 
 /** The user id in a valid, unexpired session token, or null. */
 export function readSession(token: string | undefined | null, now = Date.now()): string | null {
+  return readSessionFull(token, now)?.u ?? null;
+}
+
+/** User id and session version (bumped when the password changes, which signs out other devices). */
+export function readSessionFull(token: string | undefined | null, now = Date.now()): { u: string; v: number } | null {
   const secret = authSecret();
   if (!token || !secret) return null;
   const [body, sig] = token.split('.');
@@ -33,8 +38,8 @@ export function readSession(token: string | undefined | null, now = Date.now()):
   const b = Buffer.from(expected);
   if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) return null;
   try {
-    const { u, e } = JSON.parse(Buffer.from(body, 'base64url').toString()) as { u?: unknown; e?: unknown };
-    return typeof u === 'string' && typeof e === 'number' && e > now ? u : null;
+    const { u, e, v } = JSON.parse(Buffer.from(body, 'base64url').toString()) as { u?: unknown; e?: unknown; v?: unknown };
+    return typeof u === 'string' && typeof e === 'number' && e > now ? { u, v: typeof v === 'number' ? v : 0 } : null;
   } catch {
     return null;
   }

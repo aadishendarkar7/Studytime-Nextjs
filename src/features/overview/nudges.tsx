@@ -9,10 +9,10 @@ import { upcomingExams } from '@/features/calendar/exam-prep';
 import { missedBlocks } from '@/features/calendar/routine';
 import { allEvents, isPastWindDown } from '@/features/calendar/sync';
 import { resetDue } from '@/features/reset/reset-page';
-import { strainCheck } from '@/features/wellbeing/logic';
+import { burnoutCheck, strainCheck } from '@/features/wellbeing/logic';
 import { useExtras } from '@/lib/stores/extras';
 import { useProfile } from '@/lib/stores/profile';
-import { cn, todayKey } from '@/lib/utils';
+import { cn, dateKey, todayKey } from '@/lib/utils';
 
 function Nudge({ icon, title, body, href, action, tone = 'default' }: { icon: IconName; title: string; body: string; href: string; action: string; tone?: 'default' | 'warn' }) {
   return (
@@ -27,6 +27,29 @@ function Nudge({ icon, title, body, href, action, tone = 'default' }: { icon: Ic
   );
 }
 
+/** Signs of burning out, with the reasons from your own data and one easy fix: a rest day tomorrow. */
+function BurnoutNudge({ reasons, high }: { reasons: string[]; high: boolean }) {
+  const restDays = useExtras((s) => s.restDays);
+  const [tomorrow] = useState(() => dateKey(new Date(Date.now() + 86_400_000)));
+  const planned = restDays.includes(tomorrow);
+  return (
+    <div className="rounded-xl border border-warn/25 bg-warn-soft px-4 py-3">
+      <div className="flex flex-wrap items-start gap-3">
+        <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-surface text-warn"><Icon name="heart" className="size-4" /></span>
+        <div className="min-w-0 flex-1">
+          <p className="text-[14px] font-semibold">{high ? 'You might be heading for burnout' : 'Keep an eye on your energy'}</p>
+          <ul className="mt-0.5 list-disc pl-4 text-[13px] leading-5 text-ink-2">{reasons.slice(0, 3).map((r) => <li key={r}>{r}</li>)}</ul>
+          <p className="mt-1 text-[13px] text-ink-2">Rest is part of studying well. Your brain stores what you learned while you sleep.</p>
+        </div>
+      </div>
+      <div className="mt-3 flex flex-wrap gap-2 pl-11">
+        <Button size="sm" variant="secondary" disabled={planned} onClick={() => useExtras.getState().update({ restDays: [...useExtras.getState().restDays, tomorrow] })}>{planned ? 'Tomorrow is a rest day' : 'Make tomorrow a rest day'}</Button>
+        <Link href="/help"><Button size="sm" variant="ghost">Campus support</Button></Link>
+      </div>
+    </div>
+  );
+}
+
 /** Only the nudges that apply right now, most important first. Home shows only the top one so it stays calm. */
 export function Nudges() {
   const p = useProfile();
@@ -36,8 +59,10 @@ export function Nudges() {
   const list: React.ReactNode[] = [];
 
   const strain = strainCheck({ sessions: p.sessions, checkins: x.checkins, today });
+  const burnout = burnoutCheck({ sessions: p.sessions, checkins: x.checkins, today, restDays: x.restDays });
+  if (burnout.level !== 'none' && strain.kind === 'none') list.push(<BurnoutNudge key="burnout" reasons={burnout.reasons} high={burnout.level === 'high'} />);
   if (strain.kind !== 'none') list.push(<Nudge key="strain" tone="warn" icon="heart" title="Go easy on yourself this week" body={strain.kind === 'low' ? 'Your check-ins show a heavy week. Rest counts too.' : 'You are studying a lot more while your mood is dropping. Plan a rest day.'} href="/help" action="Support" />);
-  const exam = upcomingExams({ reminders: p.reminders, events: allEvents(x.calendarFeeds), now: now.getTime() }).find((e) => e.at - now.getTime() < 14 * 86_400_000 && !x.examPreps[e.key]?.topics.length);
+  const exam = upcomingExams({ reminders: p.reminders, events: allEvents(x.calendarFeeds), now: now.getTime() }).find((e) => e.at - now.getTime() < 14 * 86_400_000 && e.at - now.getTime() >= 7 * 86_400_000 && !x.examPreps[e.key]?.topics.length);
   if (exam) {
     const days = Math.max(0, Math.round((startOfDay(exam.at) - startOfDay(now.getTime())) / 86_400_000));
     list.push(<Nudge key="exam" icon="calendar" title={`${exam.title} is ${days <= 1 ? (days ? 'tomorrow' : 'today') : `in ${days} days`}`} body="List what is on it and get a study plan that finishes the day before." href={`/calendar?plan=exams&exam=${encodeURIComponent(exam.key)}`} action="Plan prep" />);
@@ -50,6 +75,12 @@ export function Nudges() {
   const crunch = weekLoads({ reminders: p.reminders, events: allEvents(x.calendarFeeds), now: now.getTime(), weeks: 3 }).find((w) => isCrunch(w) && w.weekStart > now.getTime());
   if (crunch) list.push(<Nudge key="crunch" tone="warn" icon="calendar" title={`Busy week ahead: ${new Date(crunch.weekStart).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}`} body={`${crunch.items.map((i) => i.title).slice(0, 3).join(', ')}. Start preparing this week.`} href="/calendar?plan=busy" action="Plan prep" />);
 
+  // Sunday and Monday: a look back at the week, like a mini Wrapped.
+  if ([0, 1].includes(now.getDay())) {
+    const from = now.getTime() - 8 * 86_400_000;
+    const mins = p.sessions.filter((x) => new Date(x.at).getTime() > from).reduce((n, x) => n + x.minutes, 0);
+    if (mins >= 30) list.push(<Nudge key="recap" icon="star" title="Your week in review" body={`${Math.floor(mins / 60)}h ${mins % 60}m of studying. See your top subject, spot and study partners.`} href="/you?tab=wrapped" action="See recap" />);
+  }
   if (!list.length) return null;
   return <div className="grid gap-2 lg:col-span-12">{list[0]}</div>;
 }

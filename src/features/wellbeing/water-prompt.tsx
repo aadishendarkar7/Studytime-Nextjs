@@ -1,4 +1,5 @@
 'use client';
+import { isQuietNow } from '@/lib/quiet';
 import { useEffect } from 'react';
 import { sendBrowserAlert } from '@/components/shell/global-effects';
 import { Button } from '@/components/ui/button';
@@ -39,7 +40,7 @@ export function WaterPrompt() {
   useEffect(() => {
     const check = () => {
       const x = useExtras.getState();
-      if (!x.waterRemind || useUi.getState().waterPrompt || isPastWindDown(x.windDown)) return;
+      if (!x.waterRemind || useUi.getState().waterPrompt || isPastWindDown(x.windDown) || isQuietNow()) return;
       const now = Date.now();
       const since = Math.max(x.lastWaterAt, lastPrompt, openedAt);
       if (now - since < x.waterEvery * 60_000) return;

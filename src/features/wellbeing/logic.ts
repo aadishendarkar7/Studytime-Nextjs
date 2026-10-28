@@ -85,3 +85,59 @@ export function strainCheck(input: { sessions: Session[]; checkins: CheckIn[]; t
   if (prev.checks.length >= 3 && prev.minutes > 0 && last.minutes >= prev.minutes * 1.5 && avg(prev.checks.map((c) => c.mood)) - mood >= 0.8) return { kind: 'overload', days: last.checks.length };
   return { kind: 'none' };
 }
+
+export interface Burnout { level: 'none' | 'watch' | 'high'; reasons: string[] }
+
+/**
+ * Burnout warning signs from the last seven days, compared with the week before.
+ * Each reason is something the student can see in their own data. Not a diagnosis.
+ */
+export function burnoutCheck(input: { sessions: Session[]; checkins: CheckIn[]; today: string; restDays?: string[] }): Burnout {
+  const days = (offset: number) => new Set(Array.from({ length: 7 }, (_, i) => addDays(input.today, -i - offset)));
+  const last = days(0);
+  const prev = days(7);
+  const mins = (set: Set<string>) => input.sessions.filter((s) => set.has(s.day)).reduce((n, s) => n + s.minutes, 0);
+  const lastMin = mins(last);
+  const prevMin = mins(prev);
+  const checks = input.checkins.filter((c) => last.has(c.day));
+  const prevChecks = input.checkins.filter((c) => prev.has(c.day));
+  const reasons: string[] = [];
+  let score = 0;
+
+  if (prevMin >= 120 && lastMin >= prevMin * 1.4) {
+    reasons.push(`You studied ${Math.round((lastMin / prevMin - 1) * 100)}% more than the week before.`);
+    score++;
+  }
+  const late = input.sessions.filter((s) => last.has(s.day) && (() => { const h = new Date(s.at).getHours(); return h >= 0 && h < 5; })()).length;
+  if (late >= 3) {
+    reasons.push(`${late} sessions ended between midnight and 5 AM.`);
+    score++;
+  }
+  const sleeps = checks.map((c) => c.sleep).filter((v): v is number => v !== null);
+  if (sleeps.length >= 3 && avg(sleeps) < 6) {
+    reasons.push(`You averaged ${avg(sleeps).toFixed(1)} hours of sleep.`);
+    score += 2;
+  }
+  if (checks.length >= 3) {
+    const stress = avg(checks.map((c) => c.stress));
+    const prevStress = prevChecks.length >= 3 ? avg(prevChecks.map((c) => c.stress)) : null;
+    if (stress >= 4) {
+      reasons.push('Your stress has been high most days.');
+      score += 2;
+    } else if (prevStress !== null && stress - prevStress >= 0.8) {
+      reasons.push('Your stress went up compared with the week before.');
+      score++;
+    }
+    if (avg(checks.map((c) => c.mood)) <= 2.2) {
+      reasons.push('Your mood has been low.');
+      score += 2;
+    }
+  }
+  const studiedDays = [...last].filter((d) => input.sessions.some((s) => s.day === d && s.minutes >= 15)).length;
+  const rested = [...last].some((d) => input.restDays?.includes(d));
+  if (studiedDays === 7 && !rested && lastMin >= 7 * 150) {
+    reasons.push('You studied every day this week without a rest day.');
+    score++;
+  }
+  return { level: score >= 3 ? 'high' : score >= 2 ? 'watch' : 'none', reasons };
+}

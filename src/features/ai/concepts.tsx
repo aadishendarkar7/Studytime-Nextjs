@@ -60,7 +60,7 @@ function QuizBody({ concept, onClose }: { concept: Concept; onClose: () => void 
       <h3 className="mt-2 mb-4 font-semibold">{q.q}</h3>
       <div className="grid gap-2 sm:grid-cols-2">
         {q.options.map((o, i) => (
-          <button key={i} type="button" data-cq-choice={i} disabled={state.picked !== null} onClick={() => setState({ ...state, picked: i, correct: state.correct + (i === q.answer ? 1 : 0) })} className={cn('min-h-12 border bg-surface p-3 text-left text-sm font-semibold rounded-xl', state.picked !== null && i === q.answer ? 'border-ok bg-ok-soft' : state.picked === i ? 'border-danger bg-danger-soft' : 'border-line-strong enabled:hover:bg-accent-soft')}>{o}</button>
+          <button key={i} type="button" data-cq-choice={i} disabled={state.picked !== null} onClick={() => { if (i !== q.answer) useLearning.getState().addMistake({ q: q.q, a: `${q.options[q.answer]}${q.why ? ` (${q.why})` : ''}`, given: q.options[i], source: `Concept quiz · ${initial.name}` }); setState({ ...state, picked: i, correct: state.correct + (i === q.answer ? 1 : 0) }); }} className={cn('min-h-12 border bg-surface p-3 text-left text-sm font-semibold rounded-xl', state.picked !== null && i === q.answer ? 'border-ok bg-ok-soft' : state.picked === i ? 'border-danger bg-danger-soft' : 'border-line-strong enabled:hover:bg-accent-soft')}>{o}</button>
         ))}
       </div>
       {state.picked !== null && (

@@ -377,7 +377,7 @@ export function ChatPage({ toolbar }: { toolbar?: React.ReactNode } = {}) {
   const x = useExtras();
   const { ready, error, online } = useChat();
   const channels = useMemo(() => channelsFor(p), [p]);
-  const [open, setOpen] = useState<Open>({ kind: 'channel', id: 'general' });
+  const [open, setOpen] = useState<Open>(() => ({ kind: 'channel', id: (typeof location !== 'undefined' && new URLSearchParams(location.search).get('channel')) || 'general' }));
   const [person, setPerson] = useState<ChatPerson | null>(null);
   const [drawer, setDrawer] = useState<'rooms' | 'people' | null>(null);
   const [picking, setPicking] = useState(false);

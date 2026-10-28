@@ -6,6 +6,7 @@ import { Icon } from '@/components/ui/icons';
 import { minutesOn } from '@/features/focus/logic';
 import { logWater } from '@/features/wellbeing/water';
 import { Dialog } from '@/components/ui/dialog';
+import { useAccount } from '@/features/auth/account';
 import { DEFAULT_PET, useExtras, type PetBody } from '@/lib/stores/extras';
 import { useProfile } from '@/lib/stores/profile';
 import { useNow } from '@/lib/use-now';
@@ -42,8 +43,10 @@ export function useGarden() {
   const sky = skyAt(hour);
   const asleep = stage !== 'egg' && isAsleep(hour, focusing);
   const glasses = x.water[todayKey()] ?? 0;
+  // One bonus pack for every friend who joined from your invite link.
+  const invites = useAccount((st) => st.user?.invites ?? 0);
   const lines = petLines({ name: x.petName, mood, egg: stage === 'egg', asleep, focusing, sky, today, goal: p.dailyGoal, glasses });
-  return { p, x, total, today, tree: treeStage(total), mood, stage, sky, asleep, focusing, lines, packs: Math.max(0, packsEarned(total) - x.packsOpened) };
+  return { p, x, total, today, tree: treeStage(total), mood, stage, sky, asleep, focusing, lines, packs: Math.max(0, packsEarned(total) + invites - x.packsOpened) };
 }
 
 /** The pet on its own, with a speech bubble. Tap it to hear more. Used on Home. */
@@ -216,7 +219,7 @@ export function PacksPanel() {
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h2 className="font-sans text-[15px] leading-6 font-semibold">Mystery packs</h2>
-          <p className="text-[13px] text-muted">One for every hour of focus. Duplicates turn into +{DUPLICATE_POINTS} points.</p>
+          <p className="text-[13px] text-muted">One for every hour of focus, plus one for every friend who joins from your invite link. Duplicates turn into +{DUPLICATE_POINTS} points.</p>
         </div>
         <Button onClick={open} disabled={!g.packs || opening}><Icon name="sparkle" className="size-4" /> {g.packs ? `Open a pack (${g.packs})` : 'No packs yet'}</Button>
       </div>

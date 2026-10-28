@@ -1,6 +1,7 @@
 import { connection } from 'next/server';
 import { clearCookie, googleAccount, sessionCookie } from '@/lib/server/accounts';
 import { HttpError } from '@/lib/server/http';
+import { joinedByInvite } from '@/lib/server/services/feed';
 import { cookieFrom } from '@/lib/session-token';
 
 const back = (request: Request, path: string, cookies: string[]) => {
@@ -15,7 +16,7 @@ export async function GET(request: Request) {
   const url = new URL(request.url);
   const clearState = clearCookie(request, 'st_oauth').replace('Path=/', 'Path=/api/auth/google');
   try {
-    const [state, next] = (cookieFrom(request.headers.get('cookie'), 'st_oauth') || '').split('|');
+    const [state, next, invite] = (cookieFrom(request.headers.get('cookie'), 'st_oauth') || '').split('|');
     if (!state || state !== url.searchParams.get('state')) throw new HttpError(400, 'Sign-in expired. Please try again.');
     const code = url.searchParams.get('code');
     if (!code) throw new HttpError(400, 'Google sign-in was cancelled.');
@@ -30,7 +31,8 @@ export async function GET(request: Request) {
     const claims = JSON.parse(Buffer.from(token.id_token.split('.')[1], 'base64url').toString()) as { sub?: string; email?: string; email_verified?: boolean; name?: string; aud?: string; iss?: string };
     if (claims.aud !== process.env.GOOGLE_CLIENT_ID || !/accounts\.google\.com$/.test(claims.iss || '') || !claims.sub || !claims.email || !claims.email_verified) throw new HttpError(400, 'Google did not confirm this email.');
     const account = await googleAccount({ sub: claims.sub, email: claims.email, name: claims.name || '' });
-    return back(request, decodeURIComponent(next || '/') || '/', [sessionCookie(request, account.id), clearState]);
+    if (invite && Date.now() - account.createdAt < 60_000) await joinedByInvite(invite, account.id);
+    return back(request, decodeURIComponent(next || '/') || '/', [sessionCookie(request, account.id, account.sv ?? 0), clearState]);
   } catch (error) {
     const message = error instanceof HttpError ? error.message : 'Google sign-in failed. Please try again.';
     if (!(error instanceof HttpError)) console.error(error);

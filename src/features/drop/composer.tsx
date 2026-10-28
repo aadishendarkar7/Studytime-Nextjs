@@ -17,7 +17,7 @@ import { uid } from '@/lib/utils';
 import { refreshDrops } from './live';
 import { recentPlaces, VIBES } from './logic';
 
-export type DropPreset = { lat: number; lng: number } | { minutes: number } | { again: DropLogEntry } | { solo: true } | null;
+export type DropPreset = { lat: number; lng: number } | { minutes: number } | { again: DropLogEntry } | { solo: true } | { subject: string; spotName?: string } | null;
 
 type Audience = 'circle' | 'school' | 'everyone' | 'solo';
 
@@ -35,10 +35,10 @@ export function DropComposer({ open, onClose, preset }: { open: boolean; onClose
   const router = useRouter();
   const again = preset && 'again' in preset ? preset.again : null;
   const [form, setForm] = useState(() => ({
-    spotName: again?.spotName ?? (preset && 'lat' in preset ? '' : p.location || ''),
+    spotName: again?.spotName ?? (preset && 'spotName' in preset && preset.spotName ? preset.spotName : preset && 'lat' in preset ? '' : p.location || ''),
     lat: again ? again.lat : preset && 'lat' in preset ? preset.lat : (null as number | null),
     lng: again ? again.lng : preset && 'lng' in preset ? preset.lng : (null as number | null),
-    subject: again?.subject || p.subject || p.courses[0] || '',
+    subject: again?.subject || (preset && 'subject' in preset ? preset.subject : '') || p.subject || p.courses[0] || '',
     vibe: again?.vibe ?? x.dropVibe,
     seats: null as number | null,
     category: 'Anything goes',

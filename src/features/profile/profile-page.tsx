@@ -70,7 +70,7 @@ function CoursesCard() {
       <div className="mt-3 flex flex-wrap gap-2">
         {courses.length ? courses.map((c, i) => (
           <span key={c} className="flex items-center gap-1 rounded-lg bg-accent-soft py-1 pr-1 pl-3 text-[14px] font-semibold text-accent-ink">
-            {c}
+            <Link href={`/class/${encodeURIComponent(c)}`} className="hover:underline" title={`Open the ${c} class page`}>{c}</Link>
             <button type="button" onClick={() => removeCourse(i)} aria-label={`Remove ${c}`} className="grid size-7 place-items-center rounded-md hover:bg-surface"><Icon name="close" className="size-3.5" /></button>
           </span>
         )) : <Note className="mt-0">No courses yet.</Note>}
@@ -92,7 +92,8 @@ function Stat({ label, value, note }: { label: string; value: string; note?: str
 export function StatsCard() {
   const p = useProfile();
   const x = useExtras();
-  const s = streaks(p.sessions);
+  const restDays = useExtras((x) => x.restDays);
+  const s = streaks(p.sessions, undefined, restDays);
   const total = p.sessions.reduce((a, b) => a + b.minutes, 0);
   const spots = x.dropLog.length;
   const people = new Set(x.dropLog.flatMap((d) => d.with)).size;

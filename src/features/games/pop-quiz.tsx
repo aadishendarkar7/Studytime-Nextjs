@@ -5,6 +5,7 @@ import { Icon } from '@/components/ui/icons';
 import { useExtras } from '@/lib/stores/extras';
 import { useLearning } from '@/lib/stores/learning';
 import { useProfile } from '@/lib/stores/profile';
+import { isQuietNow } from '@/lib/quiet';
 import { useUi } from '@/lib/stores/ui';
 import type { StudySet } from '@/lib/types';
 import { cn, shuffle } from '@/lib/utils';
@@ -34,7 +35,8 @@ export function PopQuiz() {
   const [chosen, setChosen] = useState<string | null>(null);
 
   useEffect(() => {
-    const show = () => {
+    const show = (manual = false) => {
+      if (!manual && isQuietNow()) return;
       const ui = useUi.getState();
       if (!useExtras.getState().popQuiz || ui.popQuiz || ui.waterPrompt || useProfile.getState().timer.mode === 'running') return;
       const next = pickQuestion(useLearning.getState().sets);
@@ -46,10 +48,10 @@ export function PopQuiz() {
     };
     // Right after a session ends, and every 40 minutes otherwise.
     const off = useProfile.subscribe((s, prev) => {
-      if (s.sessions.length > prev.sessions.length) setTimeout(show, 2500);
+      if (s.sessions.length > prev.sessions.length) setTimeout(() => show(), 2500);
     });
     const id = setInterval(() => Date.now() - last > EVERY_MS && show(), 60_000);
-    const manual = () => show();
+    const manual = () => show(true);
     window.addEventListener('studytime:popquiz', manual);
     return () => (off(), clearInterval(id), window.removeEventListener('studytime:popquiz', manual));
   }, []);
@@ -60,7 +62,7 @@ export function PopQuiz() {
     if (chosen) return;
     setChosen(o);
     const right = o === q.answer;
-    useLearning.getState().rateCard(q.setId, q.cardId, right ? 'good' : 'again');
+    useLearning.getState().rateCard(q.setId, q.cardId, right ? 'good' : 'again', o, 'Pop quiz');
     if (right) useProfile.getState().update({ points: useProfile.getState().points + POP_POINTS });
   };
   const another = () => {

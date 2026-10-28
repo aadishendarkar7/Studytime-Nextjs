@@ -34,26 +34,36 @@ export interface ImportedCalendar { kind: 'google' | 'canvas' | 'outlook' | 'app
 
 const chatHeaders = (token: string) => ({ 'X-Chat-Token': token });
 
-export interface AccountView { id: string; email: string; name: string; createdAt: number; onboarded: boolean; hasPassword: boolean; viaGoogle: boolean; profile: { school: string; major: string; year: string; courses: string[] } }
+export interface AccountView { id: string; email: string; name: string; createdAt: number; onboarded: boolean; hasPassword: boolean; viaGoogle: boolean; invites: number; recapEmail: boolean; profile: { school: string; major: string; year: string; courses: string[] } }
 
 export const api = {
   feed: {
     list: (scope: 'following' | 'school' | 'mine', before?: number) => request<{ posts: FeedPost[] }>(`/api/feed?scope=${scope}${before ? `&before=${before}` : ''}`),
     post: (body: { minutes: number; subject: string; topics: string[]; place: string; with: string[]; note: string; visibility: PostVisibility; at?: number }) => request<{ post: FeedPost }>('/api/feed', { method: 'POST', json: body }),
     remove: (id: string) => request<{ ok: true }>(`/api/feed/${enc(id)}`, { method: 'DELETE' }),
+    report: (id: string, reason: 'spam' | 'mean' | 'inappropriate' | 'fake' | 'other') => request<{ ok: true }>(`/api/feed/${enc(id)}/report`, { method: 'POST', json: { reason } }),
     kudos: (id: string) => request<{ post: FeedPost }>(`/api/feed/${enc(id)}/kudos`, { method: 'POST' }),
+  },
+  courses: {
+    get: (code: string) => request<{ course: string; members: { id: string; name: string; major: string; year: string; following: boolean; me: boolean; weekMinutes: number }[]; posts: FeedPost[] }>(`/api/classes/${enc(code)}`),
   },
   people: {
     search: (q: string) => request<{ people: PersonView[] }>(`/api/people?q=${encodeURIComponent(q)}`),
     get: (id: string) => request<{ person: PersonView; posts: FeedPost[] }>(`/api/people/${enc(id)}`),
     follow: (id: string, on: boolean) => request<{ ok: true }>(`/api/people/${enc(id)}/follow`, { method: on ? 'POST' : 'DELETE' }),
+    block: (id: string, on: boolean) => request<{ ok: true }>(`/api/people/${enc(id)}/block`, { method: on ? 'POST' : 'DELETE' }),
+    blocked: () => request<{ people: { id: string; name: string; school: string }[] }>('/api/people/blocked'),
   },
   auth: {
-    me: () => request<{ user: AccountView | null; google: boolean; domains: string[] }>('/api/auth/me'),
+    me: () => request<{ user: AccountView | null; google: boolean; email: boolean; domains: string[] }>('/api/auth/me'),
     signin: (email: string, password: string) => request<{ user: AccountView }>('/api/auth/signin', { method: 'POST', json: { email, password } }),
-    signup: (name: string, email: string, password: string) => request<{ user: AccountView }>('/api/auth/signup', { method: 'POST', json: { name, email, password } }),
+    signup: (name: string, email: string, password: string, invite?: string) => request<{ user: AccountView }>('/api/auth/signup', { method: 'POST', json: { name, email, password, invite } }),
     signout: () => request<{ ok: true }>('/api/auth/signout', { method: 'POST' }),
-    profile: (body: { name?: string; school?: string; major?: string; year?: string; courses?: string[]; onboarded?: boolean }) => request<{ user: AccountView }>('/api/auth/profile', { method: 'PUT', json: body }),
+    forgot: (email: string) => request<{ ok: true }>('/api/auth/forgot', { method: 'POST', json: { email } }),
+    reset: (token: string, password: string) => request<{ user: AccountView }>('/api/auth/reset', { method: 'POST', json: { token, password } }),
+    password: (current: string, next: string) => request<{ user: AccountView }>('/api/auth/password', { method: 'PUT', json: { current, next } }),
+    deleteAccount: (body: { password?: string; confirm?: string }) => request<{ ok: true }>('/api/auth/account', { method: 'DELETE', json: body }),
+    profile: (body: { name?: string; school?: string; major?: string; year?: string; courses?: string[]; onboarded?: boolean; recapEmail?: boolean }) => request<{ user: AccountView }>('/api/auth/profile', { method: 'PUT', json: body }),
     getData: () => request<{ data: string | null; at: number }>('/api/auth/data'),
     putData: (data: string) => request<{ ok: true; at: number }>('/api/auth/data', { method: 'PUT', json: { data } }),
   },

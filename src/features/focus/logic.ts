@@ -42,7 +42,7 @@ export function weekSeries(sessions: Session[], now = new Date()) {
   });
 }
 
-export function streaks(sessions: Session[], today = todayKey()) {
+export function streaks(sessions: Session[], today = todayKey(), restDays: string[] = []) {
   const days = [...new Set(sessions.map((s) => s.day))].sort();
   let best = 0;
   let run = 0;
@@ -53,10 +53,12 @@ export function streaks(sessions: Session[], today = todayKey()) {
     prior = day;
   }
   const set = new Set(days);
+  // Planned rest days keep the streak going without counting toward it.
+  const rest = new Set(restDays);
   let cursor = set.has(today) ? today : dayBefore(today);
   let current = 0;
-  while (set.has(cursor)) {
-    current++;
+  for (let guard = 0; guard < 3660 && (set.has(cursor) || rest.has(cursor)); guard++) {
+    if (set.has(cursor)) current++;
     cursor = dayBefore(cursor);
   }
   return { current, best };

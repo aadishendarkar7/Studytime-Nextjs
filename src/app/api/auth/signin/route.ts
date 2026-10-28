@@ -9,5 +9,5 @@ export const POST = handle(async (request: Request) => {
   const body = await readJson(request, schema);
   await rateLimit('signin', `${clientIp(request)}:${normEmail(body.email)}`, 10, 900, 'Too many tries. Wait 15 minutes and try again.');
   const account = await signIn(body.email, body.password);
-  return withCookies({ user: publicAccount(account) }, [sessionCookie(request, account.id)]);
+  return withCookies({ user: publicAccount(account) }, [sessionCookie(request, account.id, account.sv ?? 0)]);
 });

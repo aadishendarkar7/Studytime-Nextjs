@@ -6,13 +6,36 @@ import { Icon } from '@/components/ui/icons';
 import { deleteLecture, listLectures, saveLecture, type Lecture } from '@/lib/media-db';
 import { useProfile } from '@/lib/stores/profile';
 import { toast } from '@/lib/stores/ui';
+import { AiError } from '@/lib/ai/client';
+import { useAi } from '@/lib/stores/ai';
+import { useLearning } from '@/lib/stores/learning';
 import { cn, uid } from '@/lib/utils';
+import { lectureNotes } from './lecture-notes';
+import { generateCards } from './tasks';
 import { SectionLabel } from './composer';
 
 const clock = (s: number) => `${Math.floor(s / 3600) ? `${Math.floor(s / 3600)}:` : ''}${String(Math.floor((s % 3600) / 60)).padStart(Math.floor(s / 3600) ? 2 : 1, '0')}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
 
 function Saved({ l, onChange }: { l: Lecture; onChange: () => void }) {
   const [open, setOpen] = useState(false);
+  const [progress, setProgress] = useState('');
+  const [done, setDone] = useState<{ noteId: string; content: string } | null>(null);
+  const [cards, setCards] = useState(false);
+  const makeNotes = async () => {
+    try {
+      const r = await lectureNotes(l, setProgress);
+      const ai = useAi.getState();
+      const folder = l.course && ai.noteFolders.includes(l.course) ? l.course : 'General';
+      const note = ai.saveNote({ title: `${l.title}: notes`, folder, kind: 'notes', content: r.notes });
+      ai.saveNote({ title: `${l.title}: transcript`, folder, kind: 'notes', content: r.transcript });
+      setDone({ noteId: note.id, content: r.notes });
+      toast('Notes and transcript saved to Notes.');
+    } catch (e) {
+      toast(e instanceof AiError && e.needsSetup ? e.message : `Could not make notes: ${(e as Error).message}`, 'error');
+    } finally {
+      setProgress('');
+    }
+  };
   const [url, setUrl] = useState('');
   const audio = useRef<HTMLAudioElement>(null);
   useEffect(() => {
@@ -44,8 +67,16 @@ function Saved({ l, onChange }: { l: Lecture; onChange: () => void }) {
               {l.marks.map((m, i) => <button key={i} type="button" onClick={() => seek(m.t)} className="tnum rounded-md border border-line px-2 py-1 text-[12px] hover:border-ink">{clock(m.t)} · {m.label}</button>)}
             </div>
           )}
+          {done && (
+            <div className="flex flex-wrap items-center gap-2 rounded-lg bg-ok-soft px-3 py-2 text-[13px] text-ok">
+              <span className="flex-1 font-medium">Notes are ready.</span>
+              <a href={`/study?tool=notes&note=${done.noteId}`} className="font-semibold underline">Open notes</a>
+              <button type="button" disabled={cards} className="font-semibold underline disabled:opacity-50" onClick={async () => { setCards(true); try { const set = useLearning.getState().addSet(l.title, await generateCards(done.content, 20), l.course || undefined); toast(`${set.cards.length} flashcards added to Study games.`); } catch (e) { toast((e as Error).message, 'error'); } finally { setCards(false); } }}>{cards ? 'Making cards' : 'Make flashcards'}</button>
+            </div>
+          )}
           <div className="flex flex-wrap gap-1.5">
             {url && <a href={url} download={`${l.title.replace(/[^\w\s-]/g, '').trim() || 'lecture'}.${ext}`}><Button size="sm" variant="secondary"><Icon name="download" className="size-4" /> Download</Button></a>}
+            <Button size="sm" loading={Boolean(progress)} onClick={() => void makeNotes()}><Icon name="sparkle" className="size-4" /> {progress || 'Make notes'}</Button>
             <Button size="sm" variant="ghost" onClick={async () => { const t = prompt('Rename recording', l.title)?.trim(); if (t) { await saveLecture({ ...l, title: t.slice(0, 80) }); onChange(); } }}>Rename</Button>
             <Button size="sm" variant="ghost" className="text-danger" onClick={async () => { if (confirm('Delete this recording?')) { await deleteLecture(l.id); onChange(); } }}>Delete</Button>
           </div>

@@ -67,16 +67,23 @@ export interface CallOptions {
   tier?: 'main' | 'fast' | 'verify';
   onText?: (fullText: string) => void;
   signal?: AbortSignal;
+  /** Use this provider no matter what is picked in Settings (for example Gemini for audio). */
+  provider?: ProviderId;
 }
 
 /** Stream a reply through /api/ai. Resolves with the full text. */
-export async function callAI({ system, messages, maxTokens = 2500, tier = 'main', onText, signal }: CallOptions): Promise<string> {
+export async function callAI({ system, messages, maxTokens = 2500, tier = 'main', onText, signal, provider }: CallOptions): Promise<string> {
   const status = await loadAiStatus();
-  const conn = resolveConnection(status);
+  let conn = resolveConnection(status);
+  if (provider && conn.provider !== provider) {
+    if (useAi.getState().keys[provider]) conn = { mode: 'own', provider };
+    else if (status.serverProviders.includes(provider)) conn = { mode: 'server', provider };
+    else throw new AiError(`This needs ${PROVIDERS[provider].label}. Add a free ${PROVIDERS[provider].label} key in Settings → AI tutor.`, true);
+  }
   if (conn.mode === 'none') throw new AiError('Add a free AI key in Settings → AI tutor to use AI features.', true);
   const settings = useAi.getState();
   const info = PROVIDERS[conn.provider];
-  const model = modelFor({ provider: conn.provider, models: settings.models }, tier);
+  const model = provider && provider !== settings.provider ? PROVIDERS[provider].defaults[tier] : modelFor({ provider: conn.provider, models: settings.models }, tier);
   const hasFiles = messages.some((m) => Array.isArray(m.content) && m.content.some((p) => p.type !== 'text'));
   if (hasFiles && !info.images) throw new AiError(`${info.label} can’t read photos or PDFs. Type or paste the text instead, or switch to Google Gemini (free) in Settings.`);
   const headers: Record<string, string> = { 'content-type': 'application/json' };

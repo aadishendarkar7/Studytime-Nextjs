@@ -11,6 +11,7 @@ import { ConceptsTool } from '@/features/ai/concepts';
 import { NotesTool } from '@/features/ai/notes';
 import { LectureTool } from '@/features/ai/lectures';
 import { GamesPage } from '@/features/games/games-page';
+import { MistakesTool } from '@/features/games/mistakes';
 import { isDue } from '@/features/games/srs';
 import { ConnectionPill } from '@/features/settings/ai-settings';
 import { useConnection } from '@/lib/ai/client';
@@ -20,11 +21,12 @@ import { useLearning } from '@/lib/stores/learning';
 import { useProfile } from '@/lib/stores/profile';
 import { cn } from '@/lib/utils';
 
-export type Tool = 'chat' | 'notes' | 'practice' | 'concepts' | 'lectures';
+export type Tool = 'chat' | 'notes' | 'practice' | 'mistakes' | 'concepts' | 'lectures';
 
 const TOOLS: { id: Tool; label: string; icon: IconName; blurb: string }[] = [
   { id: 'chat', label: 'Tutor', icon: 'ai', blurb: 'Ask, solve, summarize, make cheat sheets from your files' },
   { id: 'practice', label: 'Study games', icon: 'games', blurb: 'Flashcards, quizzes, matching, speed rounds' },
+  { id: 'mistakes', label: 'Mistakes', icon: 'reset', blurb: 'Questions you got wrong, to fix before the exam' },
   { id: 'notes', label: 'Notes', icon: 'file', blurb: 'Everything you saved: notes, cheat sheets, guides' },
   { id: 'lectures', label: 'Lecture recorder', icon: 'sound', blurb: 'Record a class and mark key moments' },
   { id: 'concepts', label: 'Concept cards', icon: 'bulb', blurb: 'What you have learned, and your gaps' },
@@ -95,7 +97,9 @@ function Rail({ tool, go }: { tool: Tool; go: (t: Tool) => void }) {
   const ai = useAi();
   const sets = useLearning((s) => s.sets);
   const due = sets.reduce((n, s) => n + s.cards.filter((c) => isDue(c)).length, 0);
+  const mistakes = useLearning((s) => s.mistakes.length);
   const counts: Partial<Record<Tool, string>> = {
+    mistakes: mistakes ? String(mistakes) : '',
     chat: ai.chats.length ? String(ai.chats.length) : '',
     notes: ai.notes.length ? String(ai.notes.length) : '',
     practice: due ? `${due} due` : sets.length ? String(sets.length) : '',
@@ -119,6 +123,7 @@ function Center({ tool, action }: { tool: Tool; action: string }) {
   switch (tool) {
     case 'chat': return <div className="h-[calc(100dvh-150px)] min-h-[560px] overflow-hidden rounded-xl border border-line bg-surface"><ChatTool initialAction={action} /></div>;
     case 'notes': return <NotesTool />;
+    case 'mistakes': return <MistakesTool />;
     case 'practice': return <GamesPage embedded />;
     case 'concepts': return <ConceptsTool />;
     case 'lectures': return <LectureTool />;

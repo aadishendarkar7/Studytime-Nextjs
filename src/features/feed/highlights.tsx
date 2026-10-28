@@ -15,6 +15,10 @@ import { toast } from '@/lib/stores/ui';
 import type { FeedPost, PersonView } from '@/lib/types';
 import { useNow } from '@/lib/use-now';
 import { cn, fmtMinutes, plural } from '@/lib/utils';
+import { InviteCard } from '@/features/auth/invite-card';
+import { YourClasses } from '@/features/classes/your-classes';
+import { useDropComposer } from '@/features/drop/composer';
+import { useDrops } from '@/features/drop/live';
 import { ShareForm, VISIBILITY } from './share-form';
 
 type Scope = 'following' | 'school' | 'mine';
@@ -113,6 +117,58 @@ function Stat({ label, value }: { label: string; value: string }) {
   );
 }
 
+const REASONS = [
+  { value: 'spam', label: 'Spam or ads' },
+  { value: 'mean', label: 'Mean or bullying' },
+  { value: 'inappropriate', label: 'Inappropriate' },
+  { value: 'fake', label: 'Fake session' },
+  { value: 'other', label: 'Something else' },
+] as const;
+
+/** Report a highlight or block its author. */
+function MoreMenu({ post, onGone }: { post: FeedPost; onGone: () => void }) {
+  const [open, setOpen] = useState<'' | 'menu' | 'report'>('');
+  const report = async (reason: (typeof REASONS)[number]['value']) => {
+    try {
+      await api.feed.report(post.id, reason);
+      toast('Thanks. We hid it for you, and it will be reviewed.');
+      onGone();
+    } catch (e) {
+      toast((e as Error).message, 'error');
+    }
+  };
+  const blockIt = async () => {
+    if (!confirm(`Block ${post.name}? You will stop seeing each other on Studytime.`)) return;
+    try {
+      await api.people.block(post.userId, true);
+      toast(`${post.name} is blocked. You can undo this in Settings.`);
+      onGone();
+    } catch (e) {
+      toast((e as Error).message, 'error');
+    }
+  };
+  return (
+    <div className="relative">
+      <button type="button" aria-label="More options" aria-expanded={Boolean(open)} onClick={() => setOpen(open ? '' : 'menu')} className="grid size-8 place-items-center rounded-lg text-muted hover:bg-surface-3 hover:text-ink"><Icon name="menu" className="size-4" /></button>
+      {open && (
+        <div role="menu" className="absolute top-9 right-0 z-30 w-52 rounded-xl border border-line bg-surface p-1 shadow-lg">
+          {open === 'menu' ? (
+            <>
+              <button type="button" role="menuitem" className="block w-full rounded-lg px-3 py-2 text-left text-[13px] hover:bg-surface-3" onClick={() => setOpen('report')}>Report this highlight</button>
+              <button type="button" role="menuitem" className="block w-full rounded-lg px-3 py-2 text-left text-[13px] text-danger hover:bg-surface-3" onClick={() => (setOpen(''), void blockIt())}>Block {post.name}</button>
+            </>
+          ) : (
+            <>
+              <p className="px-3 pt-1.5 pb-1 text-[11px] font-semibold text-muted">What is wrong with it?</p>
+              {REASONS.map((x) => <button key={x.value} type="button" role="menuitem" className="block w-full rounded-lg px-3 py-2 text-left text-[13px] hover:bg-surface-3" onClick={() => (setOpen(''), void report(x.value))}>{x.label}</button>)}
+            </>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 /** One session recap. Quiet on purpose: stats first, one "Nice work", no comment threads. */
 export function HighlightCard({ post, onChange, onOpenPerson }: { post: FeedPost; onChange: (p: FeedPost | null) => void; onOpenPerson?: (id: string) => void }) {
   const me = useAccount((s) => s.user?.id);
@@ -130,6 +186,12 @@ export function HighlightCard({ post, onChange, onOpenPerson }: { post: FeedPost
     }
   };
   const others = post.kudosNames.filter((_, i) => post.kudos[i] !== me);
+  // Turn a highlight into the next session: join them if they are out now, or drop a spot there.
+  const theirDrop = useDrops((s) => s.drops.find((d) => d.name === post.name && d.endsAt > Date.now()));
+  const together = () => {
+    if (theirDrop) location.href = `/drop?d=${theirDrop.id}`;
+    else useDropComposer.getState().show({ subject: post.subject, spotName: post.place });
+  };
   return (
     <article className="rounded-xl border border-line bg-surface p-4">
       <header className="flex items-center gap-2.5">
@@ -139,6 +201,7 @@ export function HighlightCard({ post, onChange, onOpenPerson }: { post: FeedPost
           <p className="truncate text-[12px] text-muted">{when(post.at)}{post.school ? ` · ${post.school}` : ''}</p>
         </div>
         <button type="button" aria-label="Share as image" title="Share as image" onClick={() => void shareHighlight(post)} className="grid size-8 place-items-center rounded-lg text-muted hover:bg-surface-3 hover:text-ink"><Icon name="download" className="size-4" /></button>
+        {!mine && <MoreMenu post={post} onGone={() => onChange(null)} />}
         {mine && <button type="button" aria-label="Delete highlight" title="Delete" onClick={() => confirm('Delete this highlight?') && api.feed.remove(post.id).then(() => onChange(null), () => toast('Could not delete.', 'error'))} className="grid size-8 place-items-center rounded-lg text-muted hover:bg-surface-3 hover:text-danger"><Icon name="trash" className="size-4" /></button>}
       </header>
       <h3 className="mt-3 font-sans text-[17px] leading-6 font-semibold">{post.subject || 'Study session'}</h3>
@@ -157,6 +220,11 @@ export function HighlightCard({ post, onChange, onOpenPerson }: { post: FeedPost
         {!mine && (
           <button type="button" disabled={busy} onClick={cheer} aria-pressed={cheered} className={cn('inline-flex h-8 items-center gap-1.5 rounded-lg border px-2.5 text-[13px] font-medium transition-colors', cheered ? 'border-accent bg-accent-soft text-accent-ink' : 'border-line text-ink-2 hover:border-line-strong hover:text-ink')}>
             <Icon name="star" className="size-3.5" /> {cheered ? 'Cheered' : 'Nice work'}
+          </button>
+        )}
+        {!mine && (
+          <button type="button" onClick={together} className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-line px-2.5 text-[13px] font-medium text-ink-2 hover:border-line-strong hover:text-ink" title={theirDrop ? `Join ${post.name} at ${theirDrop.spotName}` : 'Drop a spot there for next time'}>
+            <Icon name="pin" className="size-3.5" /> {theirDrop ? 'Join them now' : 'Study together'}
           </button>
         )}
         <span className="min-w-0 truncate text-[12px] text-muted">
@@ -292,7 +360,9 @@ export function HighlightsTab() {
             <p className="text-[12px] text-muted">{plural(week.length, 'session')} by {plural(new Set(week.map((p) => p.userId)).size, 'person', 'people')}</p>
           </section>
         )}
+        <YourClasses />
         <FindPeople onOpen={setPerson} />
+        <InviteCard />
       </aside>
       <Dialog open={writing} onClose={() => setWriting(false)} title="Add a study session">
         {writing && <ShareForm onDone={(p) => { setWriting(false); if (p) setPosts((l) => [p, ...(l ?? [])]); }} />}

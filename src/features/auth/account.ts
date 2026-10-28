@@ -127,6 +127,12 @@ export function startAccount() {
   return started;
 }
 
+/** Remove this account's data from this browser (after deleting the account). */
+export function clearLocalData() {
+  for (const k of [PROFILE_KEY, LEARNING_KEY, AI_KEY, EXTRAS_KEY, OWNER_KEY]) try { localStorage.removeItem(k); } catch { /* blocked */ }
+  stop?.();
+}
+
 export async function signOut() {
   await saveNow().catch(() => undefined);
   await api.auth.signout().catch(() => undefined);

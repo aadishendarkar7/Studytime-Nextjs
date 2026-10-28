@@ -52,3 +52,56 @@ describe('study highlights', () => {
     expect(posts).toHaveLength(1);
   });
 });
+
+describe('safety and growth', () => {
+  it('blocking hides both ways and removes follows', async () => {
+    const { block } = await import('@/lib/server/services/feed');
+    const aadi = await person('Aadi', 'UMD');
+    const troll = await person('Troll', 'UMD');
+    await follow(troll, aadi.id, true);
+    await createPost(troll, { ...base, visibility: 'everyone' });
+    await createPost(aadi, { ...base, visibility: 'everyone' });
+    await block(aadi, troll.id, true);
+    expect((await listFeed(aadi, 'school')).every((p) => p.userId !== troll.id)).toBe(true);
+    expect((await listFeed(troll, 'school')).every((p) => p.userId !== aadi.id)).toBe(true);
+    expect((await searchPeople(troll, 'aadi')).length).toBe(0);
+    await expect(follow(troll, aadi.id, true)).rejects.toThrow(/not found/);
+  });
+
+  it('hides a highlight from the reporter, and from everyone after three reports', async () => {
+    const { reportPost } = await import('@/lib/server/services/feed');
+    const author = await person('Author', 'UMD');
+    const r = await Promise.all(['A', 'B', 'C', 'D'].map((n) => person(`R${n}`, 'UMD')));
+    const p = await createPost(author, { ...base, visibility: 'school' });
+    await reportPost(r[0], p.id, 'spam');
+    expect(await listFeed(r[0], 'school')).toEqual([]);
+    expect((await listFeed(r[3], 'school')).length).toBe(1);
+    await reportPost(r[1], p.id, 'spam');
+    await reportPost(r[2], p.id, 'spam');
+    expect(await listFeed(r[3], 'school')).toEqual([]);
+    expect((await listFeed(author, 'mine')).length).toBe(1);
+  });
+
+  it('invites credit the inviter and make them follow each other', async () => {
+    const { joinedByInvite } = await import('@/lib/server/services/feed');
+    const { getAccount } = await import('@/lib/server/accounts');
+    const inviter = await person('Inviter', 'UMD');
+    const fresh = await person('Fresh', 'UMD');
+    await joinedByInvite(inviter.id, fresh.id);
+    await joinedByInvite(inviter.id, fresh.id);
+    expect((await getAccount(inviter.id))?.invites).toBe(1);
+    expect((await getPerson(fresh, inviter.id)).person.following).toBe(true);
+    expect((await getPerson(inviter, fresh.id)).person.following).toBe(true);
+  });
+
+  it('class pages list classmates in the course and its highlights', async () => {
+    const { classPage } = await import('@/lib/server/services/feed');
+    const aadi = await person('Aadi', 'UMD', ['STAT400']);
+    await person('Maya', 'UMD', ['stat 400']);
+    await person('Lee', 'UMD', ['MATH240']);
+    await createPost(aadi, { ...base, subject: 'STAT 400 review', visibility: 'school' });
+    const c = await classPage(aadi, 'stat400');
+    expect(c.members.map((m) => m.name).sort()).toEqual(['Maya', 'You']);
+    expect(c.posts).toHaveLength(1);
+  });
+});

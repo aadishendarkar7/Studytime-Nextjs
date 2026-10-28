@@ -55,7 +55,7 @@ export function NotesTool() {
   const [folder, setFolder] = useState('General');
   const [text, setText] = useState('');
   const [kind, setKind] = useState<MakeKind>('notes');
-  const [viewId, setViewId] = useState<string | null>(null);
+  const [viewId, setViewId] = useState<string | null>(() => (typeof location !== 'undefined' ? new URLSearchParams(location.search).get('note') : null));
   const [libraryFolder, setLibraryFolder] = useState('all');
   const [cards, setCards] = useState<{ status: 'idle' | 'running' | 'done' | 'error'; list: { front: string; back: string }[]; error?: Error }>({ status: 'idle', list: [] });
   const viewing = ai.notes.find((n) => n.id === viewId) ?? null;

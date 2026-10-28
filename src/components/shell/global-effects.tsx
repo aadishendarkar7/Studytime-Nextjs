@@ -1,4 +1,5 @@
 'use client';
+import { isQuietNow } from '@/lib/quiet';
 import { useEffect } from 'react';
 import { syncAfterSession } from '@/features/social/sync';
 import { refreshStale, syncOutgoing } from '@/features/calendar/sync';
@@ -15,8 +16,10 @@ import { toast, useUi } from '@/lib/stores/ui';
 
 const REMINDER_LABEL = { homework: 'Homework', exam: 'Exam', assignment: 'Assignment' } as const;
 
-export function sendBrowserAlert(title: string, body: string) {
+export function sendBrowserAlert(title: string, body: string, important = false) {
   if (typeof Notification === 'undefined' || Notification.permission !== 'granted') return;
+  // Quiet hours hold back everything except what you asked for (a finished session, a deadline).
+  if (!important && isQuietNow()) return;
   try {
     new Notification(title, { body, tag: 'studytime' });
   } catch {
@@ -64,7 +67,7 @@ export function GlobalEffects() {
       const result = useProfile.getState().tick();
       if (!result) return;
       toast(`Session complete. +${result.base + result.bonus} points${result.bonus ? ' including a bonus' : ''}.`);
-      sendBrowserAlert('Focus session complete', `${result.session.minutes} minutes of ${result.session.subject} logged.`);
+      sendBrowserAlert('Focus session complete', `${result.session.minutes} minutes of ${result.session.subject} logged.`, true);
       useUi.getState().setReflectionOpen(true);
       syncAfterSession();
     };
@@ -137,7 +140,7 @@ export function GlobalEffects() {
         p.markNotified(due.map((r) => r.id));
         for (const r of due) {
           toast(`${REMINDER_LABEL[r.type]} reminder: ${r.title}`);
-          sendBrowserAlert('Studytime reminder', `${REMINDER_LABEL[r.type]}: ${r.title} is due ${new Date(r.dueAt).toLocaleString()}.`);
+          sendBrowserAlert('Studytime reminder', `${REMINDER_LABEL[r.type]}: ${r.title} is due ${new Date(r.dueAt).toLocaleString()}.`, true);
         }
       }
       // Planned study blocks: one alert as each starts.

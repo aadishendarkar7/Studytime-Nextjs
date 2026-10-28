@@ -11,6 +11,7 @@ const part = z.discriminatedUnion('type', [
   z.object({ type: z.literal('text'), text: z.string().max(200_000) }),
   z.object({ type: z.literal('image'), mediaType: z.string().regex(/^image\/(jpeg|png|webp|gif)$/), data: z.string() }),
   z.object({ type: z.literal('pdf'), data: z.string(), name: z.string().max(200).optional() }),
+  z.object({ type: z.literal('audio'), mediaType: z.string().regex(/^audio\/(wav|x-wav|mpeg|mp3|ogg|webm|aac|flac|mp4)$/), data: z.string() }),
 ]);
 const schema = z.object({
   provider: z.enum(PROVIDER_IDS as [string, ...string[]]),
@@ -33,12 +34,13 @@ const retired = (e: unknown) => e instanceof HttpError && e.message.startsWith('
  */
 async function startWithFallbacks(req: AiRequest, key: string, siteKeys: boolean) {
   const hasFiles = req.messages.some((m) => Array.isArray(m.content) && m.content.some((p) => p.type !== 'text'));
+  const hasAudio = req.messages.some((m) => Array.isArray(m.content) && m.content.some((p) => p.type === 'audio'));
   const info = PROVIDERS[req.provider];
   const attempts: { provider: AiRequest['provider']; model: string; key: string }[] = [{ provider: req.provider, model: req.model, key }];
   for (const model of [info.defaults.main, info.defaults.fast, ...info.models.map((m) => m.id)]) if (!attempts.some((a) => a.provider === req.provider && a.model === model)) attempts.push({ provider: req.provider, model, key });
   if (siteKeys)
     for (const p of serverProviders()) {
-      if (p === req.provider || (hasFiles && !PROVIDERS[p].images)) continue;
+      if (p === req.provider || (hasFiles && !PROVIDERS[p].images) || (hasAudio && p !== 'gemini')) continue;
       attempts.push({ provider: p, model: PROVIDERS[p].defaults.main, key: serverKey(p) });
     }
   let last: unknown;

@@ -55,3 +55,36 @@ describe('accounts', () => {
     expect(saved?.onboarded).toBe(true);
   });
 });
+
+describe('password reset and account deletion', () => {
+  it('uses a reset token once and bumps the session version', async () => {
+    const { createResetToken, consumeResetToken, setPassword } = await import('@/lib/server/accounts');
+    const a = await createAccount({ email: 'r@umd.edu', password: 'password1', name: 'R' });
+    const t = await createResetToken(a.id);
+    expect(await consumeResetToken(t)).toBe(a.id);
+    await expect(consumeResetToken(t)).rejects.toThrow(/expired/);
+    const b = await setPassword(a.id, 'newpassword');
+    expect(b.sv).toBe(1);
+    expect(await checkPassword('newpassword', b.password)).toBe(true);
+  });
+
+  it('rejects old sessions after the password changes', async () => {
+    const { requireAccount, setPassword } = await import('@/lib/server/accounts');
+    const a = await createAccount({ email: 's@umd.edu', password: 'password1', name: 'S' });
+    const req = (v: number) => new Request('http://x', { headers: { cookie: `st_session=${signSession(a.id, Date.now(), v)}` } });
+    expect((await requireAccount(req(0))).id).toBe(a.id);
+    await setPassword(a.id, 'password2');
+    await expect(requireAccount(req(0))).rejects.toThrow(/sign in/);
+    expect((await requireAccount(req(1))).id).toBe(a.id);
+  });
+
+  it('deletes the account so the email can sign up again', async () => {
+    const { deleteAccount, getAccount } = await import('@/lib/server/accounts');
+    const { removeUserSocial } = await import('@/lib/server/services/feed');
+    const a = await createAccount({ email: 'd@umd.edu', password: 'password1', name: 'D' });
+    await deleteAccount(a, removeUserSocial);
+    expect(await getAccount(a.id)).toBeNull();
+    expect(await findByEmail('d@umd.edu')).toBeNull();
+    await createAccount({ email: 'd@umd.edu', password: 'password1', name: 'D2' });
+  });
+});

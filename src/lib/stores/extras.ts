@@ -122,6 +122,10 @@ export interface ExtrasData {
   /** Exam prep: topics and how confident you feel, keyed by exam. */
   /** How your pet looks. */
   petBody: PetBody;
+  /** Days you planned to rest (YYYY-MM-DD). They do not break your streak. */
+  restDays: string[];
+  /** No notifications or pop-ups between these times. */
+  quiet: { on: boolean; from: string; to: string };
   /** Who sees your posted sessions by default. */
   feedVisibility: 'followers' | 'school' | 'everyone';
   /** Ask to post after each focus session. */
@@ -177,6 +181,8 @@ export const defaultExtras = (): ExtrasData => ({
   calendarView: 'week',
   examPreps: {},
   petBody: DEFAULT_PET,
+  restDays: [],
+  quiet: { on: true, from: '23:00', to: '07:00' },
   feedVisibility: 'school',
   feedPrompt: true,
 });
@@ -204,9 +210,10 @@ export const useExtras = create<ExtrasData & ExtrasActions>()(
       merge: (persisted, current) => {
         const p = { ...current, ...(persisted as Partial<ExtrasData>) };
         const base = defaultExtras();
-        for (const key of ['spots', 'calendarFeeds', 'studyBlocks', 'checkins', 'parked', 'resets', 'myDrops', 'joinedDrops', 'dropsSeen', 'dropLog', 'hiddenCalendars', 'chatBlocked', 'myEvents', 'eventRsvps', 'inventory'] as const) if (!Array.isArray(p[key])) (p as ExtrasData)[key] = base[key] as never;
+        for (const key of ['spots', 'calendarFeeds', 'studyBlocks', 'checkins', 'parked', 'resets', 'myDrops', 'joinedDrops', 'dropsSeen', 'dropLog', 'hiddenCalendars', 'chatBlocked', 'myEvents', 'eventRsvps', 'inventory', 'restDays'] as const) if (!Array.isArray(p[key])) (p as ExtrasData)[key] = base[key] as never;
         for (const key of ['water', 'breakdowns', 'chatRead', 'examPreps'] as const) if (!p[key] || typeof p[key] !== 'object' || Array.isArray(p[key])) (p as ExtrasData)[key] = base[key] as never;
         p.planPrefs = { ...base.planPrefs, ...(p.planPrefs || {}) };
+        p.quiet = { ...base.quiet, ...(p.quiet && typeof p.quiet === 'object' ? p.quiet : {}) };
         p.petBody = { ...base.petBody, ...(p.petBody && typeof p.petBody === 'object' ? p.petBody : {}) };
         if (!Number.isFinite(p.volume)) p.volume = base.volume;
         // Water reminders moved to every half hour by default; older saved intervals switch once.

@@ -10,11 +10,12 @@ const schema = z.object({
   year: text(10).optional(),
   courses: z.array(text(30)).max(12).optional(),
   onboarded: z.boolean().optional(),
+  recapEmail: z.boolean().optional(),
 });
 
 export const PUT = handle(async (request: Request) => {
   const account = await requireAccount(request);
-  const { name, onboarded, ...profile } = await readJson(request, schema);
-  const next = await updateAccount(account.id, { name, onboarded, profile });
+  const { name, onboarded, recapEmail, ...profile } = await readJson(request, schema);
+  const next = await updateAccount(account.id, { name, onboarded, recapEmail, profile });
   return json({ user: publicAccount(next) });
 });
