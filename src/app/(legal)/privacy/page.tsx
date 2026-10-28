@@ -11,7 +11,7 @@ export default function PrivacyPage() {
       </p>
 
       <Section title="Stored in your browser">
-        <p>Most of your data never leaves your device. Studytime saves these in your browser&rsquo;s local storage:</p>
+        <p>Studytime saves these in your browser&rsquo;s local storage, and keeps a copy in your account so they follow you to other devices (see &ldquo;Your account&rdquo;):</p>
         <ul>
           <li>Your profile: name, school, major, year, courses, and your daily and weekly goals.</li>
           <li>Your focus sessions, points, streaks, deadlines, reminders, and check-ins.</li>
@@ -21,15 +21,20 @@ export default function PrivacyPage() {
           <li>Lecture recordings, saved only in this browser&rsquo;s storage and never uploaded.</li>
           <li>Your tree, pet and mystery pack collection, and your study style quiz result.</li>
           <li>Your saved study spots, drop history (places, times and who joined you), focus sound choice, and color settings.</li>
-          <li>Your daily check-ins (mood, energy, stress, sleep and notes), rest days, water log, parked thoughts, and weekly resets. These never leave your browser.</li>
+          <li>Your daily check-ins (mood, energy, stress, sleep and notes), rest days, water log, parked thoughts, and weekly resets. Check-ins and parked thoughts stay in this browser and are not copied to your account.</li>
           <li>Connected calendar links, the events downloaded from them, and your planned study blocks.</li>
         </ul>
-        <p>Clearing your browser data removes all of it. Settings has a backup and restore option if you want to move it to another device. Studytime does not set cookies.</p>
+        <p>Clearing your browser data removes all of it. Your account copy is restored when you sign in again. Studytime sets one cookie, only to keep you signed in.</p>
+      </Section>
+
+      <Section title="Your account">
+        <p>To use Studytime you create an account. We store your email, name, and either your password (as a salted scrypt hash, never in plain text) or, if you use Google, your Google account ID. We also store your profile (school, major, year and classes) and a copy of your progress from the list above, without API keys, lecture recordings, check-ins or parked thoughts. Only you can read it. To delete your account and everything in it, write to <Contact />.</p>
       </Section>
 
       <Section title="Stored on our server">
         <p>The server stores data only when you use a shared feature:</p>
         <ul>
+          <li><strong>Study highlights.</strong> When you save a session as a highlight: your name, school, major, the time, what you studied, the topics, the place, the names you add as study partners, and your note. You choose who sees each one: people who follow you, your school, or everyone. People who can see it can tap &ldquo;Nice work&rdquo;, which stores their name on it. Highlights are deleted after 90 days, or right away when you delete them. We also store who you follow, and people can find your name, school and major when they search for classmates.</li>
           <li><strong>Chat.</strong> A random chat ID kept in your browser, plus your display name, school, major, year, courses, and a short status (focusing, the place of a drop you are part of, or online), updated every 30 seconds while the app is open. Everyone using Studytime can see this while you show as online; turn off &ldquo;Show me as online&rdquo; to hide it. Messages you send are stored with your name: channel messages can be read by anyone who opens that channel, and direct messages only by the two of you. Each channel keeps its latest 300 messages. You can delete your own messages, and reported messages are kept for review.</li>
           <li><strong>Focus Buddy.</strong> While you opt in and a session runs: your display name, your subject or course, your school (only used to find a match, never shown), and when your session started and ends. Your buddy sees your name, task and timer. Nothing else is shared, there is no camera or chat, and the record is deleted 30 minutes after the session ends.</li>
           <li><strong>Weekly pacts.</strong> Your display name, the weekly goal, and your focus minutes this week. Your pact partner can see them. Leaving a pact removes you from it.</li>

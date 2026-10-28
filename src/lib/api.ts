@@ -1,5 +1,5 @@
 'use client';
-import type { BuddyView, EventInput, EventView, PactView, ChatChannelInfo, ChatMessage, ChatPerson, ChatStatus, ChatThread, CircleMemberView, ClassView, Deck, DropInput, DropView, LeaderboardResult, LeaderScope, PartnerInput, PartnerListing, PublicSpot, SpotInput } from './types';
+import type { BuddyView, FeedPost, PersonView, PostVisibility, EventInput, EventView, PactView, ChatChannelInfo, ChatMessage, ChatPerson, ChatStatus, ChatThread, CircleMemberView, ClassView, Deck, DropInput, DropView, LeaderboardResult, LeaderScope, PartnerInput, PartnerListing, PublicSpot, SpotInput } from './types';
 
 export class ApiError extends Error {
   constructor(message: string, public status: number) {
@@ -34,7 +34,29 @@ export interface ImportedCalendar { kind: 'google' | 'canvas' | 'outlook' | 'app
 
 const chatHeaders = (token: string) => ({ 'X-Chat-Token': token });
 
+export interface AccountView { id: string; email: string; name: string; createdAt: number; onboarded: boolean; hasPassword: boolean; viaGoogle: boolean; profile: { school: string; major: string; year: string; courses: string[] } }
+
 export const api = {
+  feed: {
+    list: (scope: 'following' | 'school' | 'mine', before?: number) => request<{ posts: FeedPost[] }>(`/api/feed?scope=${scope}${before ? `&before=${before}` : ''}`),
+    post: (body: { minutes: number; subject: string; topics: string[]; place: string; with: string[]; note: string; visibility: PostVisibility; at?: number }) => request<{ post: FeedPost }>('/api/feed', { method: 'POST', json: body }),
+    remove: (id: string) => request<{ ok: true }>(`/api/feed/${enc(id)}`, { method: 'DELETE' }),
+    kudos: (id: string) => request<{ post: FeedPost }>(`/api/feed/${enc(id)}/kudos`, { method: 'POST' }),
+  },
+  people: {
+    search: (q: string) => request<{ people: PersonView[] }>(`/api/people?q=${encodeURIComponent(q)}`),
+    get: (id: string) => request<{ person: PersonView; posts: FeedPost[] }>(`/api/people/${enc(id)}`),
+    follow: (id: string, on: boolean) => request<{ ok: true }>(`/api/people/${enc(id)}/follow`, { method: on ? 'POST' : 'DELETE' }),
+  },
+  auth: {
+    me: () => request<{ user: AccountView | null; google: boolean; domains: string[] }>('/api/auth/me'),
+    signin: (email: string, password: string) => request<{ user: AccountView }>('/api/auth/signin', { method: 'POST', json: { email, password } }),
+    signup: (name: string, email: string, password: string) => request<{ user: AccountView }>('/api/auth/signup', { method: 'POST', json: { name, email, password } }),
+    signout: () => request<{ ok: true }>('/api/auth/signout', { method: 'POST' }),
+    profile: (body: { name?: string; school?: string; major?: string; year?: string; courses?: string[]; onboarded?: boolean }) => request<{ user: AccountView }>('/api/auth/profile', { method: 'PUT', json: body }),
+    getData: () => request<{ data: string | null; at: number }>('/api/auth/data'),
+    putData: (data: string) => request<{ ok: true; at: number }>('/api/auth/data', { method: 'PUT', json: { data } }),
+  },
   buddy: {
     join: (body: { name: string; course: string; task: string; school: string; endsAt: number }) => request<{ id: string; token: string }>('/api/buddy', { method: 'POST', json: body }),
     poll: (id: string, token: string) => request<{ me: BuddyView; buddy: BuddyView | null; sameCourse: boolean }>(`/api/buddy/${enc(id)}`, { headers: { 'X-Buddy-Token': token } }),

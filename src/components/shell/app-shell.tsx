@@ -5,7 +5,8 @@ import { Toaster } from '@/components/ui/toaster';
 import { DropComposerHost } from '@/features/drop/composer';
 import { WaterPrompt } from '@/features/wellbeing/water-prompt';
 import { PopQuiz } from '@/features/games/pop-quiz';
-import { hydrateStores } from '@/lib/stores/hydrate';
+import { startAccount, useAccount } from '@/features/auth/account';
+import { Welcome } from '@/features/auth/welcome';
 import { GlobalEffects } from './global-effects';
 import { PrintPortal } from './print-portal';
 import { ReflectionDialog } from './reflection-dialog';
@@ -17,9 +18,11 @@ import { BottomTabs, Sidebar, Topbar } from './sidebar';
  */
 export function AppShell({ children }: { children: ReactNode }) {
   const [ready, setReady] = useState(false);
+  const user = useAccount((s) => s.user);
   useEffect(() => {
-    hydrateStores().then(() => setReady(true));
+    startAccount().then((r) => (r === 'signin' ? location.replace(`/signin?next=${encodeURIComponent(location.pathname + location.search)}`) : setReady(true)));
   }, []);
+  if (ready && user && !user.onboarded) return <><Welcome /><Toaster /></>;
   if (!ready)
     return (
       <div className="grid min-h-dvh place-items-center" aria-busy="true">

@@ -122,6 +122,10 @@ export interface ExtrasData {
   /** Exam prep: topics and how confident you feel, keyed by exam. */
   /** How your pet looks. */
   petBody: PetBody;
+  /** Who sees your posted sessions by default. */
+  feedVisibility: 'followers' | 'school' | 'everyone';
+  /** Ask to post after each focus session. */
+  feedPrompt: boolean;
   examPreps: Record<string, { topics: { id: string; name: string; conf: 'new' | 'shaky' | 'solid'; minutes: number }[]; setId?: string }>;
 }
 
@@ -173,6 +177,8 @@ export const defaultExtras = (): ExtrasData => ({
   calendarView: 'week',
   examPreps: {},
   petBody: DEFAULT_PET,
+  feedVisibility: 'school',
+  feedPrompt: true,
 });
 
 interface ExtrasActions {

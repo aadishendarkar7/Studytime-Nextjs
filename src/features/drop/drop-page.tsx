@@ -22,6 +22,7 @@ import { CATEGORIES, type DropView, type DropVibe } from '@/lib/types';
 import { useNow } from '@/lib/use-now';
 import { cn, fmtMinutes, plural } from '@/lib/utils';
 import { useDropComposer } from './composer';
+import { HighlightsTab } from '@/features/feed/highlights';
 import { EventsTab } from './events-tab';
 import { DropSheet, Initial, PrimaryAction, seatsLeft } from './drop-sheet';
 import { refreshDrops, useDrops, whenLabel } from './live';
@@ -32,9 +33,10 @@ const SpotMap = dynamic(() => import('@/features/spots/spot-map').then((m) => m.
   loading: () => <div className="grid h-full place-items-center bg-surface-3 text-[14px] text-muted">Loading map</div>,
 });
 
-type Tab = 'live' | 'events' | 'yours' | 'rooms' | 'partners' | 'friends';
+type Tab = 'live' | 'highlights' | 'events' | 'yours' | 'rooms' | 'partners' | 'friends';
 const TABS: { value: Tab; label: string }[] = [
   { value: 'live', label: 'Live map' },
+  { value: 'highlights', label: 'Highlights' },
   { value: 'friends', label: 'Friends' },
   { value: 'events', label: 'Events' },
   { value: 'yours', label: 'Your drops' },
@@ -433,6 +435,7 @@ export function DropPage() {
       <YourDropBar onOpen={setOpenId} />
       <Tabs className="mb-5" label="Drop a Spot sections" value={tab} onChange={go} options={TABS.map((t) => (t.value === 'friends' ? { ...t, count: unreadDms } : t))} />
       {tab === 'live' && <LiveTab openId={openId} setOpenId={setOpenId} />}
+      {tab === 'highlights' && <HighlightsTab />}
       {tab === 'events' && <EventsTab />}
       {tab === 'yours' && <YoursTab />}
       {tab === 'rooms' && <RoomsPage embedded />}

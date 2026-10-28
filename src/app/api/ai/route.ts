@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { MODEL_PATTERN, PROVIDER_IDS, PROVIDERS, type AiRequest } from '@/lib/ai/providers';
 import { clientIp, handle, HttpError, readJson } from '@/lib/server/http';
+import { sessionUserId } from '@/lib/server/accounts';
 import { rateLimit } from '@/lib/server/rate-limit';
 import { serverKey, serverProviders, startStream } from '@/lib/server/ai';
 
@@ -73,10 +74,15 @@ export const POST = handle(async (request: Request) => {
   } else {
     key = serverKey(body.provider);
     if (!key) throw new HttpError(503, 'No API key is set for this provider. Add your own free key in Settings → AI tutor.');
+    // Signed-in students use the site's key. Without an account, only someone with the access code can.
+    const userId = sessionUserId(request);
     const code = process.env.AI_ACCESS_CODE;
-    if (code && request.headers.get('x-access-code') !== code) throw new HttpError(401, 'This server needs an access code to use its AI key. Enter it in Settings → AI tutor, or add your own key.');
-    await rateLimit('ai-min', ip, env('AI_RATE_LIMIT_PER_MIN', 15), 60, 'Too many AI requests. Wait a minute and try again.');
-    await rateLimit('ai-day', ip, env('AI_DAILY_LIMIT', 200), 86_400, 'Daily AI limit reached on this server. Add your own free key in Settings → AI tutor to keep going.');
+    if (!userId && !(code && request.headers.get('x-access-code') === code)) throw new HttpError(401, 'Sign in to use the AI tutor.');
+    const who = userId ? `u:${userId}` : `ip:${ip}`;
+    await rateLimit('ai-min', who, env('AI_RATE_LIMIT_PER_MIN', 15), 60, 'Too many AI requests. Wait a minute and try again.');
+    await rateLimit('ai-day', who, env('AI_DAILY_LIMIT', 200), 86_400, 'You reached today’s AI limit. It resets tomorrow.');
+    // A cap per network too, so one person cannot get around limits with many accounts.
+    await rateLimit('ai-ip-day', ip, env('AI_DAILY_LIMIT', 200) * 4, 86_400, 'This network reached today’s AI limit. It resets tomorrow.');
   }
   const aiRequest = { ...body, maxTokens: body.maxTokens ?? 2000 };
   const stream = await startWithFallbacks(aiRequest, key, !userKey);

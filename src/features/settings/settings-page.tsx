@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Checkbox, Note } from '@/components/ui/field';
 import { Icon } from '@/components/ui/icons';
 import { AppearanceOptions } from '@/components/shell/appearance-picker';
+import { saveNow, signOut, useAccount } from '@/features/auth/account';
 import { NotificationSettings } from '@/features/planner/notifications';
 import { useExtras } from '@/lib/stores/extras';
 import { exportBackup, importBackup } from '@/lib/stores/hydrate';
@@ -30,6 +31,24 @@ function NotificationsCard() {
       <Checkbox label="Tell me when friends drop a spot" checked={!x.dropQuiet} onChange={(e) => x.update({ dropQuiet: !e.target.checked })} />
       <Checkbox label="Water reminders every half hour" checked={x.waterRemind} onChange={(e) => x.update({ waterRemind: e.target.checked })} />
       <Checkbox label="Pop quiz from my flashcards after sessions" checked={x.popQuiz} onChange={(e) => x.update({ popQuiz: e.target.checked })} />
+    </Card>
+  );
+}
+
+function AccountCard() {
+  const user = useAccount((s) => s.user);
+  const savedAt = useAccount((s) => s.savedAt);
+  const saving = useAccount((s) => s.saving);
+  if (!user) return null;
+  return (
+    <Card>
+      <CardHeader title="Account" description={`Signed in as ${user.email}${user.viaGoogle ? ' with Google' : ''}.`} />
+      <p className="text-[14px] text-ink-2">Your progress is saved to your account, so it shows up when you sign in on your phone or another computer.</p>
+      <p className="mt-1 text-[13px] text-muted">{saving ? 'Saving…' : savedAt ? `Last saved ${new Date(savedAt).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}` : 'Saves a couple of minutes after changes.'}</p>
+      <div className="mt-4 flex flex-wrap gap-2">
+        <Button variant="secondary" onClick={() => saveNow().then(() => toast('Saved to your account.'))}>Save now</Button>
+        <Button variant="ghost" onClick={() => void signOut()}>Sign out</Button>
+      </div>
     </Card>
   );
 }
@@ -74,6 +93,7 @@ export function SettingsPage() {
       <PageHeader title="Settings" />
       <div className="grid gap-5 lg:grid-cols-2">
         <div className="grid content-start gap-5">
+          <AccountCard />
           <AppearanceCard />
           <NotificationsCard />
           <DataCard />

@@ -183,3 +183,24 @@ export interface PactView { code: string; goal: number; week: string; members: {
 export const CATEGORIES = ['Math & stats', 'Sciences', 'Pre-med & health', 'Coding', 'Engineering', 'Business', 'Writing & humanities', 'Languages', 'Arts & design', 'Exam prep', 'Student athletes', 'Anything goes'] as const;
 export interface EventInput { host: string; title: string; course: string; category: string; place: string; startsAt: number; endsAt: number; capacity: number | null; school: string; audience: 'school' | 'everyone'; note: string }
 export interface EventView extends EventInput { id: string; createdAt: number; going: { id: string; name: string }[] }
+
+/** Study highlights: a recap of a session, shared with friends. */
+export type PostVisibility = 'followers' | 'school' | 'everyone';
+export interface FeedPost {
+  id: string;
+  userId: string;
+  name: string;
+  school: string;
+  major: string;
+  minutes: number;
+  subject: string;
+  topics: string[];
+  place: string;
+  with: string[];
+  note: string;
+  at: number;
+  visibility: PostVisibility;
+  kudos: string[];
+  kudosNames: string[];
+}
+export interface PersonView { id: string; name: string; school: string; major: string; year: string; following: boolean; followsYou: boolean; followers: number; weekMinutes: number; posts: number }
