@@ -15,12 +15,20 @@ let instance: Storage | null = null;
  * - STORAGE_DRIVER=memory → in-memory (tests)
  * - otherwise → JSON file in .data/ (local development)
  */
+/** Where data is kept: 'redis' (lasts), 'file' (your own computer), or 'memory' (lost on every restart). */
+export function storageKind(): 'redis' | 'file' | 'memory' {
+  if ((process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL) && (process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN)) return 'redis';
+  if (process.env.STORAGE_DRIVER === 'memory' || process.env.VERCEL) return 'memory';
+  return 'file';
+}
+
 export function getStorage(): Storage {
   if (instance) return instance;
   const url = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL;
   const token = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN;
   if (url && token) instance = new RedisStorage(url, token);
-  else if (process.env.STORAGE_DRIVER === 'memory') instance = new MemoryStorage();
+  // On Vercel there is no lasting disk, so without Redis data only lives in memory.
+  else if (process.env.STORAGE_DRIVER === 'memory' || process.env.VERCEL) instance = new MemoryStorage();
   else instance = new FileStorage(path.join(process.cwd(), '.data', 'studytime.json'));
   return instance;
 }

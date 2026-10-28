@@ -4,7 +4,7 @@ import { promisify } from 'node:util';
 import { cookieFrom, readSessionFull, SESSION_COOKIE, SESSION_DAYS, signSession } from '@/lib/session-token';
 import { HttpError } from './http';
 import { secret } from './ids';
-import { getStorage } from './storage';
+import { getStorage, storageKind } from './storage';
 
 const scrypt = promisify(crypto.scrypt) as (pw: string, salt: string, len: number) => Promise<Buffer>;
 
@@ -69,7 +69,13 @@ export async function findByEmail(email: string) {
 }
 const save = (a: Account) => getStorage().hset(USERS, a.id, a);
 
+/** Accounts must be stored somewhere that lasts. On Vercel that means Redis. */
+export function requireLastingStorage() {
+  if (storageKind() === 'memory' && process.env.VERCEL) throw new HttpError(503, 'Accounts cannot be saved yet: this site has no database connected. The site owner needs to connect Upstash Redis in Vercel (Storage tab), then redeploy.');
+}
+
 export async function createAccount(input: { email: string; password: string; name: string }) {
+  requireLastingStorage();
   const email = normEmail(input.email);
   if (!emailAllowed(email)) throw new HttpError(403, `Sign-ups are limited to ${allowedDomains().join(', ')} emails.`);
   if (await findByEmail(email)) throw new HttpError(409, 'An account with this email already exists. Sign in instead.');
@@ -80,6 +86,7 @@ export async function createAccount(input: { email: string; password: string; na
 }
 
 export async function signIn(email: string, password: string) {
+  requireLastingStorage();
   const a = await findByEmail(email);
   // Same message either way so emails cannot be probed.
   if (!a || !(await checkPassword(password, a.password))) {
@@ -91,6 +98,7 @@ export async function signIn(email: string, password: string) {
 
 /** Find or create the account for a verified Google identity. */
 export async function googleAccount(g: { sub: string; email: string; name: string }) {
+  requireLastingStorage();
   const email = normEmail(g.email);
   const existing = await findByEmail(email);
   if (existing) {

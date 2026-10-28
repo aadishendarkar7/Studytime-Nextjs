@@ -167,8 +167,8 @@ export function StudyPage() {
 
       {conn.mode === 'none' && conn.status && (
         <div className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-line bg-surface-2 px-4 py-3 text-[14px]">
-          <span><strong>Connect the AI to use these tools.</strong> A free Google AI Studio key takes about two minutes and needs no credit card.</span>
-          <Link href="/settings#ai"><Button size="sm">Set up AI</Button></Link>
+          <span><strong>The AI tutor is not available on this site yet.</strong> You can still use it by adding your own free Google AI Studio key.</span>
+          <Link href="/settings#ai"><Button size="sm" variant="secondary">Use my own key</Button></Link>
         </div>
       )}
 

@@ -21,6 +21,22 @@ export function ConnectionPill({ className }: { className?: string }) {
 }
 
 export function AiSettings() {
+  const conn = useConnection();
+  const ownKey = useAi((s) => Object.values(s.keys).some(Boolean));
+  const [advanced, setAdvanced] = useState(false);
+  // When the site provides the AI, students do not need to set anything up.
+  if (conn.mode === 'server' && !ownKey && !advanced)
+    return (
+      <Card id="ai" className="scroll-mt-6 self-start">
+        <CardHeader title="AI tutor" description="The AI is included with Studytime. Nothing to set up." action={<ConnectionPill />} />
+        <p className="text-[14px] text-ink-2">Ask the tutor anything, upload slides or a PDF, and make cheat sheets, practice tests and flashcards. There is a fair-use limit per day so it stays free for everyone.</p>
+        <Button variant="link" size="sm" className="mt-3" onClick={() => setAdvanced(true)}>Use my own API key instead</Button>
+      </Card>
+    );
+  return <AdvancedAiSettings />;
+}
+
+function AdvancedAiSettings() {
   const ai = useAi();
   const conn = useConnection();
   const provider = PROVIDERS[ai.provider];
