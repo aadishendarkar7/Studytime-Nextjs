@@ -1,39 +1,22 @@
 import type { IconName } from '@/components/ui/icons';
 
-export type NavItem = { href: string; label: string; icon: IconName };
+export type NavItem = { href: string; label: string; icon: IconName; hint?: string; group: 'main' | 'together' | 'study' | 'me' };
 
-export const NAV_GROUPS: { label: string; items: NavItem[] }[] = [
-  {
-    label: 'Study',
-    items: [
-      { href: '/', label: 'Overview', icon: 'home' },
-      { href: '/focus', label: 'Focus timer', icon: 'focus' },
-      { href: '/sounds', label: 'Focus sounds', icon: 'sound' },
-      { href: '/ai', label: 'AI Tutor', icon: 'ai' },
-      { href: '/games', label: 'Study games', icon: 'games' },
-      { href: '/planner', label: 'Planner', icon: 'planner' },
-      { href: '/grades', label: 'Grades and GPA', icon: 'grades' },
-    ],
-  },
-  {
-    label: 'Together',
-    items: [
-      { href: '/partners', label: 'Study partners', icon: 'partners' },
-      { href: '/spots', label: 'Study spots', icon: 'map' },
-      { href: '/friends', label: 'Friends', icon: 'friends' },
-      { href: '/leaderboards', label: 'Leaderboards', icon: 'leaders' },
-    ],
-  },
-  {
-    label: 'You',
-    items: [
-      { href: '/profile', label: 'Profile', icon: 'user' },
-      { href: '/rewards', label: 'Rewards', icon: 'rewards' },
-      { href: '/settings', label: 'Settings', icon: 'settings' },
-    ],
-  },
+/** Every place in the app. Smaller tools live inside one of these. */
+export const NAV: NavItem[] = [
+  { href: '/', label: 'Home', icon: 'home', group: 'main' },
+  { href: '/drop', label: 'Drop a Spot', icon: 'pin', hint: 'Live map, friends and chat', group: 'together' },
+  { href: '/leaderboard', label: 'Leaderboard', icon: 'leaders', hint: 'Leaderboard, tree and pet, achievements', group: 'together' },
+  { href: '/study', label: 'Study', icon: 'book', hint: 'AI tutor, notes, flashcards', group: 'study' },
+  { href: '/calendar', label: 'Calendar', icon: 'calendar', group: 'study' },
+  { href: '/focus', label: 'Focus', icon: 'focus', hint: 'Timer and focus sounds', group: 'study' },
+  { href: '/you', label: 'You', icon: 'user', hint: 'Check-in, progress, profile', group: 'me' },
+  { href: '/settings', label: 'Settings', icon: 'settings', group: 'me' },
 ];
 
-export const NAV: NavItem[] = NAV_GROUPS.flatMap((g) => g.items);
+export const GROUP_LABEL: Record<NavItem['group'], string> = { main: '', together: 'Together', study: 'Study', me: 'You' };
+
+/** The five shown in the phone tab bar; Drop a Spot sits in the middle. */
+export const MOBILE_TABS = ['/', '/study', '/drop', '/calendar', '/focus'];
 
 export const isActive = (pathname: string, href: string) => (href === '/' ? pathname === '/' : pathname === href || pathname.startsWith(`${href}/`));

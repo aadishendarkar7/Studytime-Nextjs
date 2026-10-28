@@ -54,3 +54,9 @@ export async function listMembers(c: string): Promise<CircleMemberView[]> {
     .map(([id, m]) => ({ id: publicId(id), name: m.name, minutes: m.minutes, streak: m.streak }))
     .sort((a, b) => b.minutes - a.minutes);
 }
+
+/** True when memberId belongs to circle c. Used to show friends-only drops. */
+export async function isCircleMember(c: string, memberId: string) {
+  if (!/^[A-F0-9]{8}$/.test(c) || !/^[a-f0-9]{32}$/.test(memberId)) return false;
+  return Boolean(await getStorage().hget(membersKey(c), memberId));
+}

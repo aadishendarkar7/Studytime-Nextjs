@@ -3,7 +3,7 @@ import { Eyebrow } from '@/components/ui/card';
 import { Ruler } from '@/components/ui/progress';
 import { useProfile } from '@/lib/stores/profile';
 import { cn, fmtClock } from '@/lib/utils';
-import { AWARD } from './logic';
+import { awardFor } from './logic';
 
 const STATUS = { ready: 'Ready', running: 'Running', paused: 'Paused' } as const;
 
@@ -17,7 +17,7 @@ export function TimerReadout({ className }: { className?: string }) {
     <div className={className}>
       <div className="flex items-center justify-between gap-4">
         <Eyebrow className={cn(timer.mode === 'running' && 'text-accent')}>{STATUS[timer.mode]}</Eyebrow>
-        <Eyebrow className="tnum">{duration} min session, +{AWARD[duration]} pts</Eyebrow>
+        <Eyebrow className="tnum">{duration} min session, +{awardFor(duration)} pts</Eyebrow>
       </div>
       <div className="tnum mt-3 text-[96px] leading-[96px] font-medium tracking-[-0.04em] text-ink max-sm:text-[60px] max-sm:leading-[64px]" aria-live="off">
         {fmtClock(timer.remaining)}

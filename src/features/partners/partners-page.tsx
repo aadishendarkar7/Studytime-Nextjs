@@ -193,11 +193,11 @@ function MyListing() {
   );
 }
 
-export function PartnersPage() {
+export function PartnersPage({ embedded = false }: { embedded?: boolean } = {}) {
   return (
     <>
-      <PageHeader title="Study partners" description="Find classmates taking the same course and set up a time to study together." />
-      <div className="grid gap-5 lg:grid-cols-12">
+      {!embedded && <PageHeader title="Study partners" description="Find classmates taking the same course and set up a time to study together." />}
+      <div className="grid gap-5 lg:grid-cols-12 [&>*]:min-w-0">
         <Search />
         <MyListing />
       </div>

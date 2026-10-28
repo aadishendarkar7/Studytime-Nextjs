@@ -1,11 +1,11 @@
 import { forwardRef, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes } from 'react';
 import { cn } from '@/lib/utils';
 
-const control = 'w-full min-w-0 rounded-xl border border-line-strong bg-surface px-3.5 text-[15px] text-ink outline-none transition-colors focus:border-accent focus:ring-3 focus:ring-accent/15 disabled:opacity-50';
+const control = 'w-full min-w-0 rounded-lg border border-line bg-surface px-3 text-[14px] text-ink shadow-sm outline-none transition-colors hover:border-line-strong/60 focus:border-accent focus:ring-3 focus:ring-accent/15 disabled:opacity-50';
 
 export function Label({ htmlFor, children, hint, className }: { htmlFor?: string; children: ReactNode; hint?: string; className?: string }) {
   return (
-    <label htmlFor={htmlFor} className={cn('mb-1.5 block text-[14px] leading-5 font-semibold text-ink', className)}>
+    <label htmlFor={htmlFor} className={cn('mb-1.5 block text-[13px] leading-5 font-medium text-ink', className)}>
       {children}
       {hint && <span className="ml-1 font-normal text-muted">{hint}</span>}
     </label>
@@ -27,20 +27,20 @@ export function FieldRow({ children, className }: { children: ReactNode; classNa
 }
 
 export const Input = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLInputElement>>(function Input({ className, ...props }, ref) {
-  return <input ref={ref} className={cn(control, 'h-11', className)} {...props} />;
+  return <input ref={ref} className={cn(control, 'h-9 max-sm:h-10', className)} {...props} />;
 });
 
 export const Select = forwardRef<HTMLSelectElement, SelectHTMLAttributes<HTMLSelectElement>>(function Select({ className, ...props }, ref) {
-  return <select ref={ref} className={cn(control, 'h-11 pr-8', className)} {...props} />;
+  return <select ref={ref} className={cn(control, 'h-9 pr-8 max-sm:h-10', className)} {...props} />;
 });
 
 export const Textarea = forwardRef<HTMLTextAreaElement, TextareaHTMLAttributes<HTMLTextAreaElement>>(function Textarea({ className, ...props }, ref) {
-  return <textarea ref={ref} className={cn(control, 'py-3 leading-6', className)} {...props} />;
+  return <textarea ref={ref} className={cn(control, 'py-2 leading-[22px]', className)} {...props} />;
 });
 
 export function Checkbox({ label, ...props }: { label: ReactNode } & InputHTMLAttributes<HTMLInputElement>) {
   return (
-    <label className="mt-4 flex min-h-11 items-center gap-2.5 text-[14px] font-medium text-ink">
+    <label className="mt-3 flex min-h-9 items-center gap-2.5 text-[14px] text-ink">
       <input type="checkbox" className="size-4 accent-[var(--accent)]" {...props} />
       {label}
     </label>
@@ -48,5 +48,5 @@ export function Checkbox({ label, ...props }: { label: ReactNode } & InputHTMLAt
 }
 
 export function Note({ children, className }: { children: ReactNode; className?: string }) {
-  return <p className={cn('mt-3 max-w-[68ch] text-[14px] leading-[22px] text-muted', className)}>{children}</p>;
+  return <p className={cn('mt-3 max-w-[68ch] text-[13px] leading-5 text-muted', className)}>{children}</p>;
 }

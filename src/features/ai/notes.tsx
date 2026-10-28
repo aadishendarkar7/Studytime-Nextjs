@@ -1,14 +1,12 @@
 'use client';
 import { useState } from 'react';
 import Link from 'next/link';
-import { DropZone, FileTray, useAttachments } from '@/components/ui/attachments';
-import { Card, CardHeader, Empty } from '@/components/ui/card';
+import { useAttachments } from '@/components/ui/attachments';
 import { Button } from '@/components/ui/button';
-import { Field, Input, Select, Textarea } from '@/components/ui/field';
+import { Select } from '@/components/ui/field';
 import { Icon } from '@/components/ui/icons';
 import { Markdown } from '@/components/ui/markdown';
 import { Thinking } from '@/components/ui/progress';
-import { Segmented } from '@/components/ui/segmented';
 import { toParts } from '@/lib/ai/files';
 import { NOTE_PROMPTS, tutorSystem } from '@/lib/ai/prompts';
 import { useAi, type Note, type NoteKind } from '@/lib/stores/ai';
@@ -16,6 +14,7 @@ import { useLearning } from '@/lib/stores/learning';
 import { toast, useUi } from '@/lib/stores/ui';
 import { copyText, shortDate } from '@/lib/utils';
 import { generateCards } from './tasks';
+import { Composer, InlineSelect, SectionLabel } from './composer';
 import { AiErrorBox, AiOutput } from './ui';
 import { useAiRun } from './use-ai-run';
 
@@ -32,7 +31,7 @@ export function NoteActions({ note, onDeleted }: { note: Note; onDeleted?: () =>
         setBusy(true);
         try {
           const set = useLearning.getState().addSet(note.title, await generateCards(note.content, 20), note.folder);
-          toast(`${set.cards.length} flashcards added to Study games.`);
+          toast(`${set.cards.length} flashcards added to your practice sets.`);
         } catch (e) {
           toast((e as Error).message, 'error');
         } finally {
@@ -62,6 +61,14 @@ export function NotesTool() {
   const viewing = ai.notes.find((n) => n.id === viewId) ?? null;
   const library = ai.notes.filter((n) => libraryFolder === 'all' || n.folder === libraryFolder);
 
+  const newFolder = () => {
+    const n = prompt('Folder name, like BIO 101')?.trim().slice(0, 40);
+    if (n) {
+      ai.addNoteFolder(n);
+      setFolder(n);
+    }
+  };
+
   const generate = async () => {
     if (!text.trim() && !att.files.length) return toast('Paste some material or add a file first.');
     const name = title.trim() || att.files[0]?.name.replace(/\.\w+$/, '') || text.trim().slice(0, 40) || 'Study notes';
@@ -88,57 +95,88 @@ export function NotesTool() {
     }
   };
 
+  const busy = run.running || cards.status === 'running';
+  const showing = viewing || run.status !== 'idle' || cards.status !== 'idle';
+  const back = () => (setViewId(null), run.reset(), setCards({ status: 'idle', list: [] }));
   return (
-    <div className="grid items-start gap-5 xl:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
-      <Card>
-        <CardHeader title="Create notes" />
-        <Field label="Title" htmlFor="notesTitle"><Input id="notesTitle" maxLength={80} value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Unit 4: Cell respiration" /></Field>
-        <Field label="Folder" htmlFor="notesFolder">
-          <div className="flex gap-2">
-            <Select id="notesFolder" value={folder} onChange={(e) => setFolder(e.target.value)}>{ai.noteFolders.map((f) => <option key={f}>{f}</option>)}</Select>
-            <Button variant="secondary" onClick={() => { const n = prompt('Folder name (e.g. BIO 101):')?.trim().slice(0, 40); if (n) { ai.addNoteFolder(n); setFolder(n); } }}>New folder</Button>
-          </div>
-        </Field>
-        <DropZone onFiles={att.add} accept=".pdf,.docx,.txt,.md,image/*" title="Drop lecture slides, readings, or photos" hint="PDF, Word, text, or images · up to 8 files" inputId="notesFile" />
-        <FileTray files={att.files} onRemove={att.remove} reading={att.reading} />
-        <Field label="Or paste text" htmlFor="notesText"><Textarea id="notesText" rows={6} value={text} onChange={(e) => setText(e.target.value)} placeholder="Paste lecture notes, a textbook section, or a transcript" /></Field>
-        <Field label="Make"><Segmented value={kind} onChange={setKind} options={[{ value: 'notes', label: 'Study notes' }, { value: 'cheatsheet', label: 'Cheatsheet' }, { value: 'summary', label: 'Summary' }, { value: 'flashcards', label: 'Flashcards' }, { value: 'quiz', label: 'Practice test' }]} /></Field>
-        <Button size="lg" block className="mt-5" loading={run.running || cards.status === 'running'} onClick={generate}>Generate</Button>
-      </Card>
-      <Card>
-        <CardHeader title={viewing ? viewing.title : run.status !== 'idle' || cards.status !== 'idle' ? 'Generating…' : 'Notes library'} action={(viewing || run.status !== 'idle' || cards.status !== 'idle') && <Button variant="link" size="sm" onClick={() => (setViewId(null), run.reset(), setCards({ status: 'idle', list: [] }))}>← All notes</Button>} />
-        <div id="noteView">
-          {cards.status === 'running' ? <Thinking label="Writing flashcards…" /> : cards.status === 'error' && cards.error ? <AiErrorBox error={cards.error} /> : cards.status === 'done' ? (
-            <>
-              <div className="bg-ok-soft px-4 py-3 text-sm text-ok"><strong>{cards.list.length} flashcards added to Study games.</strong></div>
-              <div className="my-3 max-h-80 overflow-y-auto">{cards.list.map((c, i) => <div key={i} className="grid grid-cols-2 gap-3 border-b border-line py-2 text-[13px]"><strong>{c.front}</strong><span className="text-muted">{c.back}</span></div>)}</div>
-              <Link href="/games"><Button>Practice now</Button></Link>
-            </>
-          ) : viewing ? (
-            <>
-              <NoteActions note={viewing} onDeleted={() => setViewId(null)} />
-              <Markdown>{viewing.content}</Markdown>
-            </>
-          ) : run.status !== 'idle' ? (
-            <AiOutput run={run} thinking={att.files.length ? 'Reading your files…' : 'Organizing…'} placeholder={null} />
-          ) : (
-            <>
-              <Select value={libraryFolder} onChange={(e) => setLibraryFolder(e.target.value)} aria-label="Show folder">
+    <div className="grid gap-8">
+      <Composer
+        id="notesText"
+        value={text}
+        onChange={setText}
+        rows={5}
+        placeholder="Paste lecture notes, a textbook section or a transcript. Or attach slides, readings and photos."
+        att={att}
+        accept=".pdf,.docx,.txt,.md,image/*"
+        top={
+          <>
+            <input id="notesTitle" aria-label="Title" maxLength={80} value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Untitled" className="h-8 min-w-0 flex-1 bg-transparent px-1 text-[15px] font-semibold outline-none placeholder:font-normal placeholder:text-muted" />
+            <InlineSelect label="Folder" id="notesFolder" value={folder} onChange={(e) => (e.target.value === '__new' ? newFolder() : setFolder(e.target.value))}>
+              {ai.noteFolders.map((f) => <option key={f}>{f}</option>)}
+              <option value="__new">New folder…</option>
+            </InlineSelect>
+          </>
+        }
+        controls={
+          <InlineSelect label="Make" value={kind} onChange={(e) => setKind(e.target.value as MakeKind)}>
+            <option value="notes">Study notes</option>
+            <option value="cheatsheet">One-page cheatsheet</option>
+            <option value="summary">Summary</option>
+            <option value="flashcards">Flashcards</option>
+            <option value="quiz">Practice test</option>
+          </InlineSelect>
+        }
+        submitLabel="Make it"
+        onSubmit={generate}
+        loading={busy}
+      />
+
+      <section id="noteView">
+        {showing ? (
+          <>
+            <SectionLabel action={<Button variant="link" size="sm" onClick={back}>All notes</Button>}>{viewing ? `${KIND_LABEL[viewing.kind]} · ${viewing.folder}` : 'Writing'}</SectionLabel>
+            {cards.status === 'running' ? <Thinking label="Writing flashcards" /> : cards.status === 'error' && cards.error ? <AiErrorBox error={cards.error} /> : cards.status === 'done' ? (
+              <>
+                <p className="text-[15px] font-semibold">{cards.list.length} flashcards added to your practice sets.</p>
+                <div className="my-3 max-h-80 overflow-y-auto">{cards.list.map((c, i) => <div key={i} className="grid grid-cols-2 gap-3 border-b border-line py-2 text-[13px]"><strong>{c.front}</strong><span className="text-muted">{c.back}</span></div>)}</div>
+                <Link href="/study?tool=practice"><Button size="sm">Practice now</Button></Link>
+              </>
+            ) : viewing ? (
+              <>
+                <h2 className="mb-3 text-[26px] leading-8">{viewing.title}</h2>
+                <NoteActions note={viewing} onDeleted={() => setViewId(null)} />
+                <Markdown>{viewing.content}</Markdown>
+              </>
+            ) : (
+              <AiOutput run={run} thinking={att.files.length ? 'Reading your files' : 'Organizing'} placeholder={null} />
+            )}
+          </>
+        ) : (
+          <>
+            <SectionLabel action={ai.notes.length > 0 && (
+              <InlineSelect label="Show folder" value={libraryFolder} onChange={(e) => setLibraryFolder(e.target.value)}>
                 <option value="all">All folders ({ai.notes.length})</option>
                 {ai.noteFolders.map((f) => <option key={f} value={f}>{f} ({ai.notes.filter((n) => n.folder === f).length})</option>)}
-              </Select>
-              <div className="mt-2" id="notesLibrary">
-                {library.length ? library.map((n) => (
-                  <button key={n.id} type="button" data-note-id={n.id} onClick={() => setViewId(n.id)} className="flex w-full items-center justify-between gap-3 border-b border-line py-3 text-left last:border-0 hover:text-accent-ink">
-                    <span className="min-w-0"><strong className="block truncate text-sm">{n.title}</strong><small className="text-xs text-muted">{KIND_LABEL[n.kind]} · {n.folder} · {shortDate(n.createdAt)}</small></span>
-                    <Icon name="arrow" className="size-4 shrink-0 text-muted" />
-                  </button>
-                )) : <Empty>Generated notes, cheatsheets, and study guides are saved here by folder.</Empty>}
-              </div>
-            </>
-          )}
-        </div>
-      </Card>
+              </InlineSelect>
+            )}>Your notes</SectionLabel>
+            <div id="notesLibrary">
+              {library.length ? (
+                <ul className="divide-y divide-line">
+                  {library.map((n) => (
+                    <li key={n.id}>
+                      <button type="button" data-note-id={n.id} onClick={() => setViewId(n.id)} className="group flex w-full items-center gap-4 py-3 text-left">
+                        <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-surface-3 text-muted"><Icon name="file" className="size-[18px]" /></span>
+                        <span className="min-w-0 flex-1"><strong className="block truncate text-[15px] font-medium group-hover:underline">{n.title}</strong><small className="text-[13px] text-muted">{KIND_LABEL[n.kind]} · {n.folder} · {shortDate(n.createdAt)}</small></span>
+                        <Icon name="chevron" className="size-4 shrink-0 text-muted" />
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              ) : <p className="text-[14px] text-muted">Nothing here yet. What you make is saved here, sorted by folder.</p>}
+            </div>
+          </>
+        )}
+      </section>
     </div>
   );
 }

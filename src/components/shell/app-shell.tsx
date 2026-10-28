@@ -2,11 +2,14 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { Logo } from '@/components/ui/icons';
 import { Toaster } from '@/components/ui/toaster';
+import { DropComposerHost } from '@/features/drop/composer';
+import { WaterPrompt } from '@/features/wellbeing/water-prompt';
+import { PopQuiz } from '@/features/games/pop-quiz';
 import { hydrateStores } from '@/lib/stores/hydrate';
 import { GlobalEffects } from './global-effects';
 import { PrintPortal } from './print-portal';
 import { ReflectionDialog } from './reflection-dialog';
-import { Sidebar, Topbar } from './sidebar';
+import { BottomTabs, Sidebar, Topbar } from './sidebar';
 
 /**
  * Client shell. Progress lives in the browser (localStorage), so pages render
@@ -20,8 +23,8 @@ export function AppShell({ children }: { children: ReactNode }) {
   if (!ready)
     return (
       <div className="grid min-h-dvh place-items-center" aria-busy="true">
-        <div className="flex items-center gap-2.5 font-display text-[24px] font-semibold text-ink">
-          <Logo /> studytime
+        <div className="flex items-center gap-2 text-[15px] font-semibold tracking-tight text-ink">
+          <Logo className="size-6" /> Studytime
         </div>
       </div>
     );
@@ -29,14 +32,18 @@ export function AppShell({ children }: { children: ReactNode }) {
     <div className="flex min-h-dvh">
       <Sidebar />
       <div className="min-w-0 flex-1">
-        <main className="mx-auto w-full max-w-[1200px] px-4 pb-16 sm:px-6 lg:px-10">
-          <Topbar />
+        <Topbar />
+        <main className="mx-auto w-full max-w-[1320px] px-4 pt-2 pb-28 sm:px-6 lg:px-8 lg:pb-16">
           {children}
         </main>
       </div>
       <GlobalEffects />
       <ReflectionDialog />
       <PrintPortal />
+      <DropComposerHost />
+      <WaterPrompt />
+      <PopQuiz />
+      <BottomTabs />
       <Toaster />
     </div>
   );

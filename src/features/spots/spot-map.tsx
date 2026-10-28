@@ -3,19 +3,20 @@ import { useEffect, useRef } from 'react';
 import type { LayerGroup, Map as LeafletMap } from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
-export interface MapPin { id: string; lat: number; lng: number; title: string; body?: string; kind: 'mine' | 'shared' | 'draft' }
+export interface MapPin { id: string; lat: number; lng: number; title: string; body?: string; kind: 'mine' | 'shared' | 'draft' | 'drop' | 'mydrop'; label?: string }
 
 /**
  * Leaflet map with OpenStreetMap tiles. Leaflet needs `window`, so it is
  * imported inside the effect. Pins are plain HTML so they follow the theme colors.
  */
-export function SpotMap({ pins, focus, onPick, className }: { pins: MapPin[]; focus: { lat: number; lng: number; zoom?: number } | null; onPick?: (lat: number, lng: number) => void; className?: string }) {
+export function SpotMap({ pins, focus, onPick, onSelect, className }: { pins: MapPin[]; focus: { lat: number; lng: number; zoom?: number } | null; onPick?: (lat: number, lng: number) => void; onSelect?: (id: string) => void; className?: string }) {
   const el = useRef<HTMLDivElement>(null);
   const map = useRef<LeafletMap | null>(null);
   const layer = useRef<LayerGroup | null>(null);
   const L = useRef<typeof import('leaflet') | null>(null);
   const pick = useRef(onPick);
-  useEffect(() => { pick.current = onPick; }, [onPick]);
+  const select = useRef(onSelect);
+  useEffect(() => { pick.current = onPick; select.current = onSelect; }, [onPick, onSelect]);
 
   useEffect(() => {
     let cancelled = false;
@@ -46,7 +47,11 @@ export function SpotMap({ pins, focus, onPick, className }: { pins: MapPin[]; fo
       if (!mod || !layer.current) return;
       layer.current.clearLayers();
       for (const p of pins) {
-        const icon = mod.divIcon({ className: '', html: `<span class="spot-pin spot-pin-${p.kind}"></span>`, iconSize: [26, 26], iconAnchor: [13, 26], popupAnchor: [0, -24] });
+        const isDrop = p.kind === 'drop' || p.kind === 'mydrop';
+        const letter = (p.label || '?').slice(0, 1).toUpperCase().replace(/[<>&"']/g, '');
+        const icon = isDrop
+          ? mod.divIcon({ className: '', html: `<span class="drop-pin drop-pin-${p.kind}"><span>${letter}</span></span>`, iconSize: [40, 48], iconAnchor: [20, 46], popupAnchor: [0, -42] })
+          : mod.divIcon({ className: '', html: `<span class="spot-pin spot-pin-${p.kind}"></span>`, iconSize: [26, 26], iconAnchor: [13, 26], popupAnchor: [0, -24] });
         const popup = document.createElement('div');
         const strong = document.createElement('strong');
         strong.textContent = p.title;
@@ -57,7 +62,8 @@ export function SpotMap({ pins, focus, onPick, className }: { pins: MapPin[]; fo
           small.textContent = p.body;
           popup.append(small);
         }
-        mod.marker([p.lat, p.lng], { icon, title: p.title, keyboard: true }).bindPopup(popup).addTo(layer.current);
+        const marker = mod.marker([p.lat, p.lng], { icon, title: p.title, keyboard: true, zIndexOffset: isDrop ? 500 : 0 }).bindPopup(popup).addTo(layer.current);
+        marker.on('click', () => select.current?.(p.id));
       }
     };
     draw();

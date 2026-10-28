@@ -8,6 +8,10 @@ interface UiStore {
   toasts: Toast[];
   reflectionOpen: boolean;
   printJob: { title: string; markdown: string } | null;
+  /** The water reminder card is showing. */
+  waterPrompt: boolean;
+  /** A pop-up quiz question is showing. */
+  popQuiz: boolean;
   toast: (message: string, tone?: Toast['tone']) => void;
   dismiss: (id: string) => void;
   setReflectionOpen: (open: boolean) => void;
@@ -18,6 +22,8 @@ export const useUi = create<UiStore>()((set, get) => ({
   toasts: [],
   reflectionOpen: false,
   printJob: null,
+  waterPrompt: false,
+  popQuiz: false,
   toast: (message, tone = 'default') => {
     const id = uid();
     set({ toasts: [...get().toasts.slice(-2), { id, message, tone }] });

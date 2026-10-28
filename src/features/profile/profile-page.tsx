@@ -5,9 +5,9 @@ import { Card, CardHeader, Empty, PageHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Field, FieldRow, Input, Note, Select } from '@/components/ui/field';
 import { Icon } from '@/components/ui/icons';
-import { cumulativeGpa } from '@/features/grades/logic';
 import { streaks } from '@/features/focus/logic';
 import { MAJORS, YEARS } from '@/lib/constants';
+import { PromptsCard, StyleQuizCard } from './style-cards';
 import { useExtras } from '@/lib/stores/extras';
 import { useProfile } from '@/lib/stores/profile';
 import { toast } from '@/lib/stores/ui';
@@ -62,7 +62,7 @@ function CoursesCard() {
   const [course, setCourse] = useState('');
   return (
     <Card className="lg:col-span-5">
-      <CardHeader title="Courses" description="Used by the focus timer, syllabus import, grade calculator and study partner search." />
+      <CardHeader title="Courses" description="Used by the focus timer, drops, syllabus import and study partner search." />
       <form className="flex gap-2" onSubmit={(e) => (e.preventDefault(), addCourse(course), setCourse(''))}>
         <Input aria-label="Course" maxLength={60} value={course} onChange={(e) => setCourse(e.target.value)} placeholder="Course code or name, like MATH240" />
         <Button type="submit" variant="secondary">Add</Button>
@@ -89,12 +89,13 @@ function Stat({ label, value, note }: { label: string; value: string; note?: str
   );
 }
 
-function StatsCard() {
+export function StatsCard() {
   const p = useProfile();
   const x = useExtras();
   const s = streaks(p.sessions);
   const total = p.sessions.reduce((a, b) => a + b.minutes, 0);
-  const gpa = cumulativeGpa(x.gpaTerms, { gpa: x.priorGpa, credits: x.priorCredits }, x.plusCountsHigher).gpa;
+  const spots = x.dropLog.length;
+  const people = new Set(x.dropLog.flatMap((d) => d.with)).size;
   const bySubject = useMemo(() => {
     const m = new Map<string, number>();
     for (const ses of p.sessions) if (ses.subject) m.set(ses.subject, (m.get(ses.subject) ?? 0) + ses.minutes);
@@ -108,7 +109,7 @@ function StatsCard() {
         <Stat label="Total focus time" value={fmtMinutes(total)} note={plural(p.sessions.length, 'session')} />
         <Stat label="Current streak" value={plural(s.current, 'day')} note={`Best: ${plural(s.best, 'day')}`} />
         <Stat label="Points" value={String(p.points)} />
-        <Stat label="GPA" value={gpa === null ? 'Not set' : gpa.toFixed(2)} note={gpa === null ? undefined : 'From Grades and GPA'} />
+        <Stat label="Drops" value={String(spots)} note={people ? `Studied with ${plural(people, 'person', 'people')}` : 'From Drop a Spot'} />
       </div>
       <h3 className="mt-6 mb-3 text-[18px]">Time by subject</h3>
       {bySubject.length ? (
@@ -128,17 +129,19 @@ function StatsCard() {
   );
 }
 
-export function ProfilePage() {
+export function ProfilePage({ embedded = false }: { embedded?: boolean } = {}) {
   const p = useProfile();
   const year = YEARS.find((y) => y.value === p.year)?.label;
   const line = [p.school, p.major, year].filter(Boolean).join(', ');
   return (
     <>
-      <PageHeader title={p.name || 'Profile'} description={line || 'Add your school, major and year below.'} />
-      <div className="grid gap-5 lg:grid-cols-12">
-        <StatsCard />
+      {!embedded && <PageHeader title={p.name || 'Profile'} description={line || 'Add your school, major and year below.'} />}
+      <div className="grid gap-5 lg:grid-cols-12 [&>*]:min-w-0">
+        {!embedded && <StatsCard />}
         <AboutCard />
         <CoursesCard />
+        <StyleQuizCard className="lg:col-span-6" />
+        <PromptsCard className="lg:col-span-6" />
       </div>
     </>
   );

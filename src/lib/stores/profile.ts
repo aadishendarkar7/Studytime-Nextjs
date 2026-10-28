@@ -1,8 +1,8 @@
 'use client';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
-import { isHex, type Backdrop, type Wash } from '@/lib/appearance';
-import { AWARD, completeSession, isDuration, type Duration } from '@/features/focus/logic';
+import { isHex, type Backdrop, type Corners, type FontStyle, type Wash } from '@/lib/appearance';
+import { awardFor, completeSession, isDuration, type Duration } from '@/features/focus/logic';
 import type { Reflection, Reminder, ReminderType, Session, ThemeName, TimerState } from '@/lib/types';
 import { uid } from '@/lib/utils';
 
@@ -23,14 +23,21 @@ export interface ProfileData {
   glow: string;
   backdrop: Backdrop;
   wash: Wash;
+  font: FontStyle;
+  corners: Corners;
+  /** Design generation the saved appearance belongs to; older looks reset to the current defaults once. */
+  look: number;
   reminders: Reminder[];
   major: string;
   school: string;
   year: string;
   courses: string[];
+  /** Up to three profile prompts, like 'My go-to study snack is…'. */
+  prompts: { q: string; a: string }[];
+  /** Result of the study style quiz (an id from features/profile/style). */
+  studyStyle: string;
   leaderboard: { token: string; id: string } | null;
   circle: { code: string; memberId: string; publicId: string } | null;
-  rewardGoalId: string;
   nextPlanAt: number | null;
   nextPlanNotified: boolean;
   reflections: Reflection[];
@@ -39,8 +46,8 @@ export interface ProfileData {
 
 export const defaultProfile = (): ProfileData => ({
   name: 'Student', dailyGoal: 60, weeklyGoal: 300, points: 0, sessions: [], bonusDays: [], duration: 30, subject: '', location: '',
-  theme: 'light', accent: '#b4532a', glow: '#e7b76a', backdrop: 'contours', wash: 'medium', reminders: [], major: '', school: '', year: '', courses: [], leaderboard: null, circle: null,
-  rewardGoalId: '', nextPlanAt: null, nextPlanNotified: false, reflections: [], timer: { mode: 'ready', remaining: 30 * 60, deadline: null },
+  theme: 'system', accent: '#2f5bd3', glow: '#9db4f0', backdrop: 'plain', wash: 'soft', font: 'sans', corners: 'soft', look: 3, reminders: [], major: '', school: '', year: '', courses: [], prompts: [], studyStyle: '', leaderboard: null, circle: null,
+  nextPlanAt: null, nextPlanNotified: false, reflections: [], timer: { mode: 'ready', remaining: 30 * 60, deadline: null },
 });
 
 interface ProfileActions {
@@ -137,19 +144,24 @@ export const useProfile = create<ProfileStore>()(
 export function sanitizeProfile<T extends ProfileData>(p: T): T {
   const base = defaultProfile();
   const out = { ...p };
-  for (const key of ['sessions', 'bonusDays', 'reminders', 'courses', 'reflections'] as const) if (!Array.isArray(out[key])) (out as ProfileData)[key] = base[key] as never;
-  if (out.theme !== 'light' && out.theme !== 'dark') out.theme = 'light';
-  // The accent from the earlier blue-and-ink design becomes the new default.
-  if (!isHex(out.accent) || out.accent.toLowerCase() === '#1e4fd1') out.accent = base.accent;
+  for (const key of ['sessions', 'bonusDays', 'reminders', 'courses', 'reflections', 'prompts'] as const) if (!Array.isArray(out[key])) (out as ProfileData)[key] = base[key] as never;
+  if (!['light', 'dark', 'system'].includes(out.theme)) out.theme = 'system';
+  // Looks saved before the current design reset once to its defaults (theme is kept).
+  if (out.look === 2) Object.assign(out, { wash: out.wash === 'none' ? base.wash : out.wash, look: base.look });
+  else if (out.look !== base.look) Object.assign(out, { accent: base.accent, glow: base.glow, backdrop: base.backdrop, wash: base.wash, font: base.font, corners: base.corners, look: base.look });
+  if (out.font !== 'serif') out.font = 'sans';
+  if (!['crisp', 'soft', 'round'].includes(out.corners)) out.corners = 'soft';
+  if (!isHex(out.accent)) out.accent = base.accent;
   if (!isHex(out.glow)) out.glow = base.glow;
-  if (!['contours', 'grid', 'dots', 'plain'].includes(out.backdrop)) out.backdrop = base.backdrop;
-  if (!['soft', 'medium', 'strong'].includes(out.wash)) out.wash = base.wash;
+  if (!['contours', 'waves', 'grid', 'dots', 'diagonal', 'plain'].includes(out.backdrop)) out.backdrop = base.backdrop;
+  if (!['none', 'soft', 'medium', 'strong'].includes(out.wash)) out.wash = base.wash;
   if (!isDuration(out.duration)) out.duration = 30;
   if (!out.timer || !['ready', 'running', 'paused'].includes(out.timer.mode)) out.timer = { mode: 'ready', remaining: out.duration * 60, deadline: null };
   // A timer that was running when the page closed resumes as paused.
   if (out.timer.mode === 'running') out.timer = { mode: 'paused', remaining: Math.max(1, Math.ceil(((out.timer.deadline ?? 0) - Date.now()) / 1000)), deadline: null };
   if (!Number.isFinite(out.points)) out.points = 0;
+  if (typeof out.studyStyle !== 'string') out.studyStyle = '';
   return out;
 }
 
-export const pointsFor = (d: Duration) => AWARD[d];
+export const pointsFor = (d: Duration) => awardFor(d);

@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Field, FieldRow, Input, Select } from '@/components/ui/field';
 import { Icon } from '@/components/ui/icons';
 import { streaks } from '@/features/focus/logic';
+import { Breakdown } from './breakdown';
 import { LEAD_NAMES, REMINDER_TYPES, ReminderRow, SessionRow } from '@/features/shared';
 import { useProfile } from '@/lib/stores/profile';
 import { toast } from '@/lib/stores/ui';
@@ -13,7 +14,7 @@ import { cn, dateKey, downloadFile, fmtMinutes, localDateTimeValue, todayKey } f
 import { minutesOn } from '@/features/focus/logic';
 import { SyllabusImport } from './syllabus-import';
 
-function ReminderForm() {
+export function ReminderForm() {
   const addReminder = useProfile((s) => s.addReminder);
   const [title, setTitle] = useState('');
   const [type, setType] = useState<ReminderType>('homework');
@@ -57,7 +58,7 @@ function ReminderForm() {
   );
 }
 
-function ReminderList() {
+export function ReminderList() {
   const { reminders, setReminderDone, deleteReminder } = useProfile();
   const upcoming = reminders.filter((r) => !r.done).sort((a, b) => a.dueAt - b.dueAt);
   const done = reminders.filter((r) => r.done).sort((a, b) => b.dueAt - a.dueAt).slice(0, 10);
@@ -91,7 +92,7 @@ function ReminderList() {
   );
 }
 
-function Activity() {
+export function Activity() {
   const { sessions, points } = useProfile();
   const [month, setMonth] = useState(() => new Date(new Date().getFullYear(), new Date().getMonth(), 1));
   const y = month.getFullYear();
@@ -123,7 +124,7 @@ function Activity() {
               const key = dateKey(new Date(y, m, i + 1));
               const n = minutesOn(sessions, key);
               return (
-                <span key={key} title={n ? `${n} minutes studied` : 'No study sessions'} className={cn('tnum grid aspect-square place-items-center border text-[13px] font-medium rounded-xl', n ? 'border-accent bg-accent text-bg' : 'border-line text-ink-2', key === todayKey() && 'border-line outline-2 -outline-offset-3 outline-ink')}>
+                <span key={key} title={n ? `${n} minutes studied` : 'No study sessions'} className={cn('tnum grid aspect-square place-items-center border text-[13px] font-medium rounded-xl', n ? 'border-accent-fill bg-accent-fill text-white' : 'border-line text-ink-2', key === todayKey() && 'border-line outline-2 -outline-offset-3 outline-ink')}>
                   {i + 1}
                 </span>
               );
@@ -162,6 +163,7 @@ export function PlannerPage() {
       <SyllabusImport />
       <div className="mt-5"><ReminderForm /></div>
       <ReminderList />
+      <Breakdown />
       <Activity />
     </>
   );

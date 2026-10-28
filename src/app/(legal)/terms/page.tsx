@@ -30,20 +30,28 @@ export default function TermsPage() {
           <li>Do not use the site&rsquo;s shared AI key if you were not given access to it.</li>
           <li>Do not impersonate another student or enter someone else&rsquo;s details on a leaderboard, partner listing, or shared spot.</li>
           <li>Do not use partner listings to send spam, harass anyone, or collect contact details for anything other than studying together.</li>
-          <li>Share only public places on the study spot map. Never share a private home or anyone&rsquo;s address.</li>
+          <li>Drop and share only public places. Never drop a private home or anyone&rsquo;s address, and do not use drops to track or follow someone.</li>
         </ul>
+      </Section>
+
+      <Section title="Chat">
+        <p>Be kind. Do not harass, threaten, spam, or share anyone&rsquo;s private information, including addresses and phone numbers, in chat. Messages in channels can be read by any student who opens them. Use Report on messages that break these rules and Block to hide someone. Messages that break these rules may be removed and the sender&rsquo;s access ended.</p>
       </Section>
 
       <Section title="Meeting study partners">
         <p>Studytime does not check who students are. You decide whether to contact or meet someone. Meet in a public place, tell someone where you are going, and leave if anything feels wrong. Studytime is not responsible for what happens between students who meet through it.</p>
       </Section>
 
-      <Section title="Calculators">
-        <p>The grade and GPA calculators give estimates from the numbers you enter. Your school&rsquo;s records and your instructor&rsquo;s grading are what count.</p>
+      <Section title="Wellbeing features">
+        <p>Check-ins, patterns and support suggestions are there to help you notice how you are doing. They are not medical advice, a diagnosis, or a substitute for a counselor or doctor. If you are in crisis, call or text 988 in the United States or call 911.</p>
       </Section>
 
-      <Section title="Points and rewards">
-        <p>Points and reward goals in the app are for tracking your own progress. They have no cash value, and the app does not issue gift cards, credits, or campus perks.</p>
+      <Section title="Connected calendars">
+        <p>Only connect calendars you have the right to use. Studytime reads them to show your schedule and plan study time, and is not responsible for mistakes in the calendars themselves, such as a due date your instructor changed.</p>
+      </Section>
+
+      <Section title="Points, levels and achievements">
+        <p>Points, levels, achievements and leaderboard ranks are for tracking your own progress. They have no cash value, and the app does not issue gift cards, credits, or campus perks.</p>
       </Section>
 
       <Section title="Your data in the browser">

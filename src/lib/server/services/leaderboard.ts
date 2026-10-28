@@ -4,12 +4,12 @@ import { HttpError } from '../http';
 import { currentWeek, publicId, secret } from '../ids';
 import type { LeaderboardResult, LeaderScope } from '@/lib/types';
 
-interface Profile { name: string; school: string; major: string; year: string; minutes: number; week: string }
+interface Profile { name: string; school: string; major: string; year: string; minutes: number; drops?: number; week: string }
 const KEY = 'lb:profiles';
 
 export async function registerProfile() {
   const token = secret(24);
-  await getStorage().hset<Profile>(KEY, token, { name: 'Student', school: '', major: '', year: '', minutes: 0, week: currentWeek() });
+  await getStorage().hset<Profile>(KEY, token, { name: 'Student', school: '', major: '', year: '', minutes: 0, drops: 0, week: currentWeek() });
   return { token, id: publicId(token) };
 }
 
@@ -35,7 +35,7 @@ export async function scopedLeaderboard(token: string | null, scope: Exclude<Lea
   const all = await getStorage().hgetall<Profile>(KEY);
   const entries = Object.entries(all)
     .filter(([, p]) => same(p.school, me.school) && (scope === 'school' || same(String(p[scope]), String(needed))))
-    .map(([id, p]) => ({ id: publicId(id), name: p.name, minutes: p.week === week ? p.minutes : 0, major: p.major, year: p.year }))
+    .map(([id, p]) => ({ id: publicId(id), name: p.name, minutes: p.week === week ? p.minutes : 0, drops: p.week === week ? (p.drops ?? 0) : 0, major: p.major, year: p.year }))
     .sort((a, b) => b.minutes - a.minutes)
     .slice(0, 100);
   return { scope, label: scope === 'school' ? me.school : scope === 'major' ? me.major : `Year ${me.year}`, entries };

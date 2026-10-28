@@ -60,7 +60,7 @@ function StudyCircle() {
       <CardHeader title="Study with friends" description={circle ? `You’re in circle ${circle.code}. Progress refreshes every 10 seconds.` : 'Create a circle and share the invite link, or join with a friend’s code.'} />
       <div className="flex flex-wrap gap-2">
         <Button onClick={create}>Create circle</Button>
-        <Button variant="secondary" disabled={!circle} onClick={async () => toast((await copyText(`Join my Studytime study circle! ${location.origin}/friends?circle=${circle!.code} (code ${circle!.code})`)) ? 'Invite link copied.' : 'Could not copy.')}>Copy invite link</Button>
+        <Button variant="secondary" disabled={!circle} onClick={async () => toast((await copyText(`Join my Studytime study circle! ${location.origin}/drop?tab=friends&circle=${circle!.code} (code ${circle!.code})`)) ? 'Invite link copied.' : 'Could not copy.')}>Copy invite link</Button>
         {circle && <Button variant="ghost" onClick={() => (update({ circle: null }), setMembers(null))}>Leave circle</Button>}
       </div>
       <Field label="Join with a code" htmlFor="circleCode">
@@ -147,7 +147,7 @@ function ClassStudy() {
           </Field>
           {session && (
             <div className="mt-4 flex flex-wrap gap-2">
-              <Button variant="secondary" onClick={async () => toast((await copyText(`Join my Studytime class! ${location.origin}/friends?class=${session.code} (code ${session.code})`)) ? 'Class invite copied.' : 'Could not copy.')}>Copy class invite</Button>
+              <Button variant="secondary" onClick={async () => toast((await copyText(`Join my Studytime class! ${location.origin}/drop?tab=friends&class=${session.code} (code ${session.code})`)) ? 'Class invite copied.' : 'Could not copy.')}>Copy class invite</Button>
               <Button variant="secondary" disabled={!view} onClick={() => view && (l.addSet(`${view.setName} (${view.code})`, view.cards, 'Class sets'), toast('Class set saved to your study games.'))}>Save class set</Button>
               <Button variant="ghost" onClick={() => (l.update({ classSession: null }), setView(null))}>Leave class</Button>
             </div>
@@ -187,10 +187,10 @@ function ClassStudy() {
   );
 }
 
-export function FriendsPage() {
+export function FriendsPage({ embedded = false }: { embedded?: boolean } = {}) {
   return (
     <>
-      <PageHeader title="Friends & classmates" description="Invite friends with a link, then host a live class review with a join code." />
+      {!embedded && <PageHeader title="Friends & classmates" description="Invite friends with a link, then host a live class review with a join code." />}
       <StudyCircle />
       <ClassStudy />
     </>

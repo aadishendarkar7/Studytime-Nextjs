@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { CATEGORIES } from '@/lib/types';
 import { SPOT_TAGS } from '@/lib/types';
 
 export const nameSchema = z
@@ -45,4 +46,51 @@ export const spotSchema = z.object({
   note: text(200),
   tags: z.array(z.string()).max(10).transform((t) => t.filter((x) => (SPOT_TAGS as readonly string[]).includes(x))),
   school: text(80),
+});
+
+export const dropSchema = z.object({
+  name: nameSchema,
+  spotName: z.string().transform((v) => v.replace(/\s+/g, ' ').trim().slice(0, 80)).refine((v) => v.length > 0, 'Say where you are studying'),
+  lat: z.number().min(-90).max(90).nullable(),
+  lng: z.number().min(-180).max(180).nullable(),
+  subject: text(60),
+  note: text(200),
+  startsAt: z.number(),
+  endsAt: z.number(),
+  audience: z.enum(['circle', 'school', 'everyone']),
+  school: text(80),
+  vibe: z.enum(['silent', 'quiet', 'group']).default('quiet'),
+  seats: z.number().int().min(1).max(20).nullable().default(null),
+  category: z.enum(CATEGORIES).catch('Anything goes').default('Anything goes'),
+  circle: z.object({ code: z.string().max(8), memberId: z.string().max(32) }).nullable().optional(),
+});
+
+export const chatTextSchema = z.string().transform((v) => v.replace(/\r\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim().slice(0, 1000)).refine((v) => v.length > 0, 'Write a message first');
+export const presenceSchema = z.object({
+  name: nameSchema,
+  school: text(80),
+  major: text(60),
+  year: text(20),
+  courses: z.array(z.string().transform((v) => v.trim().slice(0, 40))).max(12).default([]),
+  status: z.enum(['focusing', 'drop', 'online']).default('online'),
+  statusText: text(80),
+  visible: z.boolean().default(true),
+  prompts: z.array(z.object({ q: z.string().max(80), a: z.string().transform((v) => v.trim().slice(0, 140)) })).max(3).default([]),
+  style: text(40),
+});
+
+export const buddySchema = z.object({ name: nameSchema, course: text(60), task: text(80), school: text(80), endsAt: z.number() });
+export const pactGoalSchema = z.coerce.number().int().min(60).max(3000);
+export const eventSchema = z.object({
+  host: nameSchema,
+  title: z.string().transform((v) => v.replace(/\s+/g, ' ').trim().slice(0, 80)).refine((v) => v.length > 0, 'Give the event a title'),
+  course: text(60),
+  category: z.enum(CATEGORIES).catch('Anything goes'),
+  place: z.string().transform((v) => v.replace(/\s+/g, ' ').trim().slice(0, 100)).refine((v) => v.length > 0, 'Say where it is'),
+  startsAt: z.number(),
+  endsAt: z.number(),
+  capacity: z.number().int().min(2).max(200).nullable().default(null),
+  school: text(80),
+  audience: z.enum(['school', 'everyone']),
+  note: text(300),
 });

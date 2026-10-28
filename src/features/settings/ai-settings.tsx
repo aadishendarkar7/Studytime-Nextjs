@@ -26,14 +26,14 @@ export function AiSettings() {
   const provider = PROVIDERS[ai.provider];
 
   return (
-    <Card id="ai" className="scroll-mt-6 lg:col-span-2">
+    <Card id="ai" className="scroll-mt-6 self-start">
       <CardHeader title="Connect the AI" description="Pick a provider and paste its API key. Google Gemini is free and reads photos and PDFs." action={<ConnectionPill />} />
-      <div className="grid gap-2.5 sm:grid-cols-2 xl:grid-cols-4" role="radiogroup" aria-label="AI provider">
+      <div className="grid gap-2 sm:grid-cols-2" role="radiogroup" aria-label="AI provider">
         {PROVIDER_IDS.map((id) => {
           const p = PROVIDERS[id];
           const active = ai.provider === id;
           return (
-            <button key={id} type="button" role="radio" aria-checked={active} onClick={() => ai.update({ provider: id as ProviderId })} className={cn('border p-4 text-left transition-colors rounded-xl', active ? 'border-accent bg-accent-soft' : 'border-line-strong bg-surface-2 hover:bg-surface-3')}>
+            <button key={id} type="button" role="radio" aria-checked={active} onClick={() => ai.update({ provider: id as ProviderId })} className={cn("rounded-lg border px-3.5 py-3 text-left transition-colors", active ? "border-accent bg-accent-soft" : "border-line bg-surface hover:bg-surface-2")}>
               <span className="flex items-center justify-between gap-2">
                 <strong className="text-sm">{p.label}</strong>
                 <Badge tone={p.free ? 'ok' : 'default'}>{p.free ? 'Free' : 'Paid'}</Badge>

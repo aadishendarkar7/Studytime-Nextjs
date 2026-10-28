@@ -2,61 +2,34 @@
 import { useEffect, useRef } from 'react';
 import { Card, CardHeader, PageHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Field, FieldRow, Note } from '@/components/ui/field';
+import { Checkbox, Note } from '@/components/ui/field';
 import { Icon } from '@/components/ui/icons';
-import { Segmented } from '@/components/ui/segmented';
-import { BACKDROPS, PALETTES, WASHES } from '@/lib/appearance';
+import { AppearanceOptions } from '@/components/shell/appearance-picker';
+import { NotificationSettings } from '@/features/planner/notifications';
+import { useExtras } from '@/lib/stores/extras';
 import { exportBackup, importBackup } from '@/lib/stores/hydrate';
-import { useProfile } from '@/lib/stores/profile';
 import { toast } from '@/lib/stores/ui';
-import { cn, downloadFile } from '@/lib/utils';
+import { downloadFile } from '@/lib/utils';
 import { AiSettings } from './ai-settings';
 
-function ColorInput({ id, label, value, onChange }: { id: string; label: string; value: string; onChange: (v: string) => void }) {
+function AppearanceCard() {
   return (
-    <Field label={label} htmlFor={id}>
-      <div className="flex h-11 items-center gap-3 rounded-xl border border-line-strong bg-surface px-2">
-        <input id={id} type="color" value={value} onChange={(e) => onChange(e.target.value)} className="size-8 cursor-pointer rounded-lg border-0 bg-transparent p-0" />
-        <span className="tnum font-mono text-[14px] text-ink-2 uppercase">{value}</span>
-      </div>
-    </Field>
+    <Card>
+      <CardHeader title="Appearance" description="Also in the palette button at the top of every page." />
+      <AppearanceOptions />
+    </Card>
   );
 }
 
-function AppearanceCard() {
-  const { accent, glow, backdrop, wash, update } = useProfile();
-  const active = PALETTES.find((p) => p.accent === accent && p.glow === glow)?.name;
+function NotificationsCard() {
+  const x = useExtras();
   return (
-    <Card className="lg:col-span-2">
-      <CardHeader title="Appearance" description="Pick a color pair or choose your own. The first color is used for buttons and progress, the second blends into the background." />
-      <div role="radiogroup" aria-label="Color pair" className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
-        {PALETTES.map((p) => (
-          <button
-            key={p.name}
-            type="button"
-            role="radio"
-            aria-checked={active === p.name}
-            onClick={() => update({ accent: p.accent, glow: p.glow })}
-            className={cn('flex items-center gap-3 rounded-xl border p-2.5 text-left text-[14px] font-medium transition-colors', active === p.name ? 'border-accent bg-accent-soft text-accent-ink' : 'border-line hover:bg-surface-3')}
-          >
-            <span className="relative size-9 shrink-0 overflow-hidden rounded-lg" style={{ background: p.glow }}>
-              <span className="absolute inset-y-0 left-0 w-1/2" style={{ background: p.accent }} />
-            </span>
-            {p.name}
-          </button>
-        ))}
-      </div>
-      <FieldRow>
-        <ColorInput id="accentColor" label="Main color" value={accent} onChange={(v) => update({ accent: v })} />
-        <ColorInput id="glowColor" label="Background color" value={glow} onChange={(v) => update({ glow: v })} />
-      </FieldRow>
-      <Field label="Background pattern">
-        <Segmented label="Background pattern" value={backdrop} onChange={(v) => update({ backdrop: v })} options={BACKDROPS} />
-      </Field>
-      <Field label="Color strength">
-        <Segmented label="Color strength" value={wash} onChange={(v) => update({ wash: v })} options={WASHES} />
-      </Field>
-      <Note>If a color is too light to read on, buttons use a darker shade of it automatically.</Note>
+    <Card>
+      <CardHeader title="Notifications" description="Reminders for deadlines, study blocks, water breaks and friends' drops." />
+      <NotificationSettings />
+      <Checkbox label="Tell me when friends drop a spot" checked={!x.dropQuiet} onChange={(e) => x.update({ dropQuiet: !e.target.checked })} />
+      <Checkbox label="Water reminders every half hour" checked={x.waterRemind} onChange={(e) => x.update({ waterRemind: e.target.checked })} />
+      <Checkbox label="Pop quiz from my flashcards after sessions" checked={x.popQuiz} onChange={(e) => x.update({ popQuiz: e.target.checked })} />
     </Card>
   );
 }
@@ -98,11 +71,14 @@ export function SettingsPage() {
   }, []);
   return (
     <>
-      <PageHeader title="Settings" description="Colors and background, the AI tutor connection, and backups. Your name, goals and courses are on your profile." />
+      <PageHeader title="Settings" />
       <div className="grid gap-5 lg:grid-cols-2">
-        <AppearanceCard />
+        <div className="grid content-start gap-5">
+          <AppearanceCard />
+          <NotificationsCard />
+          <DataCard />
+        </div>
         <AiSettings />
-        <DataCard />
       </div>
     </>
   );

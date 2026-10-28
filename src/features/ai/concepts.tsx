@@ -159,7 +159,7 @@ export function ConceptsTool() {
             <Bar value={c.mastery} className="mt-auto" />
             <div className="mt-1 flex flex-wrap gap-1.5">
               <Button size="sm" variant="secondary" data-concept="quiz" onClick={() => (resolveConnection().mode === 'none' ? toast('Connect the AI tutor in Settings first.', 'error') : setQuizId(c.id))}>Quiz me</Button>
-              <Button size="sm" variant="secondary" onClick={() => router.push(`/ai/chat?ask=${encodeURIComponent(`Give me a deeper breakdown of "${c.name}" (${c.subject}). Start with intuition, then the formal idea, a worked example, and the mistakes students usually make.`)}`)}>Go deeper</Button>
+              <Button size="sm" variant="secondary" onClick={() => router.push(`/study?tool=chat&ask=${encodeURIComponent(`Give me a deeper breakdown of "${c.name}" (${c.subject}). Start with intuition, then the formal idea, a worked example, and the mistakes students usually make.`)}`)}>Go deeper</Button>
               <Button size="sm" variant="secondary" onClick={() => ai.updateConcept(c.id, { mastery: 100 })}>{c.mastery >= 100 ? 'Mastered' : 'I know this'}</Button>
               <button type="button" aria-label={`Delete ${c.name}`} onClick={() => ai.deleteConcept(c.id)} className="ml-auto p-1 text-muted hover:text-danger"><Icon name="trash" className="size-4" /></button>
             </div>
@@ -168,7 +168,7 @@ export function ConceptsTool() {
           <Card className="text-center sm:col-span-2 xl:col-span-3">
             <h3 className="font-semibold">{ai.concepts.length ? 'No matching concepts' : 'No concept cards yet'}</h3>
             <p className="mt-1 text-sm text-muted">Concept cards are created automatically when you solve problems, or add one yourself above.</p>
-            <Link href="/ai"><Button className="mt-4">Solve a problem</Button></Link>
+            <Link href="/study?action=solve"><Button className="mt-4">Solve a problem</Button></Link>
           </Card>
         )}
       </div>

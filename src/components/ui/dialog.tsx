@@ -15,13 +15,13 @@ export function Dialog({ open, onClose, title, children }: { open: boolean; onCl
       ref={ref}
       onClose={onClose}
       onClick={(e) => e.target === ref.current && onClose()}
-      className="m-auto w-[min(560px,calc(100vw-32px))] rounded-3xl border border-line bg-surface p-0 text-ink shadow-lg"
+      className="m-auto w-[min(520px,calc(100vw-32px))] rounded-2xl border border-line bg-surface p-0 text-ink shadow-lg"
     >
       {open && (
-        <div className="p-6 max-sm:p-4">
-          <div className="mb-4 flex items-start justify-between gap-4">
-            <h2 className="text-[24px] leading-8 font-semibold">{title}</h2>
-            <button type="button" onClick={onClose} aria-label="Close" className="-mt-1 -mr-2 grid size-11 place-items-center rounded-full text-muted hover:bg-surface-3 hover:text-ink">
+        <div className="p-5 max-sm:p-4">
+          <div className="mb-4 flex items-center justify-between gap-4">
+            <h2 className="text-[17px] leading-6 font-semibold">{title}</h2>
+            <button type="button" onClick={onClose} aria-label="Close" className="-mr-1.5 grid size-8 place-items-center rounded-lg text-muted hover:bg-surface-3 hover:text-ink">
               <Icon name="close" />
             </button>
           </div>

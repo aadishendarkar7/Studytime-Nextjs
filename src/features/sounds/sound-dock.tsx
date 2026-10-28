@@ -11,14 +11,14 @@ export function SoundDock({ className }: { className?: string }) {
   const sound = useExtras((s) => s.sound);
   const volume = useExtras((s) => s.volume);
   return (
-    <div className={cn('rounded-xl bg-surface-3 p-2', className)}>
+    <div className={cn('rounded-lg border border-line bg-surface p-2', className)}>
       <div className="flex items-center gap-2">
-        <button type="button" onClick={toggleSound} aria-label={playing ? `Pause ${soundLabel(sound)}` : `Play ${soundLabel(sound)}`} className="grid size-9 shrink-0 place-items-center rounded-lg bg-brand text-white hover:bg-brand-hover">
-          <Icon name={playing ? 'pause' : 'play'} className="size-4" />
+        <button type="button" onClick={toggleSound} aria-label={playing ? `Pause ${soundLabel(sound)}` : `Play ${soundLabel(sound)}`} className={cn('grid size-7 shrink-0 place-items-center rounded-md', playing ? 'bg-accent-fill text-white' : 'bg-surface-3 text-ink hover:bg-line')}>
+          <Icon name={playing ? 'pause' : 'play'} className="size-3.5" />
         </button>
-        <Link href="/sounds" className="min-w-0 flex-1 leading-tight hover:underline">
-          <strong className="block truncate text-[14px] font-semibold">{soundLabel(sound)}</strong>
-          <small className="text-[12px] text-muted">{playing ? 'Playing' : 'Focus sound'}</small>
+        <Link href="/focus#sounds" className="min-w-0 flex-1 leading-tight hover:underline">
+          <strong className="block truncate text-[13px] font-medium">{soundLabel(sound)}</strong>
+          <small className="text-[11px] text-muted">{playing ? 'Playing' : 'Focus sound'}</small>
         </Link>
       </div>
       <input
@@ -29,7 +29,7 @@ export function SoundDock({ className }: { className?: string }) {
         value={volume}
         onChange={(e) => changeVolume(Number(e.target.value))}
         aria-label="Sound volume"
-        className="mt-2 h-6 w-full accent-[var(--accent)]"
+        className="mt-1.5 h-4 w-full accent-[var(--ink)]"
       />
     </div>
   );

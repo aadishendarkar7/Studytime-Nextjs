@@ -5,17 +5,17 @@ type Variant = 'primary' | 'secondary' | 'ghost' | 'danger' | 'link';
 type Size = 'sm' | 'md' | 'lg' | 'icon';
 
 const variants: Record<Variant, string> = {
-  primary: 'border border-brand bg-brand text-white shadow-sm hover:border-brand-hover hover:bg-brand-hover',
-  secondary: 'border border-line-strong/60 bg-surface text-ink shadow-sm hover:bg-surface-3',
+  primary: 'border border-transparent bg-brand text-white shadow-sm hover:bg-brand-hover',
+  secondary: 'border border-line bg-surface text-ink shadow-sm hover:border-line-strong/60 hover:bg-surface-2',
   ghost: 'border border-transparent text-ink-2 hover:bg-surface-3 hover:text-ink',
-  danger: 'border border-danger/50 bg-surface text-danger hover:bg-danger-soft',
+  danger: 'border border-line bg-surface text-danger hover:border-danger/40 hover:bg-danger-soft',
   link: 'border border-transparent text-accent-ink underline decoration-1 underline-offset-4 px-0! h-auto! min-h-0! shadow-none!',
 };
 const sizes: Record<Size, string> = {
-  sm: 'h-9 px-3.5 text-[14px] gap-1.5 rounded-lg max-sm:h-11',
-  md: 'h-11 px-5 text-[15px] gap-2',
-  lg: 'h-12 px-6 text-[15px] gap-2',
-  icon: 'size-11 justify-center',
+  sm: 'h-8 px-3 text-[13px] gap-1.5 rounded-lg max-sm:h-10',
+  md: 'h-9 px-3.5 text-[14px] gap-2 max-sm:h-10',
+  lg: 'h-10 px-4.5 text-[14px] gap-2',
+  icon: 'size-9 justify-center',
 };
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -36,7 +36,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
       disabled={disabled || loading}
       aria-busy={loading || undefined}
       className={cn(
-        'inline-flex shrink-0 items-center justify-center rounded-xl font-semibold whitespace-nowrap transition-colors disabled:cursor-not-allowed disabled:opacity-50',
+        'inline-flex shrink-0 items-center justify-center rounded-lg font-medium whitespace-nowrap transition-colors disabled:cursor-not-allowed disabled:opacity-50',
         variants[variant],
         sizes[size],
         block && 'w-full',

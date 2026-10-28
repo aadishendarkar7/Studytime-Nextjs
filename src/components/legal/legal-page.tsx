@@ -8,13 +8,13 @@ export function LegalPage({ title, children }: { title: string; children: ReactN
   return (
     <div className="mx-auto min-h-dvh max-w-[1200px] px-4 pb-16 sm:px-6 lg:px-10">
       <header className="flex h-16 items-center justify-between border-b border-line">
-        <Link href="/" className="flex items-center gap-2.5 font-display text-[24px] leading-8 font-semibold text-ink">
-          <Logo className="size-7" /> studytime
+        <Link href="/" className="flex items-center gap-2 text-[15px] font-semibold tracking-tight text-ink">
+          <Logo className="size-6" /> Studytime
         </Link>
         <Link href="/" className="text-[13px] text-accent underline underline-offset-4">Back to the app</Link>
       </header>
       <main className="mt-10 max-w-[68ch]">
-        <h1 className="text-[40px] leading-[44px] font-semibold max-sm:text-[32px] max-sm:leading-[36px]">{title}</h1>
+        <h1 className="text-[30px] leading-9 max-sm:text-[26px] max-sm:leading-8">{title}</h1>
         <p className="tnum mt-2 text-[13px] text-muted">Last updated {LEGAL.updated}</p>
         {missing.length > 0 && (
           <p role="note" className="mt-6 border border-danger bg-danger-soft px-4 py-3 text-[13px] leading-5 text-danger rounded-xl">

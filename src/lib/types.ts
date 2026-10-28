@@ -1,6 +1,6 @@
 // Shared domain types used by the client stores, API routes, and UI.
 
-export type ThemeName = 'light' | 'dark';
+export type ThemeName = 'light' | 'dark' | 'system';
 export type ReminderType = 'homework' | 'exam' | 'assignment';
 
 export interface Session {
@@ -21,7 +21,7 @@ export interface Reminder {
   lead: number; // minutes before dueAt to alert
   done: boolean;
   notifiedAt: string | null;
-  source?: 'syllabus' | 'manual';
+  source?: 'syllabus' | 'manual' | 'calendar';
 }
 
 export interface Reflection {
@@ -103,6 +103,7 @@ export interface LeaderboardEntry {
   id: string;
   name: string;
   minutes: number;
+  drops?: number;
   quizScore?: number;
   major?: string;
   year?: string;
@@ -133,3 +134,52 @@ export interface PartnerListing extends PartnerInput { id: string; updatedAt: nu
 export const SPOT_TAGS = ['Quiet', 'Group friendly', 'Outlets', 'Wi-Fi', 'Open late', 'Food nearby', 'Outdoor'] as const;
 export interface SpotInput { name: string; lat: number; lng: number; note: string; tags: string[]; school: string }
 export interface PublicSpot extends SpotInput { id: string; createdAt: number }
+
+// ---------- Drop a Spot ----------
+export type DropAudience = 'circle' | 'school' | 'everyone';
+/** How the table works: heads down, quiet talking is fine, or working through problems together. */
+export type DropVibe = 'silent' | 'quiet' | 'group';
+export interface DropInput {
+  name: string;
+  spotName: string;
+  lat: number | null;
+  lng: number | null;
+  subject: string;
+  note: string;
+  startsAt: number;
+  endsAt: number;
+  audience: DropAudience;
+  school: string;
+  vibe: DropVibe;
+  /** Open seats at the table, or null for no limit. */
+  seats: number | null;
+  /** What kind of studying, so people can find their crowd. */
+  category?: string;
+}
+export interface DropJoiner { id: string; name: string; at: number; status: 'coming' | 'here' }
+export interface DropMessage { id: string; name: string; text: string; at: number; host: boolean }
+export interface DropView extends DropInput {
+  id: string;
+  createdAt: number;
+  joiners: DropJoiner[];
+  messages: DropMessage[];
+}
+
+// ---------- Chat ----------
+export type ChatStatus = 'focusing' | 'drop' | 'online';
+/** What other students can see about you in chat. */
+export interface ChatPerson { id: string; name: string; school: string; major: string; year: string; courses: string[]; status: ChatStatus; statusText: string; lastSeen: number; prompts?: { q: string; a: string }[]; style?: string }
+export interface ChatMessage { id: string; channel: string; from: string; name: string; text: string; at: number }
+export interface ChatThread { with: string; name: string; last: number; preview: string; fromMe: boolean }
+export interface ChatChannelInfo { at: number; name: string; preview: string }
+
+// ---------- Focus Buddy ----------
+export interface BuddyView { id: string; name: string; course: string; task: string; startedAt: number; endsAt: number; status: 'focusing' | 'done' | 'left'; lastSeen: number }
+
+// ---------- Weekly pact ----------
+export interface PactView { code: string; goal: number; week: string; members: { id: string; name: string; minutes: number; updatedAt: number }[] }
+
+// ---------- Campus study events ----------
+export const CATEGORIES = ['Math & stats', 'Sciences', 'Pre-med & health', 'Coding', 'Engineering', 'Business', 'Writing & humanities', 'Languages', 'Arts & design', 'Exam prep', 'Student athletes', 'Anything goes'] as const;
+export interface EventInput { host: string; title: string; course: string; category: string; place: string; startsAt: number; endsAt: number; capacity: number | null; school: string; audience: 'school' | 'everyone'; note: string }
+export interface EventView extends EventInput { id: string; createdAt: number; going: { id: string; name: string }[] }

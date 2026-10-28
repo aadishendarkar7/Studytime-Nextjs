@@ -58,3 +58,25 @@ describe('study spots', () => {
     expect(() => spotSchema.parse({ name: 'X', lat: 120, lng: 0, tags: [] })).toThrow();
   });
 });
+
+import { createRoom, heartbeat, joinRoom, sendKudos, startGroup } from '@/lib/server/services/rooms';
+
+describe('study rooms', () => {
+  const beat = { name: 'Ana', status: 'focusing' as const, subject: 'Orgo', endsAt: null, weekMinutes: 120, weeklyGoal: 300 };
+  it('shows who is here, runs group sessions and delivers kudos', async () => {
+    const room = await createRoom('Late night crew', 'Ana');
+    const ben = await joinRoom(room.code, 'Ben');
+    await heartbeat(room.code, ben.memberId, { ...beat, name: 'Ben', status: 'idle', weekMinutes: 30 }, 0);
+    const v = await heartbeat(room.code, room.memberId, beat, 0);
+    expect(v.members.map((m) => [m.name, m.online])).toEqual([['Ana', true], ['Ben', true]]);
+    const g = await startGroup(room.code, room.memberId, 30);
+    expect(g.group?.minutes).toBe(30);
+    await sendKudos(room.code, ben.memberId, v.me);
+    await expect(sendKudos(room.code, ben.memberId, v.me)).rejects.toThrow('just sent');
+    await expect(sendKudos(room.code, room.memberId, v.me)).rejects.toThrow('someone else');
+    const after = await heartbeat(room.code, room.memberId, beat, 0);
+    expect(after.kudos.map((k) => k.from)).toEqual(['Ben']);
+    await expect(heartbeat(room.code, 'f'.repeat(32), beat, 0)).rejects.toThrow('not in this room');
+    await expect(joinRoom('ABCDEF', 'X')).rejects.toThrow('Room not found');
+  });
+});

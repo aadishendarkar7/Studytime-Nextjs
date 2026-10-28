@@ -3,8 +3,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { Badge, Card, CardHeader, Empty, PageHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Field, FieldRow, Input, Note, Select, Textarea } from '@/components/ui/field';
-import { Icon } from '@/components/ui/icons';
-import { Segmented } from '@/components/ui/segmented';
+import { Icon, type IconName } from '@/components/ui/icons';
+import { Segmented, Tabs } from '@/components/ui/segmented';
 import { api } from '@/lib/api';
 import { resolveConnection } from '@/lib/ai/client';
 import { generateCards } from '@/features/ai/tasks';
@@ -110,8 +110,8 @@ function SetManager() {
           <Button variant="secondary" onClick={addCard}>Add</Button>
         </div>
       </Field>
-      <details open className="mt-4 bg-accent-soft px-4 py-3 rounded-lg">
-        <summary className="min-h-11 text-[13px] font-medium text-accent">Generate cards with AI</summary>
+      <details open className="mt-4 rounded-lg border border-line px-4 py-3">
+        <summary className="min-h-9 text-[13px] font-medium text-ink">Generate cards with AI</summary>
         <div className="mt-3 flex flex-wrap gap-2">
           <Input className="min-w-48 flex-[2]" maxLength={2000} value={topic} onChange={(e) => setTopic(e.target.value)} placeholder="A topic or pasted notes, e.g. The French Revolution" aria-label="Topic for AI flashcards" />
           <Select className="w-auto" value={count} onChange={(e) => setCount(Number(e.target.value))} aria-label="Number of cards">
@@ -162,7 +162,7 @@ function DeckLibrary() {
   }, [tab]);
   const decks = (tab === 'starter' ? STARTER_DECKS : shared ?? []).filter((d) => !q || `${d.name} ${d.subject} ${d.author ?? ''}`.toLowerCase().includes(q.toLowerCase()));
   return (
-    <Card className="mt-5">
+    <Card>
       <CardHeader title="Ready-made decks" description="Start from a free deck or one shared by other students." action={<Segmented value={tab} onChange={setTab} options={[{ value: 'starter', label: 'Starter decks' }, { value: 'shared', label: 'Shared by students' }]} />} />
       <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search decks" aria-label="Search decks" />
       <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -187,32 +187,69 @@ function DeckLibrary() {
   );
 }
 
-export function GamesPage() {
-  const sets = useLearning((s) => s.sets);
-  const selectedId = useLearning((s) => s.selectedId);
-  const set = sets.find((s) => s.id === selectedId) ?? sets[0];
+const MODE_INFO: Record<Mode, { icon: IconName; text: string }> = {
+  review: { icon: 'reset', text: 'Due cards first. Rate how well you knew each one.' },
+  flashcards: { icon: 'games', text: 'Flip through the set at your own pace.' },
+  quiz: { icon: 'check', text: 'Multiple choice made from your own cards.' },
+  matching: { icon: 'copy', text: 'Pair every term with its answer.' },
+  blank: { icon: 'pen', text: 'Type the answer from memory.' },
+  speed: { icon: 'clock', text: 'As many as you can in 60 seconds.' },
+};
+
+function Play() {
+  const l = useLearning();
+  const set = l.sets.find((s) => s.id === l.selectedId) ?? l.sets[0];
   const [mode, setMode] = useState<Mode>('review');
+  const due = set.cards.filter((c) => isDue(c)).length;
+  return (
+    <div className="grid gap-4">
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-xl border border-line bg-surface px-4 py-3">
+        <label className="flex min-w-0 items-center gap-2 text-[13px] text-muted">
+          Set
+          <Select aria-label="Study set" className="h-8 w-auto max-w-[260px] text-[13px]" value={set.id} onChange={(e) => l.update({ selectedId: e.target.value })}>
+            {l.sets.map((s) => { const d = s.cards.filter((c) => isDue(c)).length; return <option key={s.id} value={s.id}>{s.name}{d ? ` · ${d} due` : ''}</option>; })}
+          </Select>
+        </label>
+        <span className="tnum text-[13px] text-muted"><strong className="font-semibold text-ink">{set.cards.length}</strong> cards</span>
+        <span className="tnum text-[13px] text-muted"><strong className="font-semibold text-ink">{due}</strong> due today</span>
+        <span className="text-[13px] text-muted">{set.folder}</span>
+      </div>
+      <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3" role="tablist" aria-label="Game">
+        {MODES.map((m) => (
+          <button key={m.id} type="button" role="tab" aria-selected={mode === m.id} onClick={() => setMode(m.id)} className={cn('flex items-start gap-3 rounded-xl border px-3.5 py-3 text-left transition-colors', mode === m.id ? 'border-accent bg-accent-soft shadow-sm' : 'border-line bg-surface hover:border-line-strong/50')}>
+            <span className={cn('grid size-8 shrink-0 place-items-center rounded-lg', mode === m.id ? 'bg-accent-fill text-white' : 'bg-surface-3 text-ink-2')}><Icon name={MODE_INFO[m.id].icon} className="size-4" /></span>
+            <span className="min-w-0">
+              <span className="flex items-center gap-2 text-[14px] font-semibold">{m.label}{m.id === 'review' && due > 0 && <Badge tone="accent">{due} due</Badge>}</span>
+              <span className="block text-[12px] leading-[18px] text-muted">{MODE_INFO[m.id].text}</span>
+            </span>
+          </button>
+        ))}
+      </div>
+      <div className="min-h-80 rounded-xl border border-line bg-surface p-6 max-sm:p-4">
+        {set.cards.length ? <GameStage key={`${set.id}-${mode}`} set={set} mode={mode} /> : <Empty title="This set has no cards yet" action={<p className="text-[13px] text-muted">Add some under Manage cards, or pick a ready-made deck.</p>}>Games need at least a few cards to play.</Empty>}
+      </div>
+    </div>
+  );
+}
+
+export function GamesPage({ embedded = false }: { embedded?: boolean } = {}) {
+  // A review block on the calendar links here with ?set=<id> to open that set.
+  useState(() => {
+    const id = typeof location !== 'undefined' ? new URLSearchParams(location.search).get('set') : null;
+    if (id && useLearning.getState().sets.some((x) => x.id === id)) useLearning.getState().update({ selectedId: id });
+    return id;
+  });
+  const sets = useLearning((s) => s.sets);
+  const [tab, setTab] = useState<'play' | 'manage' | 'library'>('play');
   const totalDue = useMemo(() => sets.reduce((n, s) => n + s.cards.filter((c) => isDue(c)).length, 0), [sets]);
   return (
     <>
-      <PageHeader title="Study games" description="Spaced-repetition review, flashcards, quizzes, matching, and speed rounds from one set of cards." action={<Badge tone="accent" className="px-3.5 py-2 text-[13px]">Due today: {totalDue}</Badge>} />
-      <div className="grid items-start gap-5 lg:grid-cols-2">
-        <SetManager />
-        <Card className="lg:sticky lg:top-6">
-          <CardHeader title="Start practicing" />
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3" role="tablist" aria-label="Game mode">
-            {MODES.map((m) => (
-              <button key={m.id} type="button" role="tab" aria-selected={mode === m.id} onClick={() => setMode(m.id)} className={cn('border px-3 py-2.5 text-[13px] font-semibold rounded-xl', mode === m.id ? 'border-accent bg-accent-soft text-accent-ink' : 'border-line-strong bg-surface-2 text-ink-2 hover:bg-surface-3')}>
-                {m.label}
-              </button>
-            ))}
-          </div>
-          <div className="mt-4 min-h-64 border border-line bg-surface-2 p-5 rounded-lg">
-            <GameStage set={set} mode={mode} />
-          </div>
-        </Card>
-      </div>
-      <DeckLibrary />
+      {!embedded && <PageHeader title="Study games" action={<Badge tone="accent">Due today: {totalDue}</Badge>} />}
+      <Tabs className="mb-4" label="Study games" value={tab} onChange={setTab} options={[{ value: 'play', label: 'Play', count: totalDue }, { value: 'manage', label: 'Manage cards' }, { value: 'library', label: 'Deck library' }]} />
+      {tab === 'play' && <Play />}
+      {tab === 'play' && <p className="mt-3 text-[13px] text-muted">Pop quizzes pick from these cards after your focus sessions. <button type="button" className="font-medium text-ink underline underline-offset-4" onClick={() => window.dispatchEvent(new Event('studytime:popquiz'))}>Try one now</button></p>}
+      {tab === 'manage' && <SetManager />}
+      {tab === 'library' && <DeckLibrary />}
     </>
   );
 }

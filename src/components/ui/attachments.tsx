@@ -50,11 +50,14 @@ export function DropZone({ onFiles, accept, multiple = true, title, hint, inputI
         setOver(false);
         if (e.dataTransfer.files.length) onFiles(e.dataTransfer.files);
       }}
-      className={cn('my-3 flex min-h-32 flex-col items-center justify-center gap-1.5 rounded-xl border border-dashed px-5 py-6 text-center transition-colors', over ? 'border-accent bg-accent-soft' : 'border-line-strong/60 bg-surface hover:bg-surface-3')}
+      className={cn('my-3 flex cursor-pointer items-center gap-3 rounded-xl border px-4 py-3 transition-colors', over ? 'border-accent bg-accent-soft' : 'border-line bg-surface-2 hover:border-line-strong')}
     >
-      <Icon name="upload" className="size-6 text-ink" />
-      <strong className="text-[14px] font-semibold text-ink">{title}</strong>
-      <span className="text-xs text-muted">{hint}</span>
+      <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-surface text-ink-2"><Icon name="clip" className="size-[18px]" /></span>
+      <span className="min-w-0 flex-1 text-left">
+        <strong className="block text-[14px] font-semibold text-ink">{title}</strong>
+        <span className="block text-[13px] text-muted">{hint}</span>
+      </span>
+      <span className="hidden rounded-lg border border-line-strong/60 bg-surface px-3 py-1.5 text-[13px] font-semibold text-ink sm:block">Choose file</span>
       <input
         id={inputId}
         ref={input}

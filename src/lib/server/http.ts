@@ -1,4 +1,5 @@
 import 'server-only';
+import { unstable_rethrow } from 'next/navigation';
 import { z } from 'zod';
 
 export class HttpError extends Error {
@@ -16,6 +17,8 @@ export function handle<A extends unknown[]>(fn: (...args: A) => Promise<Response
     try {
       return await fn(...args);
     } catch (error) {
+      // Let Next.js handle its own control-flow errors (for example, ending a prerender).
+      unstable_rethrow(error);
       if (error instanceof HttpError) return json({ error: error.message }, error.status);
       if (error instanceof z.ZodError) return json({ error: error.issues[0]?.message || 'Invalid request' }, 400);
       console.error(error);

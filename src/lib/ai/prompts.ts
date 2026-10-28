@@ -2,8 +2,11 @@ import type { AiSettings } from '@/lib/stores/ai';
 
 type Profile = Pick<AiSettings, 'level' | 'exam' | 'subject' | 'language'>;
 
+const COURSE_EXAMS = ['Quiz', 'Midterm', 'Final exam', 'Problem set', 'Lab practical', 'Project or paper', 'Presentation', 'Oral exam'];
+const examLine = (exam: string) => (exam === 'None' || !exam ? '' : COURSE_EXAMS.includes(exam) ? `, preparing for a ${exam.toLowerCase()} in this course (match the depth and style of a typical university ${exam.toLowerCase()})` : `, preparing for ${exam}`);
+
 export const profileLine = (p: Profile) =>
-  `Student profile: ${p.level} level${p.exam !== 'None' ? `, preparing for ${p.exam}` : ''}${p.subject !== 'Any subject' ? `, focusing on ${p.subject}` : ''}. Write the whole reply in ${p.language}.`;
+  `Student profile: ${p.level} level${examLine(p.exam)}${p.subject !== 'Any subject' ? `, studying ${p.subject}` : ''}. Write the whole reply in ${p.language}.`;
 
 export const FORMAT = 'Format with Markdown (headings, bold key terms, numbered steps, tables when useful). Write all math in LaTeX: $...$ inline and $$...$$ for display equations. Never use \\( \\) or \\[ \\].';
 

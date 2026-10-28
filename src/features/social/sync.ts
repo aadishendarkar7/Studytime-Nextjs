@@ -1,6 +1,7 @@
 'use client';
 import { api, ApiError } from '@/lib/api';
 import { streaks, weekMinutes } from '@/features/focus/logic';
+import { useExtras } from '@/lib/stores/extras';
 import { useLearning } from '@/lib/stores/learning';
 import { useProfile } from '@/lib/stores/profile';
 import type { CircleMemberView } from '@/lib/types';
@@ -18,6 +19,14 @@ export async function syncCircle(): Promise<CircleMemberView[] | null> {
   }
 }
 
+/** Drops you hosted or joined since Monday. */
+export function weekDrops(now = Date.now()) {
+  const d = new Date(now);
+  d.setHours(0, 0, 0, 0);
+  d.setDate(d.getDate() - ((d.getDay() + 6) % 7));
+  return useExtras.getState().dropLog.filter((e) => e.role !== 'solo' && e.at >= d.getTime() && e.at <= now).length;
+}
+
 /** Make sure this browser has a leaderboard profile, then push the latest stats. */
 export async function syncLeaderboardProfile() {
   let p = useProfile.getState();
@@ -28,7 +37,7 @@ export async function syncLeaderboardProfile() {
   }
   const minutes = weekMinutes(p.sessions);
   try {
-    await api.leaderboard.profile(p.leaderboard!.token, { name: p.name, school: p.school, major: p.major, year: p.year, minutes });
+    await api.leaderboard.profile(p.leaderboard!.token, { name: p.name, school: p.school, major: p.major, year: p.year, minutes, drops: weekDrops() });
   } catch (error) {
     if (error instanceof ApiError && error.status === 401) {
       p.update({ leaderboard: null });

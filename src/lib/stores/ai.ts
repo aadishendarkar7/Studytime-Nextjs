@@ -6,7 +6,7 @@ import { uid } from '@/lib/utils';
 
 export const AI_KEY = 'studytime:ai';
 
-export interface ChatMessage { role: 'user' | 'assistant'; content: string; files?: string[] }
+export interface ChatMessage { role: 'user' | 'assistant'; content: string; files?: string[]; /** Tutor action used, like a cheat sheet or summary. */ action?: string }
 export interface Chat { id: string; title: string; mode: 'tutor' | 'support'; messages: ChatMessage[]; updatedAt: number }
 export interface Concept { id: string; name: string; subject: string; summary: string; example: string; mastery: number; seen: number; source: string; createdAt: number; updatedAt: number }
 export interface Note { id: string; title: string; folder: string; kind: NoteKind; content: string; createdAt: number }
@@ -35,10 +35,7 @@ export interface AiData extends AiSettings {
   solves: Solve[];
 }
 
-export const LEVELS = ['Middle school', 'High school', 'College', 'Graduate'];
-export const EXAMS = ['None', 'AP', 'SAT', 'ACT', 'GRE', 'IGCSE', 'A-Levels', 'IB', 'School exams'];
 export const LANGUAGES = ['English', 'Spanish', 'French', 'German', 'Portuguese', 'Italian', 'Japanese', 'Korean', 'Chinese (Simplified)', 'Vietnamese', 'Hindi', 'Arabic'];
-export const SUBJECTS = ['Any subject', 'Math', 'Algebra', 'Geometry', 'Trigonometry', 'Calculus', 'Statistics', 'Biology', 'Chemistry', 'Physics', 'Computer Science', 'Economics', 'History', 'English & Writing', 'Languages'];
 
 export const defaultAi = (): AiData => ({
   provider: 'gemini', keys: {}, models: {}, crossCheck: true, accessCode: '', level: 'College', exam: 'None', language: 'English', subject: 'Any subject',
