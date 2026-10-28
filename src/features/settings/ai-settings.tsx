@@ -45,7 +45,7 @@ export function AiSettings() {
       </div>
       <p className="mt-3 text-[13px] text-muted">{provider.note}</p>
       <ProviderForm key={ai.provider} />
-      <Note>Your key is saved only in this browser. It’s sent through this Studytime server to {provider.label} for each request and is never stored on the server. Free tiers have daily limits; one “Snap &amp; solve” uses about 3 requests.</Note>
+      <Note>Your key is saved only in this browser. It’s sent through this Studytime server to {provider.label} for each request and is never stored on the server. Free tiers have per-minute and daily limits; a solve with cross-check uses about 3 requests.</Note>
       <Button variant="link" size="sm" className="mt-1" onClick={() => loadAiStatus(true).then(() => toast('Refreshed.'))}>Refresh connection status</Button>
     </Card>
   );

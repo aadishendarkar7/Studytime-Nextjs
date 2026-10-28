@@ -118,6 +118,8 @@ export const useAi = create<AiStore>()(
         if (!isProviderId(p.provider)) p.provider = 'gemini';
         if (!p.keys || typeof p.keys !== 'object') p.keys = {};
         if (!p.models || typeof p.models !== 'object') p.models = {};
+        // Google retired these model names; fall back to the current default.
+        if (['gemini-2.5-flash', 'gemini-2.5-flash-lite', 'gemini-2.0-flash', 'gemini-flash-latest', 'gemini-flash-lite-latest'].includes(p.models.gemini ?? '')) p.models = { ...p.models, gemini: undefined };
         if (!p.noteFolders.includes('General')) p.noteFolders.unshift('General');
         return p as AiStore;
       },

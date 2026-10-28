@@ -1,8 +1,8 @@
 import { z } from 'zod';
-import { MODEL_PATTERN, PROVIDER_IDS, type AiRequest } from '@/lib/ai/providers';
+import { MODEL_PATTERN, PROVIDER_IDS, PROVIDERS, type AiRequest } from '@/lib/ai/providers';
 import { clientIp, handle, HttpError, readJson } from '@/lib/server/http';
 import { rateLimit } from '@/lib/server/rate-limit';
-import { serverKey, startStream } from '@/lib/server/ai';
+import { serverKey, serverProviders, startStream } from '@/lib/server/ai';
 
 export const maxDuration = 60;
 
@@ -21,6 +21,38 @@ const schema = z.object({
     .min(1, 'No message to send')
     .max(40),
 });
+
+/** Busy, rate-limited or briefly down: worth trying another model. */
+const busy = (e: unknown) => e instanceof HttpError && (e.status === 429 || e.status >= 500 || /high demand|overloaded|unavailable|try again later|quota|exhausted/i.test(e.message));
+const retired = (e: unknown) => e instanceof HttpError && e.message.startsWith('Model not found');
+
+/**
+ * Starts a reply, and when the model is busy or retired tries the provider's
+ * other models, then (with the site's own keys) the other providers this site has keys for.
+ */
+async function startWithFallbacks(req: AiRequest, key: string, siteKeys: boolean) {
+  const hasFiles = req.messages.some((m) => Array.isArray(m.content) && m.content.some((p) => p.type !== 'text'));
+  const info = PROVIDERS[req.provider];
+  const attempts: { provider: AiRequest['provider']; model: string; key: string }[] = [{ provider: req.provider, model: req.model, key }];
+  for (const model of [info.defaults.main, info.defaults.fast, ...info.models.map((m) => m.id)]) if (!attempts.some((a) => a.provider === req.provider && a.model === model)) attempts.push({ provider: req.provider, model, key });
+  if (siteKeys)
+    for (const p of serverProviders()) {
+      if (p === req.provider || (hasFiles && !PROVIDERS[p].images)) continue;
+      attempts.push({ provider: p, model: PROVIDERS[p].defaults.main, key: serverKey(p) });
+    }
+  let last: unknown;
+  for (const [i, a] of attempts.slice(0, 6).entries()) {
+    try {
+      return await startStream({ ...req, provider: a.provider, model: a.model }, a.key);
+    } catch (error) {
+      last = error;
+      if (!busy(error) && !retired(error)) throw error;
+      if (i === 0 && busy(error)) await new Promise((r) => setTimeout(r, 700));
+    }
+  }
+  if (busy(last)) throw new HttpError(503, 'The AI is very busy right now and every model we tried was overloaded. Wait a minute and try again.');
+  throw last;
+}
 
 const env = (name: string, fallback: number) => {
   const n = Number(process.env[name]);
@@ -46,7 +78,8 @@ export const POST = handle(async (request: Request) => {
     await rateLimit('ai-min', ip, env('AI_RATE_LIMIT_PER_MIN', 15), 60, 'Too many AI requests. Wait a minute and try again.');
     await rateLimit('ai-day', ip, env('AI_DAILY_LIMIT', 200), 86_400, 'Daily AI limit reached on this server. Add your own free key in Settings → AI tutor to keep going.');
   }
-  const stream = await startStream({ ...body, maxTokens: body.maxTokens ?? 2000 }, key);
+  const aiRequest = { ...body, maxTokens: body.maxTokens ?? 2000 };
+  const stream = await startWithFallbacks(aiRequest, key, !userKey);
   const encoder = new TextEncoder();
   const out = new ReadableStream<Uint8Array>({
     async start(controller) {

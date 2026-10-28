@@ -29,12 +29,11 @@ export const PROVIDERS: Record<ProviderId, ProviderInfo> = {
     images: true,
     pdfs: true,
     models: [
-      { id: 'gemini-flash-latest', label: 'Gemini Flash (latest): recommended' },
-      { id: 'gemini-3.8-flash', label: 'Gemini 3.8 Flash' },
+      { id: 'gemini-3.8-flash', label: 'Gemini 3.8 Flash: recommended' },
+      { id: 'gemini-3.6-flash', label: 'Gemini 3.6 Flash' },
       { id: 'gemini-3.5-flash-lite', label: 'Gemini 3.5 Flash-Lite: fastest' },
-      { id: 'gemini-2.5-flash', label: 'Gemini 2.5 Flash' },
     ],
-    defaults: { main: 'gemini-flash-latest', fast: 'gemini-3.5-flash-lite', verify: 'gemini-flash-latest' },
+    defaults: { main: 'gemini-3.8-flash', fast: 'gemini-3.5-flash-lite', verify: 'gemini-3.8-flash' },
     note: 'Free with a Google account, no credit card. Reads photos and PDFs. Free-tier prompts may be used by Google to improve its products.',
   },
   groq: {

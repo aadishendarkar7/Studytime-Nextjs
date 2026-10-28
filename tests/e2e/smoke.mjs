@@ -146,7 +146,7 @@ try {
   check((await page.locator('#solveOutput .katex').count()) >= 4, 'KaTeX math rendered');
   check((await page.textContent('#solveOutput')).includes('costs $5 and $10'), 'Currency not treated as math');
   const mainCall = calls.find((c) => c.contents?.[0]?.parts?.some((p) => p.inline_data?.mime_type === 'image/jpeg'));
-  check(mainCall?.model === 'gemini-flash-latest' && mainCall.key === USER_KEY, 'Photo sent to Gemini with the user key');
+  check(mainCall?.model === 'gemini-3.8-flash' && mainCall.key === USER_KEY, 'Photo sent to Gemini with the user key');
   check(calls.some((c) => c.system.includes('core academic concepts') && c.model === 'gemini-3.5-flash-lite'), 'Concept extraction uses the fast model');
   check(!(await page.textContent('#solveOutput')).includes('thinking…'), 'Gemini thought parts are hidden');
   await page.click('button:has-text("Similar practice problems")');
