@@ -163,6 +163,8 @@ export interface DropView extends DropInput {
   createdAt: number;
   joiners: DropJoiner[];
   messages: DropMessage[];
+  /** Made by someone you follow. */
+  friend?: boolean;
 }
 
 // ---------- Chat ----------
@@ -202,5 +204,9 @@ export interface FeedPost {
   visibility: PostVisibility;
   kudos: string[];
   kudosNames: string[];
+  /** Friends tagged as studying together. The post shows for them and their followers too. */
+  crew?: { id: string; name: string }[];
+  /** Has a photo, served from /api/feed/<id>/photo. */
+  photo?: boolean;
 }
 export interface PersonView { id: string; name: string; school: string; major: string; year: string; following: boolean; followsYou: boolean; followers: number; weekMinutes: number; posts: number }

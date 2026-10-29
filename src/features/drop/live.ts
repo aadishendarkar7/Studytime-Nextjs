@@ -2,6 +2,7 @@
 import { create } from 'zustand';
 import { sendBrowserAlert } from '@/components/shell/global-effects';
 import { api } from '@/lib/api';
+import { isQuietNow } from '@/lib/quiet';
 import { useExtras } from '@/lib/stores/extras';
 import { useProfile } from '@/lib/stores/profile';
 import { toast } from '@/lib/stores/ui';
@@ -38,10 +39,13 @@ export async function refreshDrops(notify = true) {
     const mine = new Set(x.myDrops.map((d) => d.id));
     const seen = new Set(x.dropsSeen);
     const fresh = drops.filter((d) => !mine.has(d.id) && !seen.has(d.id));
-    if (notify && !x.dropQuiet && useDrops.getState().loaded) {
-      for (const d of fresh.slice(0, 3)) {
-        toast(`${d.name} dropped a spot: ${d.spotName}, ${whenLabel(d).toLowerCase()}.`);
-        sendBrowserAlert(`${d.name} is studying at ${d.spotName}`, `${whenLabel(d)}${d.subject ? `, ${d.subject}` : ''}. Open Studytime to join.`);
+    if (notify && !x.dropQuiet && !isQuietNow() && useDrops.getState().loaded) {
+      // Friends first: those are the ones worth a pop-up.
+      for (const d of [...fresh].sort((a, b) => Number(Boolean(b.friend)) - Number(Boolean(a.friend))).slice(0, 3)) {
+        if (d.friend) {
+          toast(`${d.name} is studying at ${d.spotName}. Join them?`);
+          sendBrowserAlert(`Study with ${d.name}?`, `${d.spotName}, ${whenLabel(d).toLowerCase()}${d.subject ? `, ${d.subject}` : ''}.`);
+        } else toast(`${d.name} dropped a spot: ${d.spotName}, ${whenLabel(d).toLowerCase()}.`);
       }
     }
     const joinedIds = new Map(x.joinedDrops.map((j) => [j.dropId, j.joinerId]));

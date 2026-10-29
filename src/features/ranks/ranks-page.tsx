@@ -5,7 +5,6 @@ import { Avatar } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Dialog } from '@/components/ui/dialog';
 import { Field, FieldRow, Input, Select } from '@/components/ui/field';
-import { Icon, type IconName } from '@/components/ui/icons';
 import { Segmented, Tabs } from '@/components/ui/segmented';
 import { toneFor } from '@/features/chat/live';
 import { AWARD, DAILY_GOAL_BONUS, STREAK_BONUS, weekMinutes } from '@/features/focus/logic';
@@ -21,7 +20,9 @@ import { toast } from '@/lib/stores/ui';
 import type { LeaderboardEntry } from '@/lib/types';
 import { useNow } from '@/lib/use-now';
 import { cn, fmtMinutes } from '@/lib/utils';
-import { achievements, level, type Group } from './achievements';
+import { level, longestRun, trophies, type Trophy } from './achievements';
+import { TrophyCabinet } from './trophy-cabinet';
+import { ChallengesPanel, useChallengeStates } from '@/features/challenges/challenges-panel';
 import { Collection, GardenPage, PacksPanel } from '@/features/garden/garden-page';
 
 type Scope = 'school' | 'major' | 'year' | 'friends' | 'class';
@@ -188,51 +189,31 @@ function Leaderboard() {
   );
 }
 
-const GROUP_ICON: Record<Group, IconName> = { Focus: 'focus', 'Drop a Spot': 'pin', Habits: 'heart', 'Study tools': 'book' };
-
-function Achievements() {
+function Trophies() {
   const p = useProfile();
   const x = useExtras();
   const sets = useLearning((s) => s.sets.length);
   const notes = useAi((s) => s.notes.length);
   const now = useNow(60_000);
-  const list = achievements({ sessions: p.sessions, dropLog: x.dropLog, checkins: x.checkins, water: x.water, waterGoal: x.waterGoal, resets: x.resets.length, flashcardSets: sets, notes, now });
+  const challenges = useChallengeStates();
+  const list = trophies({ sessions: p.sessions, dropLog: x.dropLog, checkins: x.checkins, water: x.water, waterGoal: x.waterGoal, resets: x.resets.length, flashcardSets: sets, notes, now, bestRewardStreak: longestRun(x.rewardDays), lessonsDone: x.courses.reduce((n, c) => n + c.units.reduce((m, u) => m + u.lessons.filter((l) => l.done).length, 0), 0) });
+  const won: Trophy[] = challenges.map((c) => {
+    const tiers: [number, number, number] = [1, 3, 5];
+    const tier = tiers.filter((n) => c.wins >= n).length as Trophy['tier'];
+    return { id: `ch-${c.challenge.id}`, group: 'Focus', title: c.challenge.title, unit: 'times finished', have: c.wins, tiers, tier, next: (tiers as number[])[tier] ?? null };
+  });
   const lv = level(p.points);
-  const earned = list.filter((a) => a.done).length;
-  const groups = [...new Set(list.map((a) => a.group))];
   const ways: [string, string][] = [
-    ...Object.entries(AWARD).map(([m, pts]) => [`${m}-minute focus session`, `+${pts}`] as [string, string]),
+    ...Object.entries(AWARD).map(([m, pts]) => [`${m} min session`, `+${pts}`] as [string, string]),
+    ['Daily check-in', '+5 to +50'],
     ['Host or join a drop', '+10'],
-    ['Reach your daily goal', `+${DAILY_GOAL_BONUS}`],
-    ['3-day and 7-day streaks', `+${STREAK_BONUS.three} / +${STREAK_BONUS.weekly}`],
+    ['Finish a course lesson', '+5'],
+    ['Daily goal', `+${DAILY_GOAL_BONUS}`],
+    ['3 and 7 day streaks', `+${STREAK_BONUS.three} / +${STREAK_BONUS.weekly}`],
   ];
   return (
-    <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_300px] [&>*]:min-w-0">
-      <div className="grid content-start gap-6">
-        {groups.map((g) => (
-          <section key={g}>
-            <h2 className="mb-2 flex items-center gap-2 font-sans text-[13px] font-semibold text-ink"><Icon name={GROUP_ICON[g]} className="size-4 text-muted" />{g}</h2>
-            <div className="grid gap-2 sm:grid-cols-2">
-              {list.filter((a) => a.group === g).map((a) => (
-                <div key={a.id} className={cn('flex items-start gap-3 rounded-xl border px-4 py-3', a.done ? 'border-line bg-surface' : 'border-line bg-surface-2')}>
-                  <span className={cn('mt-0.5 grid size-8 shrink-0 place-items-center rounded-lg', a.done ? 'bg-accent-fill text-white' : 'bg-surface-3 text-muted')}>
-                    <Icon name={a.done ? 'check' : GROUP_ICON[g]} className="size-4" />
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-baseline justify-between gap-2">
-                      <p className={cn('truncate text-[14px] font-semibold', !a.done && 'text-ink-2')}>{a.title}</p>
-                      <span className="tnum shrink-0 text-[12px] text-muted">{a.done ? 'Earned' : `${a.have}/${a.need}`}</span>
-                    </div>
-                    <p className="text-[13px] leading-5 text-muted">{a.detail}</p>
-                    {!a.done && a.need > 1 && <span className="mt-2 block h-1 overflow-hidden rounded-full bg-surface-3"><span className="block h-full rounded-full bg-accent" style={{ width: `${(a.have / a.need) * 100}%` }} /></span>}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
-        ))}
-      </div>
-
+    <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_280px] [&>*]:min-w-0">
+      <TrophyCabinet list={list} extra={{ title: 'Challenges', items: won }} />
       <aside className="grid content-start gap-4 lg:sticky lg:top-6">
         <section className="rounded-xl border border-line bg-surface p-4">
           <div className="flex items-baseline justify-between">
@@ -241,11 +222,10 @@ function Achievements() {
           </div>
           <p className="tnum mt-0.5 text-[32px] leading-10 font-semibold tracking-tight">{lv.level}</p>
           <span className="mt-2 block h-1.5 overflow-hidden rounded-full bg-surface-3"><span className="block h-full rounded-full bg-accent" style={{ width: `${(lv.into / lv.span) * 100}%` }} /></span>
-          <p className="tnum mt-1.5 text-[12px] text-muted">{lv.span - lv.into} points to level {lv.level + 1}</p>
-          <p className="mt-4 border-t border-line pt-3 text-[13px] text-ink-2"><strong className="tnum font-semibold">{earned}</strong> of {list.length} achievements earned</p>
+          <p className="tnum mt-1.5 text-[12px] text-muted">{lv.span - lv.into} to level {lv.level + 1}</p>
         </section>
         <section className="rounded-xl border border-line bg-surface p-4">
-          <p className="mb-2 text-[13px] font-semibold">How points are earned</p>
+          <p className="mb-2 text-[13px] font-semibold">Points</p>
           <dl className="grid gap-1.5 text-[13px]">
             {ways.map(([k, v]) => <div key={k} className="flex justify-between gap-3"><dt className="text-muted">{k}</dt><dd className="tnum font-medium">{v}</dd></div>)}
           </dl>
@@ -255,11 +235,12 @@ function Achievements() {
   );
 }
 
-type Tab = 'board' | 'garden' | 'achievements';
+type Tab = 'board' | 'challenges' | 'achievements' | 'garden';
 const TABS: { value: Tab; label: string }[] = [
   { value: 'board', label: 'Leaderboard' },
+  { value: 'challenges', label: 'Challenges' },
+  { value: 'achievements', label: 'Trophies' },
   { value: 'garden', label: 'Tree & pet' },
-  { value: 'achievements', label: 'Achievements' },
 ];
 
 export function LeaderboardPage() {
@@ -282,7 +263,8 @@ export function LeaderboardPage() {
           <Collection />
         </div>
       )}
-      {tab === 'achievements' && <Achievements />}
+      {tab === 'challenges' && <ChallengesPanel />}
+      {tab === 'achievements' && <Trophies />}
     </>
   );
 }

@@ -60,7 +60,7 @@ export function ExamMode() {
           ) : <p className="mt-1 text-[13px] text-muted">{topics.length ? 'No prep session planned for today.' : 'No plan yet. List the topics and get a schedule that finishes the day before.'}</p>}
           <div className="mt-3 flex flex-wrap gap-2">
             {!topics.length ? <Link href={`/calendar?plan=exams&exam=${encodeURIComponent(exam.key)}`}><Button size="sm">Plan prep</Button></Link> : <Link href={quiz}><Button size="sm"><Icon name="sparkle" className="size-4" /> Quiz me{weakest ? ` on ${weakest.name}` : ''}</Button></Link>}
-            {mistakes > 0 && <Link href="/study?tool=mistakes"><Button size="sm" variant="secondary">Review {mistakes} mistake{mistakes === 1 ? '' : 's'}</Button></Link>}
+            {mistakes > 0 && <Link href="/study?tool=review"><Button size="sm" variant="secondary">Review {mistakes} mistake{mistakes === 1 ? '' : 's'}</Button></Link>}
             {topics.length > 0 && <Link href={`/calendar?plan=exams&exam=${encodeURIComponent(exam.key)}`}><Button size="sm" variant="ghost">Topics</Button></Link>}
           </div>
         </div>

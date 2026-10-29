@@ -1,10 +1,11 @@
 'use client';
+import { FriendsWeek } from './friends-week';
 import { useCallback, useEffect, useState } from 'react';
 import { Avatar } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Dialog } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/field';
-import { Icon } from '@/components/ui/icons';
+import { Icon, type IconName } from '@/components/ui/icons';
 import { Segmented } from '@/components/ui/segmented';
 import { Sheet } from '@/components/ui/sheet';
 import { useAccount } from '@/features/auth/account';
@@ -13,15 +14,14 @@ import { TAGLINE } from '@/features/wrapped/wrapped-page';
 import { api, ApiError } from '@/lib/api';
 import { toast } from '@/lib/stores/ui';
 import type { FeedPost, PersonView } from '@/lib/types';
-import { useNow } from '@/lib/use-now';
-import { cn, fmtMinutes, plural } from '@/lib/utils';
-import { InviteCard } from '@/features/auth/invite-card';
+import { cn, fmtMinutes } from '@/lib/utils';
+import { InviteCard, inviteLink } from '@/features/auth/invite-card';
 import { YourClasses } from '@/features/classes/your-classes';
 import { useDropComposer } from '@/features/drop/composer';
 import { useDrops } from '@/features/drop/live';
 import { ShareForm, VISIBILITY } from './share-form';
 
-type Scope = 'following' | 'school' | 'mine';
+type Scope = 'foryou' | 'following' | 'mine';
 
 const when = (at: number) => {
   const d = new Date(at);
@@ -31,8 +31,15 @@ const when = (at: number) => {
   return `${day} · ${d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}`;
 };
 
-/** A recap card as an image, to send or post anywhere. */
-async function shareHighlight(p: FeedPost) {
+const shareText = (p: FeedPost, me: string | undefined) => {
+  const who = p.userId === me ? 'I' : p.name.split(' ')[0];
+  const crew = (p.crew ?? []).filter((c) => c.id !== me).map((c) => c.name.split(' ')[0]);
+  const withWho = crew.length ? ` with ${crew.join(' and ')}` : '';
+  return `${who} studied ${fmtMinutes(p.minutes)}${p.subject ? ` of ${p.subject}` : ''}${withWho} on Studytime.`;
+};
+
+/** The post as a 1080×1350 image: the photo on top if there is one, then the time and what was studied. */
+async function highlightImage(p: FeedPost) {
   const c = document.createElement('canvas');
   c.width = 1080;
   c.height = 1350;
@@ -42,77 +49,119 @@ async function shareHighlight(p: FeedPost) {
   const fit = (t: string, n: number) => (t.length > n ? `${t.slice(0, n - 1)}…` : t);
   g.fillStyle = '#09090b';
   g.fillRect(0, 0, 1080, 1350);
-  g.fillStyle = accent;
-  g.fillRect(80, 120, 72, 8);
-  g.fillStyle = '#a1a1aa';
-  g.font = font(34, 500);
-  g.fillText(`${p.name} · ${new Date(p.at).toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}`, 80, 200);
-  g.fillStyle = '#fafafa';
-  g.font = font(64, 700);
-  g.fillText(fit(p.subject || 'Study session', 26), 80, 282);
-  g.font = font(150, 700);
-  g.fillText(fmtMinutes(p.minutes), 80, 470);
-  let y = 590;
-  const row = (k: string, v: string) => {
+  let photo: ImageBitmap | null = null;
+  if (p.photo) photo = await fetch(`/api/feed/${p.id}/photo`).then((r) => (r.ok ? r.blob() : null)).then((b) => (b ? createImageBitmap(b) : null)).catch(() => null);
+  const names = [p.name, ...(p.crew ?? []).map((x) => x.name)].map((n) => n.split(' ')[0]).join(', ');
+  const date = new Date(p.at).toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' });
+  if (photo) {
+    const h = 780;
+    const s = Math.max(1080 / photo.width, h / photo.height);
+    const w = photo.width * s;
+    const ph = photo.height * s;
+    g.save();
+    g.beginPath();
+    g.rect(0, 0, 1080, h);
+    g.clip();
+    g.drawImage(photo, (1080 - w) / 2, (h - ph) / 2, w, ph);
+    g.restore();
+    photo.close();
     g.fillStyle = '#a1a1aa';
-    g.font = font(30, 500);
-    g.fillText(k, 80, y);
+    g.font = font(32, 500);
+    g.fillText(fit(`${names} · ${date}`, 52), 80, 860);
     g.fillStyle = '#fafafa';
-    g.font = font(46, 650);
-    g.fillText(fit(v, 32), 80, y + 56);
-    y += 120;
-  };
-  if (p.place) row('Where', p.place);
-  if (p.with.length) row('Studied with', p.with.join(', '));
-  if (p.topics.length) {
-    g.fillStyle = '#a1a1aa';
-    g.font = font(30, 500);
-    g.fillText('Covered', 80, y);
-    y += 30;
-    g.font = font(34, 600);
-    let x = 80;
-    for (const t of p.topics.slice(0, 6)) {
-      const w = g.measureText(fit(t, 28)).width + 44;
-      if (x + w > 1000) {
-        x = 80;
-        y += 70;
-      }
-      if (y > 1150) break;
-      g.fillStyle = '#27272a';
-      g.beginPath();
-      g.roundRect(x, y, w, 56, 12);
-      g.fill();
-      g.fillStyle = '#fafafa';
-      g.fillText(fit(t, 28), x + 22, y + 39);
-      x += w + 14;
+    g.font = font(130, 700);
+    g.fillText(fmtMinutes(p.minutes), 80, 1010);
+    g.font = font(48, 650);
+    g.fillText(fit(p.subject || 'Study session', 34), 80, 1090);
+    if (p.place) {
+      g.fillStyle = '#a1a1aa';
+      g.font = font(36, 500);
+      g.fillText(fit(p.place, 44), 80, 1160);
     }
+  } else {
+    g.fillStyle = accent;
+    g.fillRect(80, 120, 72, 8);
+    g.fillStyle = '#a1a1aa';
+    g.font = font(34, 500);
+    g.fillText(fit(`${names} · ${date}`, 50), 80, 200);
+    g.fillStyle = '#fafafa';
+    g.font = font(64, 700);
+    g.fillText(fit(p.subject || 'Study session', 26), 80, 282);
+    g.font = font(150, 700);
+    g.fillText(fmtMinutes(p.minutes), 80, 470);
+    let y = 590;
+    const row = (k: string, v: string) => {
+      g.fillStyle = '#a1a1aa';
+      g.font = font(30, 500);
+      g.fillText(k, 80, y);
+      g.fillStyle = '#fafafa';
+      g.font = font(46, 650);
+      g.fillText(fit(v, 32), 80, y + 56);
+      y += 120;
+    };
+    if (p.place) row('Where', p.place);
+    if (p.with.length) row('Studied with', p.with.join(', '));
+    if (p.topics.length) row('Covered', p.topics.slice(0, 4).join(', '));
   }
   g.fillStyle = accent;
   g.font = font(34, 600);
   g.fillText(TAGLINE, 80, 1270);
-  const blob = await new Promise<Blob | null>((r) => c.toBlob(r, 'image/png'));
-  if (!blob) return toast('Could not make the image.', 'error');
-  const file = new File([blob], 'studytime-highlight.png', { type: 'image/png' });
-  if (navigator.canShare?.({ files: [file] })) {
-    try {
-      await navigator.share({ files: [file], title: 'Study session', text: TAGLINE });
-      return;
-    } catch {
-      /* closed the share sheet */
-    }
-  }
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'studytime-highlight.png';
-  a.click();
-  setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+  return new Promise<Blob | null>((r) => c.toBlob(r, 'image/png'));
 }
 
-function Stat({ label, value }: { label: string; value: string }) {
+/** Share a post like on Instagram: as an image to any app, or as a message with a link. */
+function ShareMenu({ post }: { post: FeedPost }) {
+  const me = useAccount((s) => s.user?.id);
+  const [open, setOpen] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const url = me ? inviteLink(me) : location.origin;
+  const text = shareText(post, me);
+  const msg = `${text} ${url}`;
+  const asImage = async () => {
+    setBusy(true);
+    try {
+      const blob = await highlightImage(post);
+      if (!blob) return toast('Could not make the image.', 'error');
+      const file = new File([blob], 'studytime.png', { type: 'image/png' });
+      if (navigator.canShare?.({ files: [file] })) {
+        try {
+          await navigator.share({ files: [file], text });
+          return;
+        } catch {
+          return; // closed the share sheet
+        }
+      }
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'studytime.png';
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+      toast('Image saved. Post it from your photos.');
+    } finally {
+      setBusy(false);
+      setOpen(false);
+    }
+  };
+  const go = (href: string) => (window.open(href, '_blank', 'noopener'), setOpen(false));
+  const items: { label: string; icon: IconName; run: () => void }[] = [
+    { label: busy ? 'Making image' : 'Instagram and more', icon: 'camera', run: () => void asImage() },
+    { label: 'WhatsApp', icon: 'chat', run: () => go(`https://wa.me/?text=${encodeURIComponent(msg)}`) },
+    { label: 'Messages', icon: 'send', run: () => go(`sms:?&body=${encodeURIComponent(msg)}`) },
+    { label: 'X', icon: 'arrow', run: () => go(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`) },
+    { label: 'Copy link', icon: 'copy', run: () => void navigator.clipboard?.writeText(msg).then(() => toast('Copied.'), () => toast('Could not copy.', 'error')).finally(() => setOpen(false)) },
+  ];
   return (
-    <div className="min-w-0">
-      <dt className="text-[11px] font-medium text-muted">{label}</dt>
-      <dd className="truncate text-[15px] font-semibold">{value}</dd>
+    <div className="relative">
+      <button type="button" aria-label="Share" title="Share" aria-expanded={open} onClick={() => setOpen(!open)} className="grid size-8 place-items-center rounded-lg text-muted hover:bg-surface-3 hover:text-ink"><Icon name="send" className="size-4" /></button>
+      {open && (
+        <div role="menu" className="absolute top-9 right-0 z-30 w-60 rounded-xl border border-line bg-surface p-1 shadow-lg">
+          {items.map((it) => (
+            <button key={it.label} type="button" role="menuitem" disabled={busy} onClick={it.run} className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-[13px] hover:bg-surface-3 disabled:opacity-60">
+              <Icon name={it.icon} className="size-4 text-muted" /> {it.label}
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -192,24 +241,31 @@ export function HighlightCard({ post, onChange, onOpenPerson }: { post: FeedPost
     if (theirDrop) location.href = `/drop?d=${theirDrop.id}`;
     else useDropComposer.getState().show({ subject: post.subject, spotName: post.place });
   };
+  const inCrew = (post.crew ?? []).some((c) => c.id === me);
+  const people = [{ id: post.userId, full: post.name, name: mine ? 'You' : post.name }, ...(post.crew ?? []).map((c) => ({ id: c.id, full: c.name, name: c.id === me ? 'you' : c.name.split(' ')[0] }))];
+  const names = people.length === 1 ? people[0].name : `${people.slice(0, -1).map((p) => p.name).join(', ')} and ${people[people.length - 1].name}`;
+  const details = [post.place, post.with.filter((w) => !(post.crew ?? []).some((c) => c.name === w)).length ? `with ${post.with.filter((w) => !(post.crew ?? []).some((c) => c.name === w)).join(', ')}` : ''].filter(Boolean).join(' · ');
   return (
-    <article className="rounded-xl border border-line bg-surface p-4">
+    <article className="min-w-0 rounded-xl border border-line bg-surface p-4">
       <header className="flex items-center gap-2.5">
-        <Avatar name={post.name} color={toneFor(post.userId)} size={32} />
+        <span className="flex -space-x-2">{people.slice(0, 4).map((p) => <span key={p.id} className="rounded-full ring-2 ring-surface"><Avatar name={p.full} color={toneFor(p.id)} size={32} /></span>)}</span>
         <div className="min-w-0 flex-1">
-          <button type="button" disabled={!onOpenPerson || mine} onClick={() => onOpenPerson?.(post.userId)} className="block truncate text-left text-[14px] font-semibold enabled:hover:underline">{mine ? 'You' : post.name}</button>
+          <button type="button" disabled={!onOpenPerson || mine} onClick={() => onOpenPerson?.(post.userId)} className="block truncate text-left text-[14px] font-semibold enabled:hover:underline">{names}</button>
           <p className="truncate text-[12px] text-muted">{when(post.at)}{post.school ? ` · ${post.school}` : ''}</p>
         </div>
-        <button type="button" aria-label="Share as image" title="Share as image" onClick={() => void shareHighlight(post)} className="grid size-8 place-items-center rounded-lg text-muted hover:bg-surface-3 hover:text-ink"><Icon name="download" className="size-4" /></button>
+        <ShareMenu post={post} />
         {!mine && <MoreMenu post={post} onGone={() => onChange(null)} />}
-        {mine && <button type="button" aria-label="Delete highlight" title="Delete" onClick={() => confirm('Delete this highlight?') && api.feed.remove(post.id).then(() => onChange(null), () => toast('Could not delete.', 'error'))} className="grid size-8 place-items-center rounded-lg text-muted hover:bg-surface-3 hover:text-danger"><Icon name="trash" className="size-4" /></button>}
+        {mine && <button type="button" aria-label="Delete post" title="Delete" onClick={() => confirm('Delete this post?') && api.feed.remove(post.id).then(() => onChange(null), () => toast('Could not delete.', 'error'))} className="grid size-8 place-items-center rounded-lg text-muted hover:bg-surface-3 hover:text-danger"><Icon name="trash" className="size-4" /></button>}
       </header>
-      <h3 className="mt-3 font-sans text-[17px] leading-6 font-semibold">{post.subject || 'Study session'}</h3>
-      <dl className="mt-2 grid grid-cols-3 gap-3 rounded-lg bg-surface-2 px-3 py-2.5">
-        <Stat label="Time" value={fmtMinutes(post.minutes)} />
-        <Stat label="Where" value={post.place || 'Not shared'} />
-        <Stat label="With" value={post.with.length ? post.with.join(', ') : 'Solo'} />
-      </dl>
+      {post.photo && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={`/api/feed/${post.id}/photo`} alt={post.subject ? `Photo: ${post.subject}` : 'Study photo'} loading="lazy" className="-mx-4 mt-3 block max-h-[560px] w-[calc(100%+2rem)] max-w-none bg-surface-3 object-cover" onDoubleClick={() => !mine && !inCrew && !cheered && void cheer()} />
+      )}
+      <div className="mt-3 flex min-w-0 items-baseline gap-3">
+        <p className="tnum shrink-0 font-display text-[34px] leading-10 font-semibold tracking-tight">{fmtMinutes(post.minutes)}</p>
+        <p className="min-w-0 truncate text-[15px] text-ink-2">{people.length > 1 ? 'together' : ''}{post.subject ? `${people.length > 1 ? ' · ' : ''}${post.subject}` : people.length > 1 ? '' : 'studying'}</p>
+      </div>
+      {details && <p className="mt-0.5 flex items-center gap-1 truncate text-[13px] text-muted"><Icon name="pin" className="size-3.5 shrink-0" />{details}</p>}
       {post.topics.length > 0 && (
         <ul className="mt-3 flex flex-wrap gap-1.5" aria-label="Topics covered">
           {post.topics.map((t) => <li key={t} className="rounded-md border border-line px-2 py-0.5 text-[12px] text-ink-2">{t}</li>)}
@@ -217,12 +273,12 @@ export function HighlightCard({ post, onChange, onOpenPerson }: { post: FeedPost
       )}
       {post.note && <p className="mt-3 text-[14px] leading-5 text-ink-2">{post.note}</p>}
       <footer className="mt-3 flex items-center gap-3 border-t border-line pt-3">
-        {!mine && (
+        {!mine && !inCrew && (
           <button type="button" disabled={busy} onClick={cheer} aria-pressed={cheered} className={cn('inline-flex h-8 items-center gap-1.5 rounded-lg border px-2.5 text-[13px] font-medium transition-colors', cheered ? 'border-accent bg-accent-soft text-accent-ink' : 'border-line text-ink-2 hover:border-line-strong hover:text-ink')}>
             <Icon name="star" className="size-3.5" /> {cheered ? 'Cheered' : 'Nice work'}
           </button>
         )}
-        {!mine && (
+        {!mine && !inCrew && (
           <button type="button" onClick={together} className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-line px-2.5 text-[13px] font-medium text-ink-2 hover:border-line-strong hover:text-ink" title={theirDrop ? `Join ${post.name} at ${theirDrop.spotName}` : 'Drop a spot there for next time'}>
             <Icon name="pin" className="size-3.5" /> {theirDrop ? 'Join them now' : 'Study together'}
           </button>
@@ -230,7 +286,7 @@ export function HighlightCard({ post, onChange, onOpenPerson }: { post: FeedPost
         <span className="min-w-0 truncate text-[12px] text-muted">
           {mine
             ? post.kudos.length ? `${post.kudosNames.slice(0, 2).join(' and ')}${post.kudos.length > 2 ? ` and ${post.kudos.length - 2} more` : ''} said nice work` : VISIBILITY.find((v) => v.value === post.visibility)?.label
-            : others.length ? `${others.slice(0, 2).join(', ')}${others.length > 2 ? ` +${others.length - 2}` : ''} cheered` : ''}
+            : others.length ? `${others.slice(0, 2).join(', ')}${others.length > 2 ? ` +${others.length - 2}` : ''} cheered` : inCrew ? `Posted by ${post.name.split(' ')[0]}` : ''}
         </span>
       </footer>
     </article>
@@ -319,9 +375,9 @@ function FindPeople({ onOpen }: { onOpen: (id: string) => void }) {
   );
 }
 
-/** Study highlights: recaps of sessions from you and the people you follow. */
+/** The feed: study sessions people post. Seeing friends put in the hours is the point. */
 export function HighlightsTab() {
-  const [scope, setScope] = useState<Scope>('following');
+  const [scope, setScope] = useState<Scope>('foryou');
   const [posts, setPosts] = useState<FeedPost[] | null>(null);
   const [writing, setWriting] = useState(false);
   const [person, setPerson] = useState<string | null>(null);
@@ -330,41 +386,33 @@ export function HighlightsTab() {
     void load(scope);
   }, [scope, load]);
   const replace = (id: string, p: FeedPost | null) => setPosts((l) => (l ? (p ? l.map((x) => (x.id === id ? p : x)) : l.filter((x) => x.id !== id)) : l));
-  const now = useNow(60_000);
-  const week = (posts ?? []).filter((p) => p.at > now - 7 * 86_400_000);
 
   return (
     <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_320px] [&>*]:min-w-0">
       <div>
         <div className="mb-3 flex flex-wrap items-center gap-2">
-          <Segmented wrap={false} label="Whose highlights" value={scope} onChange={setScope} options={[{ value: 'following', label: 'Following' }, { value: 'school', label: 'My school' }, { value: 'mine', label: 'Mine' }]} />
+          <Segmented wrap={false} label="Whose highlights" value={scope} onChange={setScope} options={[{ value: 'foryou', label: 'For you' }, { value: 'following', label: 'Friends' }, { value: 'mine', label: 'Mine' }]} />
           <span className="flex-1" />
-          <Button size="sm" onClick={() => setWriting(true)}><Icon name="plus" className="size-4" /> Add a session</Button>
+          <Button onClick={() => setWriting(true)}><Icon name="plus" className="size-4" /> Post</Button>
         </div>
         {posts === null ? (
           <p className="py-6 text-[13px] text-muted">Loading</p>
         ) : posts.length ? (
-          <div className="grid gap-3">{posts.map((p) => <HighlightCard key={p.id} post={p} onChange={(np) => replace(p.id, np)} onOpenPerson={setPerson} />)}</div>
+          <div className="grid gap-3 [&>*]:min-w-0">{posts.map((p) => <HighlightCard key={p.id} post={p} onChange={(np) => replace(p.id, np)} onOpenPerson={setPerson} />)}</div>
         ) : (
           <div className="rounded-xl border border-dashed border-line px-5 py-8 text-center">
-            <p className="text-[15px] font-semibold">{scope === 'mine' ? 'No highlights yet' : 'Nothing here yet'}</p>
-            <p className="mx-auto mt-1 max-w-[360px] text-[13px] text-muted">{scope === 'following' ? 'Follow classmates to see where and what they study. Your own sessions show up here too.' : 'After a focus session, save it as a highlight: what you covered, where, and who you studied with.'}</p>
+            <p className="text-[15px] font-semibold">{scope === 'mine' ? 'No posts yet' : 'Nothing here yet'}</p>
+            <Button className="mt-3" onClick={() => setWriting(true)}><Icon name="plus" className="size-4" /> Post your first session</Button>
           </div>
         )}
       </div>
       <aside className="grid content-start gap-4">
-        {scope !== 'mine' && week.length > 0 && (
-          <section className="rounded-xl border border-line bg-surface p-4">
-            <p className="text-[12px] font-medium text-muted">In this list this week</p>
-            <p className="tnum mt-0.5 text-[20px] font-semibold">{fmtMinutes(week.reduce((n, p) => n + p.minutes, 0))}</p>
-            <p className="text-[12px] text-muted">{plural(week.length, 'session')} by {plural(new Set(week.map((p) => p.userId)).size, 'person', 'people')}</p>
-          </section>
-        )}
-        <YourClasses />
+        <FriendsWeek onOpen={setPerson} />
         <FindPeople onOpen={setPerson} />
+        <YourClasses />
         <InviteCard />
       </aside>
-      <Dialog open={writing} onClose={() => setWriting(false)} title="Add a study session">
+      <Dialog open={writing} onClose={() => setWriting(false)} title="Post a study session">
         {writing && <ShareForm onDone={(p) => { setWriting(false); if (p) setPosts((l) => [p, ...(l ?? [])]); }} />}
       </Dialog>
       <PersonSheet id={person} onClose={() => setPerson(null)} />

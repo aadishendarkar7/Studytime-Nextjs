@@ -1,4 +1,5 @@
 'use client';
+import { DailyLadder } from '@/features/rewards/daily-ladder';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Avatar } from '@/components/ui/avatar';
@@ -199,6 +200,13 @@ function WeekStrip() {
   );
 }
 
+/** Shown until today's check-in reward is collected. */
+function TodayReward() {
+  const claimed = useExtras((s) => s.rewardDays.includes(todayKey()));
+  if (claimed) return null;
+  return <DailyLadder checkInHref="/you" className="lg:col-span-12" />;
+}
+
 export function Overview() {
   const name = useProfile((s) => s.name);
   const now = useNow(60_000);
@@ -215,6 +223,7 @@ export function Overview() {
       <div className="grid gap-4 lg:grid-cols-12 [&>*]:min-w-0">
         <ExamMode />
         <Nudges />
+        <TodayReward />
         <FocusHero />
         <OutNow />
         <UpNext />

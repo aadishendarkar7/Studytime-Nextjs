@@ -9,12 +9,12 @@ import { isDue, previewInterval, RATINGS, type Rating } from './srs';
 
 export type Mode = 'review' | 'flashcards' | 'quiz' | 'matching' | 'blank' | 'speed';
 export const MODES: { id: Mode; label: string }[] = [
-  { id: 'review', label: 'Smart review' },
-  { id: 'flashcards', label: 'Flashcards' },
-  { id: 'quiz', label: 'Quiz' },
-  { id: 'matching', label: 'Matching' },
-  { id: 'blank', label: 'Fill in the blank' },
-  { id: 'speed', label: 'Speed round' },
+  { id: 'review', label: 'Smart review: due cards first' },
+  { id: 'flashcards', label: 'Flip through cards' },
+  { id: 'quiz', label: 'Multiple choice quiz' },
+  { id: 'matching', label: 'Match terms to answers' },
+  { id: 'blank', label: 'Type the answer' },
+  { id: 'speed', label: '60 second speed round' },
 ];
 
 const Progress = ({ children }: { children: React.ReactNode }) => <p className="text-[12px] font-semibold text-muted">{children}</p>;
@@ -30,8 +30,8 @@ const Feedback = ({ ok, children }: { ok: boolean | null; children: React.ReactN
 
 function FlipCard({ front, back, flipped, onFlip, hint }: { front: string; back: string; flipped: boolean; onFlip: () => void; hint: string }) {
   return (
-    <button type="button" onClick={onFlip} className="mt-3 flex min-h-48 w-full flex-col items-center justify-center gap-3 border-2 border-line-strong bg-surface p-6 text-center transition-colors hover:border-accent">
-      <small className="text-[12px] font-semibold text-muted">{flipped ? 'ANSWER' : 'QUESTION'} · {hint}</small>
+    <button type="button" onClick={onFlip} aria-label={flipped ? 'Show question' : 'Show answer'} className={cn('mt-3 flex min-h-56 w-full flex-col items-center justify-center gap-3 rounded-2xl border p-6 text-center shadow-[0_6px_20px_-12px_rgb(var(--shadow-color)/0.35)] transition-colors hover:border-accent', flipped ? 'border-accent/40 bg-accent-soft' : 'border-line bg-surface')}>
+      <small className="text-[12px] font-semibold text-muted">{flipped ? 'Answer' : 'Question'}{hint ? ` · ${hint}` : ''}</small>
       <strong className="font-display text-xl leading-snug text-ink">{flipped ? back : front}</strong>
       {flipped && <em className="text-[13px] text-muted not-italic">{front}</em>}
     </button>
@@ -86,8 +86,8 @@ export function ReviewMode({ set }: { set: StudySet }) {
   }
   return (
     <>
-      <Progress>Smart review · {queue.length} left · spaced repetition</Progress>
-      <FlipCard front={card.front} back={card.back} flipped={flipped} onFlip={() => setFlipped(!flipped)} hint={flipped ? 'HOW WELL DID YOU KNOW IT?' : 'CLICK OR PRESS SPACE'} />
+      <Progress>{queue.length} left</Progress>
+      <FlipCard front={card.front} back={card.back} flipped={flipped} onFlip={() => setFlipped(!flipped)} hint={flipped ? 'How well did you know it?' : ''} />
       {flipped ? (
         <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
           {RATINGS.map((r, i) => (
@@ -99,7 +99,7 @@ export function ReviewMode({ set }: { set: StudySet }) {
         </div>
       ) : (
         <div className="mt-3 flex items-center justify-between gap-3">
-          <span className="text-[13px] text-muted">Try to recall the answer before flipping.</span>
+          <span />
           <Button onClick={() => setFlipped(true)}>Show answer</Button>
         </div>
       )}
@@ -115,7 +115,7 @@ export function FlashcardsMode({ set }: { set: StudySet }) {
   return (
     <>
       <Progress>Card {(index % order.length) + 1} of {order.length}</Progress>
-      <FlipCard front={card.front} back={card.back} flipped={flipped} onFlip={() => setFlipped(!flipped)} hint="CLICK TO FLIP" />
+      <FlipCard front={card.front} back={card.back} flipped={flipped} onFlip={() => setFlipped(!flipped)} hint="" />
       <div className="mt-3 flex justify-between gap-2">
         <Button variant="secondary" onClick={() => setFlipped(!flipped)}>{flipped ? 'Show question' : 'Show answer'}</Button>
         <Button onClick={() => (setIndex(index + 1), setFlipped(false))}>Next card →</Button>
@@ -214,7 +214,7 @@ export function MatchingMode({ set }: { set: StudySet }) {
   };
   return (
     <>
-      <Progress>Match each term with its answer · {matched.size} of {tiles.length / 2} pairs</Progress>
+      <Progress>{matched.size} of {tiles.length / 2} pairs</Progress>
       <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
         {tiles.map((t, i) => (
           <button key={i} type="button" disabled={matched.has(t.pair)} onClick={() => click(i)} className={cn('min-h-16 border p-3 text-sm font-semibold transition-colors rounded-xl', matched.has(t.pair) ? 'border-transparent bg-ok-soft text-ok' : picked === i ? 'border-accent bg-accent-soft' : 'border-line-strong bg-surface hover:bg-surface-2')}>

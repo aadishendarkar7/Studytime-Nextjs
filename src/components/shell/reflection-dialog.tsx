@@ -28,10 +28,9 @@ export function ReflectionDialog() {
   };
   if (share)
     return (
-      <Dialog open={open} onClose={close} title="Save it as a highlight?">
-        <p className="mb-3 text-[13px] text-muted">A recap of this session for you and the people who follow you. You can share it as an image too.</p>
+      <Dialog open={open} onClose={close} title="Post this session?">
         <ShareForm initial={share} onDone={close} />
-        <label className="mt-4 flex items-center gap-2 text-[12px] text-muted"><input type="checkbox" className="size-3.5 accent-[var(--accent)]" checked={!prompt} onChange={(e) => useExtras.getState().update({ feedPrompt: !e.target.checked })} /> Don&rsquo;t ask after sessions (you can still add them in Drop a Spot › Highlights)</label>
+        <label className="mt-4 flex items-center gap-2 text-[12px] text-muted"><input type="checkbox" className="size-3.5 accent-[var(--accent)]" checked={!prompt} onChange={(e) => useExtras.getState().update({ feedPrompt: !e.target.checked })} /> Don&rsquo;t ask after sessions (you can still post from the Feed)</label>
       </Dialog>
     );
   return (

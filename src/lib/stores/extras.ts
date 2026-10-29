@@ -131,7 +131,17 @@ export interface ExtrasData {
   /** Ask to post after each focus session. */
   feedPrompt: boolean;
   examPreps: Record<string, { topics: { id: string; name: string; conf: 'new' | 'shaky' | 'solid'; minutes: number }[]; setId?: string }>;
+  /** Short courses the AI made for you. */
+  courses: MiniCourse[];
+  /** Challenges you joined, and when you finished them. */
+  challenges: JoinedChallenge[];
+  /** Days you collected the daily check-in reward (YYYY-MM-DD). */
+  rewardDays: string[];
 }
+
+export interface Lesson { id: string; title: string; goal: string; body: string; quiz: { q: string; options: string[]; answer: number; why?: string }[]; done: boolean; score: number | null }
+export interface MiniCourse { id: string; topic: string; title: string; level: string; createdAt: number; units: { title: string; lessons: Lesson[] }[] }
+export interface JoinedChallenge { id: string; joinedAt: number; doneAt: number | null }
 
 export const defaultExtras = (): ExtrasData => ({
   sound: 'rain',
@@ -180,6 +190,9 @@ export const defaultExtras = (): ExtrasData => ({
   eventRsvps: [],
   calendarView: 'week',
   examPreps: {},
+  courses: [],
+  challenges: [],
+  rewardDays: [],
   petBody: DEFAULT_PET,
   restDays: [],
   quiet: { on: true, from: '23:00', to: '07:00' },
@@ -210,7 +223,7 @@ export const useExtras = create<ExtrasData & ExtrasActions>()(
       merge: (persisted, current) => {
         const p = { ...current, ...(persisted as Partial<ExtrasData>) };
         const base = defaultExtras();
-        for (const key of ['spots', 'calendarFeeds', 'studyBlocks', 'checkins', 'parked', 'resets', 'myDrops', 'joinedDrops', 'dropsSeen', 'dropLog', 'hiddenCalendars', 'chatBlocked', 'myEvents', 'eventRsvps', 'inventory', 'restDays'] as const) if (!Array.isArray(p[key])) (p as ExtrasData)[key] = base[key] as never;
+        for (const key of ['spots', 'calendarFeeds', 'studyBlocks', 'checkins', 'parked', 'resets', 'myDrops', 'joinedDrops', 'dropsSeen', 'dropLog', 'hiddenCalendars', 'chatBlocked', 'myEvents', 'eventRsvps', 'inventory', 'restDays', 'courses', 'challenges', 'rewardDays'] as const) if (!Array.isArray(p[key])) (p as ExtrasData)[key] = base[key] as never;
         for (const key of ['water', 'breakdowns', 'chatRead', 'examPreps'] as const) if (!p[key] || typeof p[key] !== 'object' || Array.isArray(p[key])) (p as ExtrasData)[key] = base[key] as never;
         p.planPrefs = { ...base.planPrefs, ...(p.planPrefs || {}) };
         p.quiet = { ...base.quiet, ...(p.quiet && typeof p.quiet === 'object' ? p.quiet : {}) };

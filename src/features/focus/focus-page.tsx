@@ -93,7 +93,6 @@ export function FocusPage() {
           )}
           <div className="mt-5 flex flex-wrap items-center gap-3 border-t border-line pt-4">
             <Button variant="secondary" size="sm" onClick={() => useDropComposer.getState().show({ minutes: p.duration })}><Icon name="pin" className="size-4" /> Let friends know where I am</Button>
-            <span className="text-[13px] text-muted">Optional. Skip it when you want to study alone.</span>
           </div>
           <Note>The timer pauses when you switch away from this tab.</Note>
         </Card>
@@ -116,8 +115,10 @@ export function FocusPage() {
         <BuddyPanel className="lg:col-span-7" />
         <PactCard className="lg:col-span-5" />
         <SoundsPanel className="lg:col-span-5" />
-        <BreakCoach className="lg:col-span-7 lg:row-span-2" />
-        <ParkingLot className="lg:col-span-5" />
+        <div className="grid content-start gap-6 lg:col-span-7">
+          <BreakCoach />
+          <ParkingLot />
+        </div>
 
         <Card className="lg:col-span-12">
           <CardHeader title="Today" description={today.length ? `${today.length} ${today.length === 1 ? 'session' : 'sessions'}, ${fmtMinutes(minutesOn(p.sessions, todayKey()))} of ${fmtMinutes(p.dailyGoal)} goal.` : undefined} />

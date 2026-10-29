@@ -53,7 +53,7 @@ export function ClassPage() {
     <>
       <header className="mt-4 mb-5 flex flex-wrap items-end justify-between gap-3 max-sm:mt-2">
         <div>
-          <Link href="/drop?tab=highlights" className="text-[12px] font-medium text-muted hover:text-ink">Classes</Link>
+          <Link href="/feed" className="text-[12px] font-medium text-muted hover:text-ink">Classes</Link>
           <h1 className="text-[28px] leading-9 max-sm:text-[22px]">{key}</h1>
           <p className="text-[13px] text-muted">{data ? `${plural(others.length, 'classmate')} on Studytime${p.school ? ` at ${p.school}` : ''}` : 'Loading'}</p>
         </div>
@@ -97,7 +97,7 @@ export function ClassPage() {
           )}
 
           <section>
-            <h2 className="mb-2 font-sans text-[15px] font-semibold">Highlights from {key}</h2>
+            <h2 className="mb-2 font-sans text-[15px] font-semibold">Posts from {key}</h2>
             {data?.posts.length ? (
               <div className="grid gap-3">{data.posts.map((post) => <HighlightCard key={post.id} post={post} onChange={(np: FeedPost | null) => setData((d) => d && { ...d, posts: np ? d.posts.map((x) => (x.id === post.id ? np : x)) : d.posts.filter((x) => x.id !== post.id) })} />)}</div>
             ) : <p className="rounded-xl border border-dashed border-line px-4 py-6 text-center text-[13px] text-muted">No highlights for {key} yet. When you save a session, put {key} in what you studied and it shows up here.</p>}

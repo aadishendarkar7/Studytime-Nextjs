@@ -55,6 +55,12 @@ const PATHS = {
   clip: '<path d="m20 11.5-8.2 8.2a5 5 0 0 1-7-7l8.3-8.4a3.3 3.3 0 0 1 4.7 4.7l-8.3 8.3a1.7 1.7 0 0 1-2.4-2.4l7.7-7.7"/>',
   down: '<path d="M6 9l6 6 6-6"/>',
   locate: '<circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/>',
+  flag: '<path d="M5 21V4M5 4h11l-2 4 2 4H5"/>',
+  trophy: '<path d="M8 4h8v5a4 4 0 0 1-8 0zM8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 13v4M8.5 20h7M9.5 17h5"/>',
+  layers: '<path d="M12 3l9 5-9 5-9-5z"/><path d="M3 13l9 5 9-5"/>',
+  mic: '<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"/>',
+  target: '<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1"/>',
+  quiz: '<rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h4"/>',
 } as const;
 
 export type IconName = keyof typeof PATHS;
@@ -65,11 +71,5 @@ export function Icon({ name, className = 'size-5', ...props }: { name: IconName 
   );
 }
 
-export function Logo({ className = 'size-8' }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 32 32" aria-hidden="true" className={className}>
-      <rect width="32" height="32" rx="9" fill="var(--accent-fill)" />
-      <path d="M22 10.5H12.5v5H20V21.5H10" fill="none" stroke="#fffcf7" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
+/** The Studytime mark: a brain and two leaves. Fixed colors, so it never follows the theme color. */
+export { Logo } from './logo';

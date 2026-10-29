@@ -11,14 +11,16 @@ const HOUR = 3_600_000;
 
 interface Stored extends DropView {
   owner: string;
+  /** The signed-in account that made it, if any. Never sent to the browser. */
+  userId?: string;
   circle: string;
   joinerOwners: Record<string, string>; // joiner public id -> hash of their token
 }
 
 const same = (a: string, b: string) => a.trim().toLowerCase() === b.trim().toLowerCase();
 /** Public shape. Older drops saved before vibes, seats and messages get defaults. */
-const view = ({ owner, circle, joinerOwners, ...d }: Stored): DropView => {
-  void [owner, circle, joinerOwners];
+const view = ({ owner, circle, joinerOwners, userId, ...d }: Stored): DropView => {
+  void [owner, circle, joinerOwners, userId];
   return { ...d, vibe: d.vibe ?? 'quiet', seats: d.seats ?? null, category: d.category ?? 'Anything goes', messages: d.messages ?? [], joiners: d.joiners.map((j) => ({ ...j, status: j.status ?? 'coming' })) };
 };
 const MAX_MESSAGES = 80;
@@ -36,7 +38,7 @@ async function all(): Promise<Stored[]> {
 export interface Viewer { school: string; circle: string; memberId: string }
 
 /** Drops this viewer may see: everyone-drops, drops at their school, and their circle's drops. */
-export async function listDrops(viewer: Viewer) {
+export async function listDrops(viewer: Viewer, followed: Set<string> = new Set()) {
   const inCircle = viewer.circle ? await isCircleMember(viewer.circle, viewer.memberId) : false;
   const now = Date.now();
   return (await all())
@@ -44,10 +46,10 @@ export async function listDrops(viewer: Viewer) {
     .filter((d) => d.audience === 'everyone' || (d.audience === 'school' && viewer.school && same(d.school, viewer.school)) || (d.audience === 'circle' && inCircle && d.circle === viewer.circle))
     .sort((a, b) => a.startsAt - b.startsAt)
     .slice(0, 200)
-    .map(view);
+    .map((d) => (d.userId && followed.has(d.userId) ? { ...view(d), friend: true } : view(d)));
 }
 
-export async function createDrop(input: DropInput, circle: { code: string; memberId: string } | null) {
+export async function createDrop(input: DropInput, circle: { code: string; memberId: string } | null, userId: string | null = null) {
   const now = Date.now();
   if (input.endsAt <= input.startsAt) throw new HttpError(400, 'The end time must be after the start time.');
   if (input.endsAt - input.startsAt > 12 * HOUR) throw new HttpError(400, 'A drop can last up to 12 hours.');
@@ -58,7 +60,7 @@ export async function createDrop(input: DropInput, circle: { code: string; membe
   const existing = await all();
   if (existing.length >= MAX) throw new HttpError(503, 'Too many active drops right now. Try again soon.');
   const token = secret(24);
-  const drop: Stored = { ...input, id: secret(6), createdAt: now, joiners: [], messages: [], owner: publicId(token), circle: input.audience === 'circle' ? circle!.code : '', joinerOwners: {} };
+  const drop: Stored = { ...input, id: secret(6), createdAt: now, joiners: [], messages: [], owner: publicId(token), circle: input.audience === 'circle' ? circle!.code : '', joinerOwners: {}, ...(userId ? { userId } : {}) };
   await s.hset(KEY, drop.id, drop);
   return { id: drop.id, token };
 }

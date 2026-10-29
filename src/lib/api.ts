@@ -38,8 +38,8 @@ export interface AccountView { id: string; email: string; name: string; createdA
 
 export const api = {
   feed: {
-    list: (scope: 'following' | 'school' | 'mine', before?: number) => request<{ posts: FeedPost[] }>(`/api/feed?scope=${scope}${before ? `&before=${before}` : ''}`),
-    post: (body: { minutes: number; subject: string; topics: string[]; place: string; with: string[]; note: string; visibility: PostVisibility; at?: number }) => request<{ post: FeedPost }>('/api/feed', { method: 'POST', json: body }),
+    list: (scope: 'foryou' | 'following' | 'school' | 'mine', before?: number) => request<{ posts: FeedPost[] }>(`/api/feed?scope=${scope}${before ? `&before=${before}` : ''}`),
+    post: (body: { minutes: number; subject: string; topics: string[]; place: string; with: string[]; crewIds?: string[]; note: string; visibility: PostVisibility; at?: number; photo?: string }) => request<{ post: FeedPost }>('/api/feed', { method: 'POST', json: body }),
     remove: (id: string) => request<{ ok: true }>(`/api/feed/${enc(id)}`, { method: 'DELETE' }),
     report: (id: string, reason: 'spam' | 'mean' | 'inappropriate' | 'fake' | 'other') => request<{ ok: true }>(`/api/feed/${enc(id)}/report`, { method: 'POST', json: { reason } }),
     kudos: (id: string) => request<{ post: FeedPost }>(`/api/feed/${enc(id)}/kudos`, { method: 'POST' }),
@@ -53,6 +53,7 @@ export const api = {
     follow: (id: string, on: boolean) => request<{ ok: true }>(`/api/people/${enc(id)}/follow`, { method: on ? 'POST' : 'DELETE' }),
     block: (id: string, on: boolean) => request<{ ok: true }>(`/api/people/${enc(id)}/block`, { method: on ? 'POST' : 'DELETE' }),
     blocked: () => request<{ people: { id: string; name: string; school: string }[] }>('/api/people/blocked'),
+    week: () => request<{ friends: { id: string; name: string; minutes: number }[] }>('/api/people/week'),
   },
   auth: {
     me: () => request<{ user: AccountView | null; google: boolean; email: boolean; domains: string[] }>('/api/auth/me'),

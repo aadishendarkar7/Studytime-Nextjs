@@ -26,7 +26,7 @@ export function InvitePage() {
             <ul className="mx-auto mt-6 grid max-w-[320px] gap-2 text-left text-[14px] text-ink-2">
               {['You follow each other right away', 'Free for students', 'Works on your phone and laptop'].map((t) => <li key={t} className="flex items-center gap-2"><Icon name="check" className="size-4 text-accent" />{t}</li>)}
             </ul>
-            <Button size="lg" className="mt-8" onClick={() => (location.href = signedIn ? '/drop?tab=highlights' : `/signin?mode=signup&invite=${encodeURIComponent(id)}`)}>{signedIn ? 'Open Studytime' : 'Join Studytime'}</Button>
+            <Button size="lg" className="mt-8" onClick={() => (location.href = signedIn ? '/feed' : `/signin?mode=signup&invite=${encodeURIComponent(id)}`)}>{signedIn ? 'Open Studytime' : 'Join Studytime'}</Button>
             {!signedIn && <p className="mt-3 text-[13px] text-muted">Already have an account? <a href="/signin" className="font-medium text-accent-ink hover:underline">Sign in</a></p>}
           </>
         )}

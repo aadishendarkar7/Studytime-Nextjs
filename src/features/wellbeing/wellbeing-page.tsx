@@ -9,6 +9,7 @@ import { useProfile } from '@/lib/stores/profile';
 import { toast, useUi } from '@/lib/stores/ui';
 import { cn, plural, todayKey } from '@/lib/utils';
 import { CheckInForm } from './check-in';
+import { DailyLadder } from '@/features/rewards/daily-ladder';
 import { patterns, strainCheck } from './logic';
 import { WaterTracker } from './water';
 
@@ -111,11 +112,12 @@ export function WellbeingPage({ embedded = false }: { embedded?: boolean } = {})
   const checkedIn = useExtras((s) => s.checkins.some((c) => c.day === todayKey()));
   return (
     <>
-      {!embedded && <PageHeader title="Check-in" description="Thirty seconds a day. Over time it shows how sleep, stress and study affect each other, and it is only saved in this browser." />}
+      {!embedded && <PageHeader title="Check-in"  />}
       <div className="grid gap-5 lg:grid-cols-12 [&>*]:min-w-0">
         <StrainNotice />
         <Card className={cn('lg:col-span-5', !checkedIn && 'ring-2 ring-accent/30')}>
           <CardHeader title={checkedIn ? 'Today’s check-in' : 'Check in for today'} />
+          <DailyLadder className="mb-4 border-0 bg-surface-2 p-2.5" />
           <CheckInForm />
         </Card>
         <PatternsCard />

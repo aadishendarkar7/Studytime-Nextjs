@@ -7,31 +7,32 @@ import { Input, Select } from '@/components/ui/field';
 import { Icon, type IconName } from '@/components/ui/icons';
 import { LEGACY_TOOL_ACTION } from '@/features/ai/actions';
 import { ChatTool } from '@/features/ai/chat';
-import { ConceptsTool } from '@/features/ai/concepts';
 import { NotesTool } from '@/features/ai/notes';
-import { LectureTool } from '@/features/ai/lectures';
+import { CoursesTool } from '@/features/courses/courses-tool';
 import { GamesPage } from '@/features/games/games-page';
-import { MistakesTool } from '@/features/games/mistakes';
+import { ReviewTool } from './review-tool';
 import { isDue } from '@/features/games/srs';
 import { ConnectionPill } from '@/features/settings/ai-settings';
 import { useConnection } from '@/lib/ai/client';
 import { LANGUAGES, useAi } from '@/lib/stores/ai';
 import { ALL_SUBJECTS, EXAM_GROUPS, LEVELS, SUBJECT_GROUPS } from '@/lib/subjects';
+import { useExtras } from '@/lib/stores/extras';
 import { useLearning } from '@/lib/stores/learning';
 import { useProfile } from '@/lib/stores/profile';
 import { cn } from '@/lib/utils';
 
-export type Tool = 'chat' | 'notes' | 'practice' | 'mistakes' | 'concepts' | 'lectures';
+export type Tool = 'chat' | 'practice' | 'courses' | 'notes' | 'review';
 
 const TOOLS: { id: Tool; label: string; icon: IconName; blurb: string }[] = [
   { id: 'chat', label: 'Tutor', icon: 'ai', blurb: 'Ask, solve, summarize, make cheat sheets from your files' },
-  { id: 'practice', label: 'Study games', icon: 'games', blurb: 'Flashcards, quizzes, matching, speed rounds' },
-  { id: 'mistakes', label: 'Mistakes', icon: 'reset', blurb: 'Questions you got wrong, to fix before the exam' },
-  { id: 'notes', label: 'Notes', icon: 'file', blurb: 'Everything you saved: notes, cheat sheets, guides' },
-  { id: 'lectures', label: 'Lecture recorder', icon: 'sound', blurb: 'Record a class and mark key moments' },
-  { id: 'concepts', label: 'Concept cards', icon: 'bulb', blurb: 'What you have learned, and your gaps' },
+  { id: 'practice', label: 'Flashcards', icon: 'games', blurb: 'Your sets, quizzes, matching, speed rounds' },
+  { id: 'courses', label: 'Courses', icon: 'layers', blurb: 'Short courses on any topic, made for you' },
+  { id: 'notes', label: 'Notes', icon: 'file', blurb: 'Notes and lecture recordings' },
+  { id: 'review', label: 'Review', icon: 'reset', blurb: 'Mistakes to fix and concepts you have met' },
 ];
 
+/** Older links that now open inside another tool. */
+const MOVED: Record<string, Tool> = { lectures: 'notes', mistakes: 'review', concepts: 'review' };
 const isTool = (v: string | null): v is Tool => TOOLS.some((t) => t.id === v);
 
 const OTHER = '__other';
@@ -94,16 +95,14 @@ function TutorSettings() {
 }
 
 function Rail({ tool, go }: { tool: Tool; go: (t: Tool) => void }) {
-  const ai = useAi();
   const sets = useLearning((s) => s.sets);
   const due = sets.reduce((n, s) => n + s.cards.filter((c) => isDue(c)).length, 0);
   const mistakes = useLearning((s) => s.mistakes.length);
+  const courses = useExtras((s) => s.courses.length);
   const counts: Partial<Record<Tool, string>> = {
-    mistakes: mistakes ? String(mistakes) : '',
-    chat: ai.chats.length ? String(ai.chats.length) : '',
-    notes: ai.notes.length ? String(ai.notes.length) : '',
-    practice: due ? `${due} due` : sets.length ? String(sets.length) : '',
-    concepts: ai.concepts.length ? String(ai.concepts.length) : '',
+    review: mistakes ? String(mistakes) : '',
+    practice: due ? `${due} due` : '',
+    courses: courses ? String(courses) : '',
   };
   return (
     <nav aria-label="Study tools" className="-mx-4 min-w-0 overflow-x-auto px-4 [scrollbar-width:none] sm:mx-0 sm:px-0">
@@ -119,14 +118,13 @@ function Rail({ tool, go }: { tool: Tool; go: (t: Tool) => void }) {
   );
 }
 
-function Center({ tool, action }: { tool: Tool; action: string }) {
+function Center({ tool, action, from }: { tool: Tool; action: string; from: string | null }) {
   switch (tool) {
     case 'chat': return <div className="h-[calc(100dvh-150px)] min-h-[560px] overflow-hidden rounded-xl border border-line bg-surface"><ChatTool initialAction={action} /></div>;
-    case 'notes': return <NotesTool />;
-    case 'mistakes': return <MistakesTool />;
+    case 'notes': return <NotesTool startRecording={from === 'lectures'} />;
     case 'practice': return <GamesPage embedded />;
-    case 'concepts': return <ConceptsTool />;
-    case 'lectures': return <LectureTool />;
+    case 'courses': return <CoursesTool />;
+    case 'review': return <ReviewTool start={from === 'concepts' ? 'concepts' : 'mistakes'} />;
   }
 }
 
@@ -138,7 +136,8 @@ export function StudyPage() {
   const params = useSearchParams();
   const router = useRouter();
   const raw = params.get('tool');
-  const tool: Tool = isTool(raw) ? raw : 'chat';
+  const moved = raw ? MOVED[raw] : undefined;
+  const tool: Tool = isTool(raw) ? raw : moved ?? 'chat';
   // Snap & solve, the assignment helper and writing feedback are tutor actions now.
   useEffect(() => {
     if (raw && LEGACY_TOOL_ACTION[raw]) router.replace(`/study?action=${LEGACY_TOOL_ACTION[raw]}`, { scroll: false });
@@ -173,8 +172,8 @@ export function StudyPage() {
       )}
 
       <div className={cn('grid gap-5 [&>*]:min-w-0', showPanel && 'xl:grid-cols-[minmax(0,1fr)_380px]')}>
-        <div className={cn('min-w-0', tool !== 'chat' && tool !== 'practice' && 'ws-flat rounded-xl border border-line bg-surface px-6 py-4 max-sm:px-4')}>
-          <Center key={tool + (params.get('action') ?? '')} tool={tool} action={params.get('action') ?? ''} />
+        <div className={cn('min-w-0', tool !== 'chat' && tool !== 'practice' && tool !== 'courses' && 'ws-flat rounded-xl border border-line bg-surface px-6 py-4 max-sm:px-4')}>
+          <Center key={tool + (params.get('action') ?? '')} tool={tool} action={params.get('action') ?? ''} from={moved ? raw : null} />
         </div>
         {showPanel && (
           <aside aria-label="Tutor" className="hidden overflow-hidden rounded-2xl border border-line bg-surface xl:sticky xl:top-6 xl:block xl:h-[calc(100dvh-140px)]">

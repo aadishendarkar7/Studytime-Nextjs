@@ -22,7 +22,6 @@ import { CATEGORIES, type DropView, type DropVibe } from '@/lib/types';
 import { useNow } from '@/lib/use-now';
 import { cn, fmtMinutes, plural } from '@/lib/utils';
 import { useDropComposer } from './composer';
-import { HighlightsTab } from '@/features/feed/highlights';
 import { EventsTab } from './events-tab';
 import { DropSheet, Initial, PrimaryAction, seatsLeft } from './drop-sheet';
 import { refreshDrops, useDrops, whenLabel } from './live';
@@ -33,16 +32,15 @@ const SpotMap = dynamic(() => import('@/features/spots/spot-map').then((m) => m.
   loading: () => <div className="grid h-full place-items-center bg-surface-3 text-[14px] text-muted">Loading map</div>,
 });
 
-type Tab = 'live' | 'highlights' | 'events' | 'yours' | 'rooms' | 'partners' | 'friends';
+type Tab = 'live' | 'friends' | 'events';
 const TABS: { value: Tab; label: string }[] = [
-  { value: 'live', label: 'Live map' },
-  { value: 'highlights', label: 'Highlights' },
+  { value: 'live', label: 'Map' },
   { value: 'friends', label: 'Friends' },
   { value: 'events', label: 'Events' },
-  { value: 'yours', label: 'Your drops' },
-  { value: 'rooms', label: 'Study rooms' },
-  { value: 'partners', label: 'Find partners' },
 ];
+/** Sections that moved inside another tab. Old links still land in the right place. */
+const MOVED: Record<string, Tab> = { yours: 'live', rooms: 'friends', partners: 'friends' };
+const initialParam = (k: string) => (typeof location !== 'undefined' ? new URLSearchParams(location.search).get(k) : null);
 type Point = { lat: number; lng: number };
 const useMiles = () => typeof navigator !== 'undefined' && /-(US|LR|MM)$/i.test(navigator.language);
 const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, '');
@@ -68,7 +66,7 @@ function DropRow({ d, me, onOpen, selected }: { d: DropView; me: Point | null; o
       <button type="button" onClick={onOpen} className="flex w-full items-start gap-3 px-4 pt-3.5 pb-2 text-left">
         <Initial name={d.name} host={mine} className={cn('size-9 text-[14px]', !mine && 'bg-[#3f3f46] text-white')} />
         <span className="min-w-0 flex-1">
-          <span className="block truncate text-[14px] leading-5"><strong className="font-semibold text-ink">{mine ? 'You' : d.name}</strong> <span className="text-muted">{live ? 'at' : 'later at'}</span> <span className="font-medium">{d.spotName}</span></span>
+          <span className="block truncate text-[14px] leading-5"><strong className="font-semibold text-ink">{mine ? 'You' : d.name}</strong>{d.friend && !mine && <span className="ml-1.5 rounded bg-accent-soft px-1.5 py-px align-[1px] text-[11px] font-semibold text-accent-ink">Friend</span>} <span className="text-muted">{live ? 'at' : 'later at'}</span> <span className="font-medium">{d.spotName}</span></span>
           <span className="mt-0.5 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[12px] text-muted">
             {live ? <span className="inline-flex items-center gap-1 font-semibold text-ok"><span className="size-1.5 rounded-full bg-ok" />Live</span> : null}
             <span className="tnum">{whenLabel(d, now)}</span>
@@ -131,6 +129,7 @@ function YourDropBar({ onOpen }: { onOpen: (id: string) => void }) {
 
 function LiveTab({ openId, setOpenId }: { openId: string | null; setOpenId: (id: string | null) => void }) {
   const { drops, loaded, error } = useDrops();
+  const [side, setSide] = useState<'now' | 'yours'>(() => (initialParam('tab') === 'yours' ? 'yours' : 'now'));
   const x = useExtras();
   const p = useProfile();
   const now = useNow(30_000);
@@ -175,7 +174,8 @@ function LiveTab({ openId, setOpenId }: { openId: string | null; setOpenId: (id:
       const dist = (d: DropView) => (d.lat !== null && d.lng !== null ? distanceKm(me, { lat: d.lat, lng: d.lng }) : Infinity);
       list = [...list].sort((a, b) => dist(a) - dist(b));
     }
-    return list;
+    // People you follow come first.
+    return [...list].sort((a, b) => Number(Boolean(b.friend)) - Number(Boolean(a.friend)));
   }, [drops, vibe, category, myCourses, courses, me]);
   const nowList = shown.filter((d) => d.startsAt <= now);
   const later = shown.filter((d) => d.startsAt > now);
@@ -206,14 +206,15 @@ function LiveTab({ openId, setOpenId }: { openId: string | null; setOpenId: (id:
           </button>
         </div>
         <div className="pointer-events-none absolute inset-x-3 bottom-3 z-[500] flex justify-between gap-2">
-          <span className="pointer-events-auto rounded-lg border border-line bg-surface/95 px-2.5 py-1 text-[12px] font-medium text-ink-2">{nowList.length ? `${plural(nowList.length, 'drop')} live` : 'Quiet right now'}{later.length ? ` · ${later.length} later` : ''}</span>
-          <span className="pointer-events-auto rounded-lg border border-line bg-surface/95 px-2.5 py-1 text-[12px] text-muted max-sm:hidden">Click anywhere on the map to drop there</span>
+          <span className="pointer-events-auto inline-flex items-center gap-1.5 rounded-lg border border-line bg-surface/95 px-2.5 py-1 text-[12px] font-medium text-ink-2"><LiveDot on={nowList.length > 0} />{nowList.length ? `${plural(nowList.length, 'drop')} live` : 'Quiet right now'}{later.length ? ` · ${later.length} later` : ''}</span>
+          <button type="button" onClick={() => useDropComposer.getState().show()} className="pointer-events-auto inline-flex h-8 items-center gap-1.5 rounded-lg bg-accent-fill px-3 text-[13px] font-semibold text-white shadow-sm"><Icon name="plus" className="size-4" /> Drop here</button>
         </div>
       </section>
 
-      <div className="grid content-start gap-5 lg:col-span-5">
+      <div className="grid content-start gap-4 lg:col-span-5">
         {error && <p className="rounded-xl bg-danger-soft px-4 py-3 text-[14px] text-danger">{error}</p>}
-
+        <Segmented label="Show" value={side} onChange={setSide} options={[{ value: 'now', label: nowList.length ? `Happening now · ${nowList.length}` : 'Happening now' }, { value: 'yours', label: 'Your drops' }]} />
+        {side === 'yours' ? <YoursTab /> : <>
         <div className="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1 [scrollbar-width:none]">
           <Chip on={vibe === 'all'} onClick={() => setVibe('all')}>All</Chip>
           {VIBES.map((v) => <Chip key={v.value} on={vibe === v.value} onClick={() => setVibe(vibe === v.value ? 'all' : v.value)}>{v.label}</Chip>)}
@@ -226,7 +227,7 @@ function LiveTab({ openId, setOpenId }: { openId: string | null; setOpenId: (id:
 
         {hot.length > 0 && (
           <section>
-            <h2 className="mb-1 font-sans text-[13px] font-semibold">Busy right now</h2>
+            <h2 className="mb-1 font-sans text-[13px] font-semibold text-muted">Busiest spots</h2>
             <ol className="grid gap-1.5">
               {hot.map((h, i) => (
                 <li key={h.key}>
@@ -243,18 +244,22 @@ function LiveTab({ openId, setOpenId }: { openId: string | null; setOpenId: (id:
         )}
 
         <section>
-          <h2 className="mb-2 font-sans text-[13px] font-semibold">Studying now</h2>
           <div className="divide-y divide-line overflow-hidden rounded-xl border border-line bg-surface empty:hidden">
             {nowList.length ? nowList.map((d) => <DropRow key={d.id} d={d} me={me} selected={openId === d.id} onOpen={() => open(d.id)} />) : loaded && (
-              <Empty title={filtered ? 'No drops match those filters' : 'No one has dropped a spot yet'}>
-                {filtered ? 'Try All, or drop your own spot with this vibe.' : `${p.school ? `Be the first at ${p.school}. ` : ''}Drop where you are studying and your friends get a heads-up to come join.`}
-              </Empty>
+              <div className="flex flex-col items-center px-6 py-10 text-center">
+                <span className="grid size-12 place-items-center rounded-full bg-accent-soft text-accent-ink"><Icon name="pin" className="size-6" /></span>
+                <p className="mt-3 text-[16px] font-semibold">{filtered ? 'Nothing matches' : p.school ? `Be the first at ${p.school}` : 'Be the first one out'}</p>
+                <div className="mt-4 flex gap-2">
+                  {filtered && <Button variant="secondary" onClick={() => (setVibe('all'), setCategory('all'), setMyCourses(false))}>Show all</Button>}
+                  <Button onClick={() => useDropComposer.getState().show()}><Icon name="pin" className="size-4" /> Drop a spot</Button>
+                </div>
+              </div>
             )}
           </div>
         </section>
         {later.length > 0 && (
           <section>
-            <h2 className="mb-2 font-sans text-[13px] font-semibold">Later</h2>
+            <h2 className="mb-2 font-sans text-[13px] font-semibold text-muted">Later today</h2>
             <div className="divide-y divide-line overflow-hidden rounded-xl border border-line bg-surface">{later.map((d) => <DropRow key={d.id} d={d} me={me} selected={openId === d.id} onOpen={() => open(d.id)} />)}</div>
           </section>
         )}
@@ -274,21 +279,30 @@ function LiveTab({ openId, setOpenId }: { openId: string | null; setOpenId: (id:
                 </li>
               ))}
             </ul>
-          ) : <p className="mt-1 text-[13px] text-muted">Places you drop with a location can be saved here for next time.</p>}
-          <Checkbox label="Mute drop notifications" checked={x.dropQuiet} onChange={(e) => x.update({ dropQuiet: e.target.checked })} />
-          <p className="text-[13px] text-muted">For days you want to study alone. You still see drops here.</p>
+          ) : <p className="mt-1 text-[13px] text-muted">None yet</p>}
+          <Checkbox label="Mute drop alerts" checked={x.dropQuiet} onChange={(e) => x.update({ dropQuiet: e.target.checked })} />
         </section>
+        </>}
       </div>
     </div>
   );
 }
 
+function LiveDot({ on }: { on: boolean }) {
+  return (
+    <span className="relative inline-flex size-2">
+      {on && <span className="absolute inset-0 animate-ping rounded-full bg-ok opacity-60 [animation-duration:2s]" />}
+      <span className={cn('relative size-2 rounded-full', on ? 'bg-ok' : 'bg-line-strong')} />
+    </span>
+  );
+}
+
 function Stat({ label, value, note, small }: { label: string; value: string; note?: string; small?: boolean }) {
   return (
-    <div className="min-w-0 rounded-xl border border-line bg-surface p-4">
-      <p className="text-[13px] text-muted">{label}</p>
-      <p className={cn('tnum mt-1 truncate font-display', small ? 'text-[20px] leading-8' : 'text-[28px] leading-8')}>{value}</p>
-      {note && <p className="mt-1 truncate text-[13px] text-muted">{note}</p>}
+    <div className="min-w-0 rounded-xl border border-line bg-surface px-3 py-2.5">
+      <p className="text-[12px] text-muted">{label}</p>
+      <p className={cn('tnum mt-0.5 truncate font-display', small ? 'text-[17px] leading-7' : 'text-[22px] leading-7')}>{value}</p>
+      {note && <p className="truncate text-[12px] text-muted">{note}</p>}
     </div>
   );
 }
@@ -303,13 +317,11 @@ function YoursTab() {
   const log = [...x.dropLog].filter((e) => e.at <= now).sort((a, b) => b.at - a.at).slice(0, 40);
   if (!x.dropLog.length)
     return (
-      <Empty title="Your drops show up here" action={<Button onClick={() => useDropComposer.getState().show()}><Icon name="pin" className="size-4" /> Drop your first spot</Button>}>
-        Every spot you drop, join, or study at solo is saved in this browser, with who you studied with.
-      </Empty>
+      <Empty title="No drops yet" action={<Button onClick={() => useDropComposer.getState().show()}><Icon name="pin" className="size-4" /> Drop your first spot</Button>}>{null}</Empty>
     );
   return (
     <div className="grid gap-6">
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-2">
         <Stat label="Drops this month" value={String(s.thisMonth)} note={`${s.total} all time`} />
         <Stat label="Time at spots" value={fmtMinutes(Math.round(s.minutes))} />
         <Stat label="People studied with" value={String(s.people)} note={s.withMost ? `Most with ${s.withMost.name}` : 'Drop to your friends to start'} />
@@ -319,7 +331,7 @@ function YoursTab() {
       {again.length > 0 && (
         <section>
           <h2 className="mb-2 font-sans text-[13px] font-semibold">Drop again</h2>
-          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-2">
             {again.map((e) => (
               <button key={e.id} type="button" onClick={() => useDropComposer.getState().show({ again: e })} className="flex items-center gap-3 rounded-xl border border-line bg-surface px-3.5 py-2.5 text-left hover:border-line-strong/60">
                 <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-surface-3 text-ink-2"><Icon name="pin" className="size-4" /></span>
@@ -342,7 +354,7 @@ function YoursTab() {
         <ul className="divide-y divide-line rounded-xl border border-line bg-surface">
           {log.map((e) => (
             <li key={e.id} className="flex flex-wrap items-center gap-x-4 gap-y-1 px-4 py-3">
-              <span className="tnum w-24 shrink-0 text-[13px] text-muted">{new Date(e.at).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}</span>
+              <span className="tnum w-20 shrink-0 text-[12px] text-muted">{new Date(e.at).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}</span>
               <span className="min-w-0 flex-1">
                 <strong className="block truncate text-[14px] font-medium">{e.spotName}</strong>
                 <span className="block truncate text-[13px] text-muted">{ROLE[e.role]}{e.subject ? ` · ${e.subject}` : ''}{e.with.length ? ` · with ${e.with.slice(0, 3).join(', ')}${e.with.length > 3 ? ` +${e.with.length - 3}` : ''}` : ''}</span>
@@ -357,15 +369,21 @@ function YoursTab() {
 }
 
 /** Friends: chat with classmates and see who is online, or manage your circle and classes. */
+type FriendsView = 'chat' | 'rooms' | 'partners' | 'pact' | 'circle';
 function FriendsTab() {
-  const [view, setView] = useState<'chat' | 'circle' | 'pact'>(() => (typeof location === 'undefined' ? 'chat' : /[?&](view=pact|pact=)/.test(location.search) ? 'pact' : /[?&](view=circle|circle=|class=)/.test(location.search) ? 'circle' : 'chat'));
+  const [view, setView] = useState<FriendsView>(() => {
+    if (typeof location === 'undefined') return 'chat';
+    const t = initialParam('tab');
+    if (t === 'rooms' || t === 'partners') return t;
+    return /[?&](view=pact|pact=)/.test(location.search) ? 'pact' : /[?&](view=circle|circle=|class=)/.test(location.search) ? 'circle' : 'chat';
+  });
   const unread = useUnreadDms();
-  const toggle = <Segmented wrap={false} label="Friends view" value={view} onChange={setView} options={[{ value: 'chat', label: unread ? `Messages (${unread})` : 'Messages' }, { value: 'pact', label: 'Weekly pact' }, { value: 'circle', label: 'Circle & classes' }]} />;
+  const toggle = <Segmented wrap={false} label="Friends view" value={view} onChange={setView} options={[{ value: 'chat', label: unread ? `Messages · ${unread}` : 'Messages' }, { value: 'rooms', label: 'Study rooms' }, { value: 'partners', label: 'Partners' }, { value: 'pact', label: 'Pact' }, { value: 'circle', label: 'Circle' }]} />;
   if (view === 'chat') return <ChatPage toolbar={toggle} />;
   return (
     <>
       <div className="mb-3">{toggle}</div>
-      {view === 'pact' ? <PactCard className="max-w-2xl" /> : <FriendsPage embedded />}
+      {view === 'pact' ? <PactCard className="max-w-2xl" /> : view === 'rooms' ? <RoomsPage embedded /> : view === 'partners' ? <PartnersPage embedded /> : <FriendsPage embedded />}
     </>
   );
 }
@@ -375,14 +393,18 @@ export function DropPage() {
   const drops = useDrops((s) => s.drops);
   const now = useNow(60_000);
   const [tab, setTab] = useState<Tab>(() => {
-    const t = typeof location !== 'undefined' ? new URLSearchParams(location.search).get('tab') : null;
-    return TABS.some((x) => x.value === t) ? (t as Tab) : 'live';
+    const t = initialParam('tab');
+    return TABS.some((x) => x.value === t) ? (t as Tab) : (t && MOVED[t]) || 'live';
   });
   const [openId, setOpenId] = useState<string | null>(() => (typeof location !== 'undefined' ? new URLSearchParams(location.search).get('d') : null));
   // A drop opened from an invite link may not be in your list (another school, say).
   const [linked, setLinked] = useState<DropView | null>(null);
   const go = (t: Tab) => (setTab(t), history.replaceState(null, '', t === 'live' ? '/drop' : `/drop?tab=${t}`));
 
+  // Highlights moved to the Feed page.
+  useEffect(() => {
+    if (initialParam('tab') === 'highlights') location.replace('/feed');
+  }, []);
   useEffect(() => {
     void refreshDrops();
     const id = setInterval(() => void refreshDrops(), openId ? 8_000 : 20_000);
@@ -422,24 +444,20 @@ export function DropPage() {
       <header className="mt-4 mb-4 flex flex-wrap items-end justify-between gap-4 max-sm:mt-2">
         <div className="min-w-0">
           <p className="flex items-center gap-2 text-[12px] font-medium text-muted">
-            <span className={cn('size-2 rounded-full', live.length ? 'bg-ok' : 'bg-line-strong')} />
+            <LiveDot on={live.length > 0} />
             {live.length ? `${plural(people, 'person', 'people')} studying at ${plural(live.length, 'spot')} right now` : 'No one is out right now'}
           </p>
           <h1 className="mt-1 text-[26px] leading-8 max-sm:text-[22px]">Drop a Spot</h1>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Button variant="secondary" onClick={() => useDropComposer.getState().show({ solo: true })}>Study solo</Button>
+          <Button variant="secondary" onClick={() => useDropComposer.getState().show({ solo: true })}><Icon name="user" className="size-4" /> Study solo</Button>
           <Button onClick={() => useDropComposer.getState().show()}><Icon name="pin" className="size-4" /> Drop a spot</Button>
         </div>
       </header>
       <YourDropBar onOpen={setOpenId} />
       <Tabs className="mb-5" label="Drop a Spot sections" value={tab} onChange={go} options={TABS.map((t) => (t.value === 'friends' ? { ...t, count: unreadDms } : t))} />
       {tab === 'live' && <LiveTab openId={openId} setOpenId={setOpenId} />}
-      {tab === 'highlights' && <HighlightsTab />}
       {tab === 'events' && <EventsTab />}
-      {tab === 'yours' && <YoursTab />}
-      {tab === 'rooms' && <RoomsPage embedded />}
-      {tab === 'partners' && <PartnersPage embedded />}
       {tab === 'friends' && (
         <FriendsTab />
       )}

@@ -17,69 +17,41 @@ const PREVIEW: Record<Backdrop, string> = {
   plain: 'none',
 };
 
-function Label({ children }: { children: string }) {
-  return <p className="mb-1.5 text-[12px] font-medium text-muted">{children}</p>;
-}
+const SHOWN = ['Cobalt', 'Ocean', 'Harbor', 'Sage', 'Forest', 'Moss', 'Ember', 'Rose', 'Plum', 'Graphite'];
 
-/** Every appearance option in one compact panel. */
+/** Every appearance option, compact: theme, a row of colors, and the background. */
 export function AppearanceOptions() {
   const p = useProfile();
-  const [custom, setCustom] = useState(false);
-  const active = PALETTES.find((x) => x.accent === p.accent && x.glow === p.glow)?.name;
+  const palettes = PALETTES.filter((x) => SHOWN.includes(x.name));
+  const active = PALETTES.find((x) => x.accent === p.accent && x.glow === p.glow);
   return (
-    <div className="grid gap-4">
+    <div className="grid gap-3.5">
+      <Segmented className="[&>button]:flex-1" wrap={false} label="Theme" value={p.theme} onChange={(theme) => changeLook({ theme })} options={[{ value: 'light', label: 'Light' }, { value: 'dark', label: 'Dark' }, { value: 'system', label: 'Auto' }]} />
       <div>
-        <Label>Theme</Label>
-        <Segmented className="[&>button]:flex-1" wrap={false} label="Theme" value={p.theme} onChange={(theme) => changeLook({ theme })} options={[{ value: 'light', label: 'Light' }, { value: 'dark', label: 'Dark' }, { value: 'system', label: 'Auto' }]} />
-      </div>
-      <div>
-        <div className="mb-1.5 flex items-center justify-between">
-          <Label>Colors</Label>
-          <button type="button" onClick={(e) => { const pick = PALETTES.filter((x) => x.name !== active); const x = pick[Math.floor(Math.random() * pick.length)]; changeLook({ accent: x.accent, glow: x.glow }, e); }} className="-mt-1.5 inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[12px] font-medium text-accent-ink hover:bg-accent-soft">
-            <Icon name="sparkle" className="size-3.5" /> Surprise me
+        <p className="mb-2 text-[12px] text-muted">Color{active ? <span className="text-ink"> · {active.name}</span> : <span className="text-ink"> · Your own</span>}</p>
+        <div role="radiogroup" aria-label="Color" className="flex flex-wrap items-center gap-2">
+          {palettes.map((x) => (
+            <button key={x.name} type="button" role="radio" aria-checked={active?.name === x.name} aria-label={x.name} title={x.name} onClick={(e) => changeLook({ accent: x.accent, glow: x.glow }, e)} className={cn('size-7 rounded-full transition-transform hover:scale-110', active?.name === x.name && 'ring-2 ring-offset-2 ring-offset-surface')} style={{ background: `linear-gradient(135deg, ${x.accent} 50%, ${x.glow} 50%)`, ['--tw-ring-color' as string]: x.accent }} />
+          ))}
+          <label title="Pick your own" className={cn('relative grid size-7 cursor-pointer place-items-center rounded-full border border-dashed border-line-strong text-muted hover:text-ink', !active && 'ring-2 ring-accent ring-offset-2 ring-offset-surface')}>
+            <Icon name="plus" className="size-3.5" />
+            <input type="color" aria-label="Pick your own color" value={p.accent} onChange={(e) => p.update({ accent: e.target.value, glow: e.target.value })} className="absolute inset-0 cursor-pointer opacity-0" />
+          </label>
+          <button type="button" aria-label="Surprise me" title="Surprise me" onClick={(e) => { const pick = palettes.filter((x) => x.name !== active?.name); const x = pick[Math.floor(Math.random() * pick.length)]; changeLook({ accent: x.accent, glow: x.glow }, e); }} className="grid size-7 place-items-center rounded-full text-muted hover:bg-surface-3 hover:text-ink">
+            <Icon name="sparkle" className="size-4" />
           </button>
         </div>
-        <div role="radiogroup" aria-label="Color" className="grid grid-cols-3 gap-1.5">
-          {PALETTES.map((x) => (
-            <button key={x.name} type="button" role="radio" aria-checked={active === x.name} onClick={(e) => changeLook({ accent: x.accent, glow: x.glow }, e)} className={cn('group relative overflow-hidden rounded-lg border p-2 text-left transition-all hover:-translate-y-0.5', active === x.name ? 'border-transparent ring-2 ring-[var(--ring)]' : 'border-line hover:border-line-strong/60')} style={{ ['--ring' as string]: x.accent }}>
-              <span className="absolute inset-x-0 top-0 h-7 opacity-90" style={{ background: `linear-gradient(120deg, ${x.accent}, ${x.glow})` }} />
-              <span className="relative mt-6 block truncate text-[12px] font-semibold text-ink">{x.name}</span>
-              <span className="relative block truncate text-[11px] text-muted">{x.mood}</span>
-            </button>
-          ))}
-        </div>
-        <button type="button" aria-expanded={custom} onClick={() => setCustom(!custom)} className={cn('mt-1.5 inline-flex items-center gap-1 text-[12px] font-medium', !active ? 'text-accent-ink' : 'text-muted hover:text-ink')}>
-          <Icon name="plus" className="size-3.5" /> Pick your own
-        </button>
-        {custom && (
-          <div className="mt-2 flex gap-3 text-[13px]">
-            <label className="flex items-center gap-2"><input type="color" value={p.accent} onChange={(e) => p.update({ accent: e.target.value })} className="size-7 cursor-pointer rounded border-0 bg-transparent p-0" /> Main</label>
-            <label className="flex items-center gap-2"><input type="color" value={p.glow} onChange={(e) => p.update({ glow: e.target.value })} className="size-7 cursor-pointer rounded border-0 bg-transparent p-0" /> Glow</label>
-          </div>
-        )}
       </div>
       <div>
-        <Label>Background</Label>
+        <p className="mb-2 text-[12px] text-muted">Background</p>
         <div role="radiogroup" aria-label="Background pattern" className="grid grid-cols-6 gap-1.5">
           {BACKDROPS.map((b) => (
-            <button key={b.value} type="button" role="radio" aria-checked={p.backdrop === b.value} aria-label={b.label} title={b.label} onClick={() => p.update({ backdrop: b.value })} className={cn('relative h-9 overflow-hidden rounded-lg border bg-surface-2', p.backdrop === b.value ? 'border-accent ring-1 ring-accent' : 'border-line hover:border-line-strong')}>
+            <button key={b.value} type="button" role="radio" aria-checked={p.backdrop === b.value} aria-label={b.label} title={b.label} onClick={() => p.update({ backdrop: b.value })} className={cn('relative h-8 overflow-hidden rounded-md border bg-surface-2', p.backdrop === b.value ? 'border-accent ring-1 ring-accent' : 'border-line hover:border-line-strong')}>
               {b.value !== 'plain' && <span className="absolute inset-0 bg-accent opacity-60" style={{ WebkitMask: PREVIEW[b.value], mask: PREVIEW[b.value] }} />}
-              {b.value === 'plain' && <span className="absolute inset-0 grid place-items-center text-[10px] text-muted">None</span>}
             </button>
           ))}
         </div>
-        <p className="mt-3 mb-1.5 text-[12px] font-medium text-muted">Glow behind pages</p>
-        <Segmented className="[&>button]:flex-1" wrap={false} label="Color wash" value={p.wash} onChange={(wash) => changeLook({ wash })} options={WASHES} />
-      </div>
-      <div className="grid gap-4">
-        <div>
-          <Label>Headings</Label>
-          <Segmented className="[&>button]:flex-1" wrap={false} label="Heading style" value={p.font} onChange={(font) => p.update({ font })} options={[{ value: 'sans', label: 'Sans' }, { value: 'serif', label: 'Serif' }]} />
-        </div>
-        <div>
-          <Label>Corners</Label>
-          <Segmented className="[&>button]:flex-1" wrap={false} label="Corner style" value={p.corners} onChange={(corners) => p.update({ corners })} options={[{ value: 'crisp', label: 'Crisp' }, { value: 'soft', label: 'Soft' }, { value: 'round', label: 'Round' }]} />
-        </div>
+        <Segmented className="mt-2 [&>button]:flex-1" wrap={false} label="Glow" value={p.wash} onChange={(wash) => changeLook({ wash })} options={WASHES.map((w) => (w.value === 'none' ? { ...w, label: 'No glow' } : w))} />
       </div>
     </div>
   );

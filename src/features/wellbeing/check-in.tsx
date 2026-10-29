@@ -6,6 +6,7 @@ import { Segmented } from '@/components/ui/segmented';
 import { useExtras, type CheckIn, type Mood } from '@/lib/stores/extras';
 import { toast } from '@/lib/stores/ui';
 import { cn, todayKey } from '@/lib/utils';
+import { collectDailyReward } from '@/features/rewards/daily-ladder';
 import { MOODS } from './logic';
 import { MOOD_FILL } from './mood';
 
@@ -38,7 +39,8 @@ export function CheckInForm({ compact, onSaved }: { compact?: boolean; onSaved?:
     if (!form.mood) return toast('Pick how you feel first.', 'error');
     const entry: CheckIn = { day: today, mood: form.mood, energy: form.energy, stress: form.stress, sleep: form.sleep, note: form.note.trim().slice(0, 280) };
     update({ checkins: [entry, ...checkins.filter((c) => c.day !== today)].slice(0, 730) });
-    toast(existing ? 'Check-in updated.' : 'Checked in. Thanks for taking a minute.');
+    if (existing) toast('Check-in updated.');
+    else if (!collectDailyReward()) toast('Checked in.');
     onSaved?.();
   };
   return (

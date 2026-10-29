@@ -31,15 +31,17 @@ function Breathe() {
   const count = 4 - (tick % 4);
   const big = on && (phase === 0 || phase === 1);
   return (
-    <div className="flex flex-col items-center py-2 text-center">
-      <div className="grid size-44 place-items-center">
-        <div className="grid place-items-center rounded-xl bg-accent-soft text-accent-ink transition-all duration-[4000ms] ease-in-out" style={{ width: big ? 176 : 96, height: big ? 176 : 96 }}>
-          <span className="tnum font-display text-[28px]">{on ? count : ''}</span>
+    <div className="flex items-center gap-4">
+      <div className="grid size-24 shrink-0 place-items-center">
+        <div className="grid place-items-center rounded-xl bg-accent-soft text-accent-ink transition-all duration-[4000ms] ease-in-out" style={{ width: big ? 96 : 52, height: big ? 96 : 52 }}>
+          <span className="tnum font-display text-[20px]">{on ? count : ''}</span>
         </div>
       </div>
-      <p className="mt-3 font-display text-[22px]" aria-live="polite">{on ? PHASES[phase] : 'Box breathing'}</p>
-      <p className="mt-1 max-w-[40ch] text-[14px] text-muted">{on ? `Round ${Math.floor(tick / 16) + 1}. Four or five rounds is enough.` : 'Four counts in, hold for four, four counts out, hold for four. It slows your heart rate and settles your attention.'}</p>
-      <Button className="mt-4" variant={on ? 'secondary' : 'primary'} onClick={() => (setOn(!on), setTick(0))}>{on ? 'Stop' : 'Start breathing'}</Button>
+      <div className="min-w-0 flex-1">
+        <p className="font-display text-[18px]" aria-live="polite">{on ? PHASES[phase] : 'Box breathing'}</p>
+        <p className="text-[13px] text-muted">{on ? `Round ${Math.floor(tick / 16) + 1} of 4` : '4 in, 4 hold, 4 out, 4 hold'}</p>
+        <Button size="sm" className="mt-2" variant={on ? 'secondary' : 'primary'} onClick={() => (setOn(!on), setTick(0))}>{on ? 'Stop' : 'Start'}</Button>
+      </div>
     </div>
   );
 }
@@ -48,13 +50,12 @@ function Stretch() {
   const [i, setI] = useState(0);
   const s = STRETCHES[i];
   return (
-    <div className="py-2">
-      <p className="text-[13px] text-muted">{i + 1} of {STRETCHES.length}</p>
-      <h3 className="mt-1 text-[22px]">{s.name}</h3>
-      <p className="mt-2 max-w-[52ch] text-[15px] leading-6 text-ink-2">{s.how}</p>
-      <div className="mt-4 flex gap-2">
-        <Button variant="secondary" disabled={i === 0} onClick={() => setI(i - 1)}>Back</Button>
-        <Button onClick={() => setI((i + 1) % STRETCHES.length)}>{i === STRETCHES.length - 1 ? 'Start over' : 'Next stretch'}</Button>
+    <div>
+      <p className="text-[15px] font-semibold">{s.name} <span className="font-normal text-muted">· {i + 1}/{STRETCHES.length}</span></p>
+      <p className="mt-1 text-[14px] leading-6 text-ink-2">{s.how}</p>
+      <div className="mt-2 flex gap-2">
+        <Button size="sm" variant="secondary" disabled={i === 0} onClick={() => setI(i - 1)}>Back</Button>
+        <Button size="sm" onClick={() => setI((i + 1) % STRETCHES.length)}>{i === STRETCHES.length - 1 ? 'Start over' : 'Next'}</Button>
       </div>
     </div>
   );
@@ -69,11 +70,12 @@ function Eyes() {
     return () => clearTimeout(id);
   }, [left]);
   return (
-    <div className="py-2">
-      <h3 className="text-[22px]">Rest your eyes</h3>
-      <p className="mt-2 max-w-[52ch] text-[15px] leading-6 text-ink-2">Look at something at least 20 feet away, like a window or the far wall, for 20 seconds. Blink a few times.</p>
-      <p className="tnum mt-3 font-display text-[40px]" aria-live="polite">{left === null ? '0:20' : left > 0 ? `0:${String(left).padStart(2, '0')}` : 'Done'}</p>
-      <Button className="mt-2" onClick={() => setLeft(20)}>{left === null ? 'Start 20 seconds' : 'Again'}</Button>
+    <div className="flex items-center gap-4">
+      <p className="tnum w-24 shrink-0 text-center font-display text-[32px]" aria-live="polite">{left === null ? '0:20' : left > 0 ? `0:${String(left).padStart(2, '0')}` : 'Done'}</p>
+      <div className="min-w-0 flex-1">
+        <p className="text-[14px] text-ink-2">Look at something far away and blink.</p>
+        <Button size="sm" className="mt-2" onClick={() => setLeft(20)}>{left === null ? 'Start' : 'Again'}</Button>
+      </div>
     </div>
   );
 }
@@ -93,15 +95,14 @@ export function BreakCoach({ className }: { className?: string }) {
   return (
     <Card className={className}>
       <CardHeader
-        title={justDone ? 'Session done. Take a real break.' : 'Take a real break'}
-        description="Five minutes away from the screen helps you come back sharper than scrolling does."
-        action={breakEnds && left > 0 ? <span className="tnum rounded-lg bg-accent-soft px-3 py-1.5 font-semibold text-accent-ink">{fmtClock(left)}</span> : <Button size="sm" variant="secondary" onClick={() => (setBreakEnds(Date.now() + 5 * 60_000), setNow(Date.now()))}>{breakEnds ? 'Break over. Another 5 min?' : 'Start a 5 min break'}</Button>}
+        title={justDone ? 'Session done. Take a break.' : 'Take a break'}
+        action={breakEnds && left > 0 ? <span className="tnum rounded-lg bg-accent-soft px-3 py-1.5 font-semibold text-accent-ink">{fmtClock(left)}</span> : <Button size="sm" variant="secondary" onClick={() => (setBreakEnds(Date.now() + 5 * 60_000), setNow(Date.now()))}>{breakEnds ? 'Another 5 min' : '5 min break'}</Button>}
       />
       <Segmented label="Break activity" value={kind} onChange={setKind} options={[{ value: 'breathe', label: 'Breathe' }, { value: 'stretch', label: 'Stretch' }, { value: 'water', label: 'Water' }, { value: 'eyes', label: 'Rest eyes' }]} />
-      <div className="mt-4">
+      <div className="mt-3 min-h-24">
         {kind === 'breathe' && <Breathe />}
         {kind === 'stretch' && <Stretch />}
-        {kind === 'water' && <div className="py-2"><p className="mb-3 max-w-[52ch] text-[15px] leading-6 text-ink-2">Even mild dehydration makes it harder to concentrate. Have a glass and log it.</p><WaterTracker /></div>}
+        {kind === 'water' && <WaterTracker />}
         {kind === 'eyes' && <Eyes />}
       </div>
     </Card>

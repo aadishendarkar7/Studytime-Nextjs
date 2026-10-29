@@ -1,6 +1,6 @@
 import 'server-only';
 import type { Account } from '../accounts';
-import { creditInvite, getAccount } from '../accounts';
+import { creditInvite, getAccount, getUserData } from '../accounts';
 import { HttpError } from '../http';
 import { secret } from '../ids';
 import { getStorage } from '../storage';
@@ -14,6 +14,9 @@ const USERS = 'users';
 const BLOCKS = (id: string) => `blocks:${id}`;
 const HIDDEN = (id: string) => `feed-hidden:${id}`;
 const REPORTS = 'feed-reports';
+const PHOTO = (id: string) => `feed-photo:${id}`;
+/** Photos are resized in the browser first; this is the most one can weigh as base64. */
+export const MAX_PHOTO = 420_000;
 /** A highlight reported by this many different people is hidden from everyone but its author. */
 const HIDE_AFTER = 3;
 const KEEP = 90 * 86_400_000;
@@ -26,7 +29,7 @@ async function allPosts() {
   const now = Date.now();
   const list = Object.values(await s.hgetall<FeedPost>(POSTS));
   const old = list.filter((p) => p.at < now - KEEP);
-  await Promise.all(old.map((p) => s.hdel(POSTS, p.id)));
+  await Promise.all(old.flatMap((p) => [s.hdel(POSTS, p.id), p.photo ? s.del(PHOTO(p.id)) : null]));
   return list.filter((p) => p.at >= now - KEEP);
 }
 
@@ -42,15 +45,22 @@ async function walls(viewer: Account) {
 }
 
 /** Can this viewer see this post? */
+const crewIds = (p: FeedPost) => (p.crew ?? []).map((c) => c.id);
+/** The author and everyone tagged in it. */
+const peopleIn = (p: FeedPost) => [p.userId, ...crewIds(p)];
+
 export function visible(p: FeedPost & { reports?: number }, viewer: Account, follows: Set<string>) {
-  if (p.userId === viewer.id) return true;
+  if (peopleIn(p).includes(viewer.id)) return true;
   if ((p.reports ?? 0) >= HIDE_AFTER) return false;
+  const followsSomeone = peopleIn(p).some((id) => follows.has(id));
   if (p.visibility === 'everyone') return true;
-  if (p.visibility === 'school') return same(p.school, viewer.profile.school) || follows.has(p.userId);
-  return follows.has(p.userId);
+  if (p.visibility === 'school') return same(p.school, viewer.profile.school) || followsSomeone;
+  return followsSomeone;
 }
 
-export async function listFeed(viewer: Account, scope: 'following' | 'school' | 'mine', before = Infinity) {
+export type FeedScope = 'foryou' | 'following' | 'school' | 'mine';
+
+export async function listFeed(viewer: Account, scope: FeedScope, before = Infinity) {
   const follows = new Set(await following(viewer.id));
   const w = await walls(viewer);
   const posts = (await allPosts()).filter((p) => p.at < before && visible(p, viewer, follows) && !w.hidden.has(p.id) && !w.mine.has(p.userId));
@@ -58,7 +68,13 @@ export async function listFeed(viewer: Account, scope: 'following' | 'school' | 
   const theyBlocked = new Set((await Promise.all(authors.map(async (a) => ((await w.blocks(a)) ? a : null)))).filter(Boolean));
   return posts
     .filter((p) => !theyBlocked.has(p.userId))
-    .filter((p) => (scope === 'mine' ? p.userId === viewer.id : scope === 'following' ? p.userId === viewer.id || follows.has(p.userId) : same(p.school, viewer.profile.school) || p.userId === viewer.id))
+    .filter((p) => {
+      const mine = peopleIn(p).includes(viewer.id);
+      if (scope === 'foryou') return true;
+      if (scope === 'mine') return mine;
+      if (scope === 'following') return mine || peopleIn(p).some((id) => follows.has(id));
+      return mine || same(p.school, viewer.profile.school);
+    })
     .sort((a, b) => b.at - a.at)
     .slice(0, 40)
     .map(strip);
@@ -71,8 +87,22 @@ const strip = (p: FeedPost & { reports?: number; reporters?: string[] }): FeedPo
   return rest;
 };
 
-export async function createPost(author: Account, input: { minutes: number; subject: string; topics: string[]; place: string; with: string[]; note: string; visibility: PostVisibility; at?: number }) {
+/** People you can tag: you follow each other. */
+async function mutuals(viewer: Account, ids: string[]) {
+  const s = getStorage();
+  const mine = new Set(await following(viewer.id));
+  const out: { id: string; name: string }[] = [];
+  for (const id of [...new Set(ids)].slice(0, 5)) {
+    if (id === viewer.id || !mine.has(id) || !(await s.hget(FOLLOWS(id), viewer.id))) continue;
+    const a = await getAccount(id);
+    if (a) out.push({ id, name: a.name });
+  }
+  return out;
+}
+
+export async function createPost(author: Account, input: { minutes: number; subject: string; topics: string[]; place: string; with: string[]; crewIds?: string[]; note: string; visibility: PostVisibility; at?: number; photo?: string }) {
   const now = Date.now();
+  const crew = await mutuals(author, input.crewIds ?? []);
   const recent = (await allPosts()).filter((p) => p.userId === author.id && p.at > now - 86_400_000);
   if (recent.length >= 20) throw new HttpError(429, 'That is a lot of posts for one day. Try again tomorrow.');
   const post: FeedPost = {
@@ -85,13 +115,19 @@ export async function createPost(author: Account, input: { minutes: number; subj
     subject: input.subject,
     topics: input.topics,
     place: input.place,
-    with: input.with,
+    with: [...new Set([...crew.map((c) => c.name), ...input.with])].slice(0, 10),
+    ...(crew.length ? { crew } : {}),
+    ...(input.photo ? { photo: true } : {}),
     note: input.note,
     at: Math.min(now, Math.max(now - 3 * 86_400_000, input.at ?? now)),
     visibility: input.visibility,
     kudos: [],
     kudosNames: [],
   };
+  if (input.photo) {
+    if (!/^data:image\/(jpeg|webp);base64,[A-Za-z0-9+/=]+$/.test(input.photo) || input.photo.length > MAX_PHOTO) throw new HttpError(400, 'That photo could not be used. Try another.');
+    await getStorage().set(PHOTO(post.id), input.photo);
+  }
   await getStorage().hset(POSTS, post.id, post);
   return strip(post);
 }
@@ -100,6 +136,15 @@ async function postFor(viewer: Account, id: string) {
   const p = await getStorage().hget<FeedPost>(POSTS, id);
   if (!p || !visible(p, viewer, new Set(await following(viewer.id))) || (p.userId !== viewer.id && (await (await walls(viewer)).blocks(p.userId)))) throw new HttpError(404, 'This post is gone.');
   return p;
+}
+
+/** A post's photo, for someone allowed to see the post. */
+export async function postPhoto(viewer: Account, id: string) {
+  const p = await postFor(viewer, id);
+  const data = p.photo ? await getStorage().get<string>(PHOTO(id)) : null;
+  if (!data) throw new HttpError(404, 'No photo.');
+  const [head, b64] = data.split(',');
+  return { type: head.slice(5, head.indexOf(';')), bytes: Buffer.from(b64, 'base64') };
 }
 
 /** Report a highlight: it disappears for you now, and for everyone after a few reports. */
@@ -134,7 +179,7 @@ export async function blockedPeople(viewer: Account) {
 /** When an account is deleted: its highlights, follows and blocks go too. */
 export async function removeUserSocial(id: string) {
   const s = getStorage();
-  for (const p of await allPosts()) if (p.userId === id) await s.hdel(POSTS, p.id);
+  for (const p of await allPosts()) if (p.userId === id) await Promise.all([s.hdel(POSTS, p.id), s.del(PHOTO(p.id))]);
   for (const other of Object.keys(await s.hgetall<number>(FOLLOWS(id)))) await s.hdel(FOLLOWERS(other), id);
   for (const other of Object.keys(await s.hgetall<number>(FOLLOWERS(id)))) await s.hdel(FOLLOWS(other), id);
   await Promise.all([s.del(FOLLOWS(id)), s.del(FOLLOWERS(id)), s.del(BLOCKS(id)), s.del(HIDDEN(id))]);
@@ -145,6 +190,7 @@ export async function deletePost(viewer: Account, id: string) {
   if (!p) return;
   if (p.userId !== viewer.id) throw new HttpError(403, 'You can only delete your own posts.');
   await getStorage().hdel(POSTS, id);
+  if (p.photo) await getStorage().del(PHOTO(id));
 }
 
 export async function toggleKudos(viewer: Account, id: string) {
@@ -251,4 +297,36 @@ export async function classPage(viewer: Account, course: string) {
       .slice(0, 200),
     posts: posts.sort((a, b) => b.at - a.at).slice(0, 30).map(strip),
   };
+}
+
+const weekCache = new Map<string, { at: number; minutes: number }>();
+
+/** Focus minutes in the last 7 days, from someone's saved data. Cached briefly per saved copy. */
+async function weekMinutesOf(id: string, now: number) {
+  const saved = await getUserData(id);
+  if (!saved?.data) return 0;
+  const hit = weekCache.get(id);
+  if (hit && hit.at === saved.at) return hit.minutes;
+  let minutes = 0;
+  try {
+    const sessions: { at: string; minutes: number }[] = JSON.parse(saved.data)?.profile?.sessions ?? [];
+    minutes = sessions.filter((s) => new Date(s.at).getTime() > now - WEEK).reduce((n, s) => n + (Number(s.minutes) || 0), 0);
+  } catch {
+    minutes = 0;
+  }
+  weekCache.set(id, { at: saved.at, minutes });
+  return minutes;
+}
+
+/** You and friends (people you follow who follow you back): focus time over the last 7 days. */
+export async function friendsWeek(viewer: Account, now = Date.now()) {
+  const s = getStorage();
+  const w = await walls(viewer);
+  const ids = (await following(viewer.id)).filter((id) => !w.mine.has(id)).slice(0, 60);
+  const mutual = (await Promise.all(ids.map(async (id) => ((await s.hget(FOLLOWS(id), viewer.id)) ? id : null)))).filter((x): x is string => Boolean(x)).slice(0, 30);
+  const people = await Promise.all(mutual.map(async (id) => {
+    const a = await getAccount(id);
+    return a ? { id, name: a.name, minutes: await weekMinutesOf(id, now) } : null;
+  }));
+  return people.filter((p): p is { id: string; name: string; minutes: number } => Boolean(p)).sort((a, b) => b.minutes - a.minutes);
 }

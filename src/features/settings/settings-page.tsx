@@ -19,7 +19,7 @@ import { AiSettings } from './ai-settings';
 function AppearanceCard() {
   return (
     <Card>
-      <CardHeader title="Appearance" description="Also in the palette button at the top of every page." />
+      <CardHeader title="Appearance" />
       <AppearanceOptions />
     </Card>
   );
