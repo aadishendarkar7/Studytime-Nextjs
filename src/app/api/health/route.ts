@@ -13,7 +13,7 @@ export async function GET() {
   const storage = storageKind();
   const ai = serverProviders();
   const checks = {
-    database: storage === 'redis' ? 'ok: Upstash Redis connected' : storage === 'file' ? 'ok for your own computer (data saved in .data)' : 'MISSING: connect Upstash Redis in Vercel, then redeploy. Without it accounts disappear.',
+    database: storage === 'redis' ? 'ok: Redis connected' : storage === 'file' ? 'ok for your own computer (data saved in .data)' : 'MISSING: connect a Redis database in Vercel (Storage tab), then redeploy. Without it accounts disappear.',
     signIn: process.env.AUTH_SECRET?.trim() ? 'ok' : process.env.NODE_ENV === 'production' ? 'MISSING: add AUTH_SECRET, then redeploy' : 'ok (local test secret)',
     ai: ai.length ? `ok: ${ai.join(', ')} (default ${defaultServerProvider()})` : 'MISSING: add GEMINI_API_KEY, then redeploy. Without it the AI tutor only works for people who add their own key.',
     email: emailReady() ? 'ok' : 'off (optional): add RESEND_API_KEY and EMAIL_FROM for password reset and weekly recaps',
