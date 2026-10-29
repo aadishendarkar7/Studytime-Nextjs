@@ -5,13 +5,22 @@
  * slow modulation, so it can play for hours without an audible loop.
  */
 
-export type SoundId = 'balanced' | 'bright' | 'dark' | 'rain' | 'ocean' | 'stream' | 'fire' | 'lofi' | 'ambient';
+export type SoundId = 'balanced' | 'bright' | 'dark' | 'rain' | 'roof' | 'ocean' | 'stream' | 'night' | 'quietnight' | 'fire' | 'babble' | 'steam' | 'airplane' | 'boat' | 'bus' | 'train' | 'lofi' | 'ambient';
 
 export const SOUNDS: { id: SoundId; label: string; note: string }[] = [
   { id: 'rain', label: 'Rain', note: 'Steady rainfall with soft drops. Good at covering nearby voices.' },
   { id: 'ocean', label: 'Ocean', note: 'Slow waves that rise and fall about every ten seconds.' },
   { id: 'stream', label: 'Stream', note: 'Moving water with a light, bubbling texture.' },
+  { id: 'roof', label: 'Rain on roof', note: 'Heavier rain landing on a roof above you, with the odd drip.' },
+  { id: 'night', label: 'Night', note: 'Crickets and a light breeze on a summer night.' },
+  { id: 'quietnight', label: 'Quiet night', note: 'A soft breeze and a few distant crickets. Barely there.' },
   { id: 'fire', label: 'Fireplace', note: 'A low rumble with occasional crackles.' },
+  { id: 'babble', label: 'Babble', note: 'A busy café: voices you cannot make out, and the odd cup.' },
+  { id: 'steam', label: 'Steam', note: 'A steady, gentle hiss, like a radiator or a kettle about to boil.' },
+  { id: 'airplane', label: 'Airplane', note: 'The deep, even hum of a plane cabin at cruising height.' },
+  { id: 'boat', label: 'Boat', note: 'A slow engine chug with water lapping at the hull.' },
+  { id: 'bus', label: 'Bus', note: 'Engine hum and road rumble on a long ride.' },
+  { id: 'train', label: 'Train', note: 'The rumble and steady clack of wheels on the rails.' },
   { id: 'balanced', label: 'Balanced noise', note: 'Pink noise. Even across low and high pitches.' },
   { id: 'bright', label: 'Bright noise', note: 'White noise. More hiss, masks sharp sounds best.' },
   { id: 'dark', label: 'Dark noise', note: 'Brown noise. Deep and soft, like a distant rumble.' },
@@ -203,6 +212,70 @@ const wobble = () =>
     }
   });
 
+/** Crickets: short chirps of three or four pulses, a few singers at different pitches. */
+const crickets = (key: string, singers: number, gap: number) =>
+  buffer(key, (d, ch, rate) => {
+    for (let c = 0; c < singers; c++) {
+      if ((c + ch) % 2 && singers > 1) continue; // spread singers left and right
+      const f = 4200 + c * 330 + Math.random() * 200;
+      for (let t = Math.random() * gap; t < SECONDS - 0.2; t += gap * (0.7 + Math.random() * 0.6)) {
+        const pulses = 3 + Math.floor(Math.random() * 2);
+        for (let k = 0; k < pulses; k++) {
+          const s0 = Math.floor((t + k * 0.045) * rate);
+          const n = Math.floor(0.022 * rate);
+          for (let i = 0; i < n && s0 + i < d.length; i++) d[s0 + i] += Math.sin((2 * Math.PI * f * i) / rate) * Math.sin((Math.PI * i) / n) * 0.35;
+        }
+      }
+    }
+  });
+
+/** Many voices you cannot make out: noise shaped by random syllable rhythms. */
+const babble = () =>
+  buffer('babble', (d, _ch, rate) => {
+    const voices = 9;
+    const env = new Float32Array(voices);
+    const target = new Float32Array(voices);
+    const lp = new Float32Array(voices);
+    for (let i = 0; i < d.length; i++) {
+      let sum = 0;
+      for (let v = 0; v < voices; v++) {
+        if (i % Math.floor(rate * (0.11 + v * 0.013)) === 0) target[v] = Math.random() < 0.35 ? 0 : Math.random();
+        env[v] += (target[v] - env[v]) * 0.004;
+        lp[v] += ((Math.random() * 2 - 1) - lp[v]) * (0.08 + v * 0.01);
+        sum += lp[v] * env[v];
+      }
+      d[i] = sum * 0.7;
+    }
+    // The odd cup or spoon.
+    for (let k = 0; k < 5; k++) {
+      const s0 = Math.floor(Math.random() * (d.length - rate));
+      const f = 2400 + Math.random() * 1600;
+      for (let i = 0; i < rate * 0.3; i++) d[s0 + i] += Math.sin((2 * Math.PI * f * i) / rate) * 0.06 * Math.exp((-14 * i) / rate);
+    }
+  });
+
+/** Wheels on rail joints: a pair of clacks every so often. */
+const clacks = () =>
+  buffer('clacks', (d, _ch, rate) => {
+    for (let t = 0.2; t < SECONDS - 0.4; t += 1.15) {
+      for (const at of [0, 0.16]) {
+        const s0 = Math.floor((t + at) * rate);
+        const n = Math.floor(0.08 * rate);
+        for (let i = 0; i < n; i++) d[s0 + i] += (Math.random() * 2 - 1) * 0.8 * Math.exp((-40 * i) / n);
+      }
+    }
+  });
+
+/** An engine's beat: soft low thumps a few times a second. */
+const chug = (key: string, perSecond: number) =>
+  buffer(key, (d, _ch, rate) => {
+    const step = rate / perSecond;
+    for (let s0 = 0; s0 < d.length; s0 += step) {
+      const n = Math.floor(step * 0.8);
+      for (let i = 0; i < n && s0 + i < d.length; i++) d[Math.floor(s0) + i] += Math.sin((2 * Math.PI * 48 * i) / rate) * Math.exp((-7 * i) / n) * 0.7;
+    }
+  });
+
 function source(buf: AudioBuffer, offset = Math.random() * SECONDS * 0.8) {
   const { ctx } = audio();
   const s = ctx.createBufferSource();
@@ -289,6 +362,90 @@ function build(id: SoundId): Graph {
     rumble.connect(filter('lowpass', 500)).connect(flicker).connect(out);
     chain(crackle, filter('highpass', 1800), gain(0.35));
     nodes.push(lfo(0.37, 0.15, flicker.gain));
+  }
+
+  if (id === 'roof') {
+    const body = source(pink());
+    const drops = source(bursts('roofdrops', 140, false));
+    const thuds = source(bursts('thuds', 22, true));
+    nodes.push(body, drops, thuds);
+    chain(body, filter('lowpass', 1600), gain(0.45));
+    chain(drops, filter('bandpass', 1800, 0.9), gain(0.55));
+    chain(thuds, filter('lowpass', 420), gain(0.6));
+  }
+
+  if (id === 'night' || id === 'quietnight') {
+    const quiet = id === 'quietnight';
+    const wind = source(brown());
+    const sway = gain(quiet ? 0.35 : 0.25);
+    const bugs = source(quiet ? crickets('crickets-far', 1, 2.6) : crickets('crickets', 4, 0.9));
+    nodes.push(wind, bugs);
+    wind.connect(filter('lowpass', quiet ? 380 : 520)).connect(sway).connect(out);
+    nodes.push(lfo(0.07, quiet ? 0.15 : 0.1, sway.gain));
+    chain(bugs, filter('bandpass', 4600, 1.5), gain(quiet ? 0.05 : 0.14));
+  }
+
+  if (id === 'babble') {
+    const room = source(pink());
+    const voices = source(babble());
+    nodes.push(room, voices);
+    chain(room, filter('lowpass', 600), gain(0.12));
+    chain(voices, filter('bandpass', 700, 0.6), filter('peaking', 1800, 1), gain(1.1));
+  }
+
+  if (id === 'steam') {
+    const hiss = source(white());
+    const air = gain(0.14);
+    const band = filter('bandpass', 5200, 0.8);
+    nodes.push(hiss);
+    hiss.connect(filter('highpass', 2400)).connect(band).connect(air).connect(out);
+    nodes.push(lfo(0.05, 0.025, air.gain), lfo(0.03, 900, band.frequency));
+  }
+
+  if (id === 'airplane') {
+    const cabin = source(brown());
+    const air = source(pink());
+    const hum = audio().ctx.createOscillator();
+    hum.type = 'sawtooth';
+    hum.frequency.value = 96;
+    hum.start();
+    nodes.push(cabin, air, hum);
+    chain(cabin, filter('lowpass', 420), gain(0.85));
+    chain(air, filter('lowpass', 1200), gain(0.12));
+    chain(hum, filter('lowpass', 160), gain(0.025));
+  }
+
+  if (id === 'boat') {
+    const engine = source(chug('chug-boat', 3.2), 0);
+    const water = source(pink());
+    const lap = gain(0.18);
+    const lp = filter('lowpass', 900);
+    nodes.push(engine, water);
+    chain(engine, filter('lowpass', 220), gain(0.55));
+    water.connect(lp).connect(lap).connect(out);
+    nodes.push(lfo(0.18, 0.12, lap.gain), lfo(0.18, 300, lp.frequency));
+  }
+
+  if (id === 'bus') {
+    const road = source(brown());
+    const engine = audio().ctx.createOscillator();
+    engine.type = 'sawtooth';
+    engine.frequency.value = 62;
+    engine.start();
+    const bumps = source(bursts('bumps', 2, true));
+    nodes.push(road, engine, bumps);
+    chain(road, filter('lowpass', 300), gain(0.9));
+    chain(engine, filter('lowpass', 180), gain(0.045));
+    chain(bumps, filter('lowpass', 260), gain(0.5));
+    nodes.push(lfo(0.04, 6, engine.frequency));
+  }
+
+  if (id === 'train') {
+    const rumble = source(brown());
+    const rails = source(clacks(), 0);
+    nodes.push(rumble, rails);
+    chain(rumble, filter('lowpass', 340), gain(0.85));
+    chain(rails, filter('bandpass', 900, 1.1), gain(0.5));
   }
 
   return {

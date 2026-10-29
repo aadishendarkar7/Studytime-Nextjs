@@ -10,7 +10,6 @@ import { cn, fmtMinutes, todayKey } from '@/lib/utils';
 import { isPastWindDown } from '@/features/calendar/sync';
 import { toast } from '@/lib/stores/ui';
 import { useDropComposer } from '@/features/drop/composer';
-import { SoundsPanel } from '@/features/sounds/sounds-panel';
 import { Icon } from '@/components/ui/icons';
 import { BreakCoach } from './break-coach';
 import { BuddyPanel } from './buddy-panel';
@@ -114,11 +113,8 @@ export function FocusPage() {
 
         <BuddyPanel className="lg:col-span-7" />
         <PactCard className="lg:col-span-5" />
-        <SoundsPanel className="lg:col-span-5" />
-        <div className="grid content-start gap-6 lg:col-span-7">
-          <BreakCoach />
-          <ParkingLot />
-        </div>
+        <BreakCoach className="lg:col-span-7" />
+        <ParkingLot className="lg:col-span-5" />
 
         <Card className="lg:col-span-12">
           <CardHeader title="Today" description={today.length ? `${today.length} ${today.length === 1 ? 'session' : 'sessions'}, ${fmtMinutes(minutesOn(p.sessions, todayKey()))} of ${fmtMinutes(p.dailyGoal)} goal.` : undefined} />

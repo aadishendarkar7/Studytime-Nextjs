@@ -1,7 +1,7 @@
 import 'server-only';
 import crypto from 'node:crypto';
 import { promisify } from 'node:util';
-import { cookieFrom, readSessionFull, SESSION_COOKIE, SESSION_DAYS, signSession } from '@/lib/session-token';
+import { authSecret, cookieFrom, NO_SECRET, readSessionFull, SESSION_COOKIE, SESSION_DAYS, signSession } from '@/lib/session-token';
 import { HttpError } from './http';
 import { secret } from './ids';
 import { getStorage, storageKind } from './storage';
@@ -71,7 +71,7 @@ const save = (a: Account) => getStorage().hset(USERS, a.id, a);
 
 /** Accounts must be stored somewhere that lasts. On Vercel that means Redis. */
 export function requireLastingStorage() {
-  if (storageKind() === 'memory' && process.env.VERCEL) throw new HttpError(503, 'Accounts are not switched on for this site yet. You can still use everything else without one.');
+  if ((storageKind() === 'memory' && process.env.VERCEL) || !authSecret()) throw new HttpError(503, NO_SECRET);
 }
 
 export async function createAccount(input: { email: string; password: string; name: string }) {

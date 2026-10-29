@@ -110,7 +110,7 @@ export function Sidebar() {
           ) : (
             <Link href={signInHref('signup')} className="flex min-w-0 flex-1 items-center gap-2.5 rounded-lg bg-accent-fill px-3 py-2 text-white hover:opacity-90">
               <Icon name="user" className="size-4" />
-              <span className="min-w-0"><strong className="block text-[13px] font-semibold">Create free account</strong><small className="block text-[12px] text-white/80">Save progress, join friends</small></span>
+              <span className="min-w-0"><strong className="block truncate text-[13px] font-semibold">Create account</strong><small className="block truncate text-[12px] text-white/80">Free. Saves your progress</small></span>
             </Link>
           )}
           <Link href="/settings" aria-label="Settings" title="Settings" className={cn('grid size-8 shrink-0 place-items-center rounded-lg hover:bg-surface-3 hover:text-ink', isActive(pathname, '/settings') ? 'bg-surface-3 text-ink' : 'text-muted')}><Icon name="settings" className="size-[17px]" /></Link>

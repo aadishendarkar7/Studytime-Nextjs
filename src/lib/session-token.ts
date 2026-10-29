@@ -4,6 +4,7 @@ import crypto from 'node:crypto';
 export const SESSION_COOKIE = 'st_session';
 export const SESSION_DAYS = 60;
 
+export const NO_SECRET = 'Accounts are not switched on for this site yet. You can still use everything else without one.';
 const DEV_SECRET = 'studytime-local-dev-secret';
 
 /**
@@ -24,7 +25,7 @@ const mac = (body: string, secret: string) => crypto.createHmac('sha256', secret
 
 export function signSession(userId: string, now = Date.now(), version = 0) {
   const secret = authSecret();
-  if (!secret) throw new Error('AUTH_SECRET is not set. Add it in your hosting settings (Vercel → Settings → Environment Variables).');
+  if (!secret) throw new Error(NO_SECRET);
   const body = b64(JSON.stringify({ u: userId, e: now + SESSION_DAYS * 86_400_000, v: version }));
   return `${body}.${mac(body, secret)}`;
 }
