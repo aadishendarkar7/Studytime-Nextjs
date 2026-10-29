@@ -6,6 +6,7 @@ import { Avatar } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Icon } from '@/components/ui/icons';
 import { useAccount } from '@/features/auth/account';
+import { SignInGate } from '@/features/auth/sign-in-gate';
 import { InviteCard } from '@/features/auth/invite-card';
 import { allEvents } from '@/features/calendar/sync';
 import { toneFor } from '@/features/chat/live';
@@ -28,6 +29,10 @@ const DAY = 86_400_000;
 
 /** One class: what is due, who is studying it right now, classmates, and their highlights. */
 export function ClassPage() {
+  return <SignInGate title="Sign in to see your classmates" icon="friends"><ClassPageBody /></SignInGate>;
+}
+
+function ClassPageBody() {
   const code = decodeURIComponent(String(useParams<{ code: string }>().code ?? ''));
   const key = courseKey(code);
   const p = useProfile();

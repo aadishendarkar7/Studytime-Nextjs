@@ -1,13 +1,15 @@
 import 'server-only';
 import type { AiMessage, AiPart, AiRequest, ProviderId } from '@/lib/ai/providers';
 import { PROVIDER_IDS } from '@/lib/ai/providers';
+import { setting } from './env';
 import { HttpError } from './http';
 
-const ENV_KEYS: Record<ProviderId, string> = {
-  gemini: 'GEMINI_API_KEY',
-  groq: 'GROQ_API_KEY',
-  openrouter: 'OPENROUTER_API_KEY',
-  anthropic: 'ANTHROPIC_API_KEY',
+/** The names a key may be saved under in Vercel. The first is the one we ask for. */
+const ENV_KEYS: Record<ProviderId, string[]> = {
+  gemini: ['GEMINI_API_KEY', 'GOOGLE_API_KEY', 'GOOGLE_GENERATIVE_AI_API_KEY', 'GOOGLE_AI_API_KEY', 'GEMINI_KEY', 'NEXT_PUBLIC_GEMINI_API_KEY'],
+  groq: ['GROQ_API_KEY', 'GROQ_KEY', 'NEXT_PUBLIC_GROQ_API_KEY'],
+  openrouter: ['OPENROUTER_API_KEY', 'OPENROUTER_KEY'],
+  anthropic: ['ANTHROPIC_API_KEY', 'CLAUDE_API_KEY'],
 };
 const BASE: Record<ProviderId, [string, string]> = {
   gemini: ['GEMINI_BASE_URL', 'https://generativelanguage.googleapis.com'],
@@ -17,10 +19,12 @@ const BASE: Record<ProviderId, [string, string]> = {
 };
 const base = (p: ProviderId) => (process.env[BASE[p][0]] || BASE[p][1]).replace(/\/$/, '');
 
-export const serverKey = (p: ProviderId) => process.env[ENV_KEYS[p]]?.trim() || '';
+export const serverKey = (p: ProviderId) => setting(...ENV_KEYS[p]);
+/** Which setting name a provider's key was found under, for the setup check. */
+export const serverKeyName = (p: ProviderId) => ENV_KEYS[p].find((n) => setting(n)) ?? null;
 export const serverProviders = () => PROVIDER_IDS.filter((p) => serverKey(p));
 export function defaultServerProvider(): ProviderId | null {
-  const preferred = process.env.AI_PROVIDER as ProviderId | undefined;
+  const preferred = setting('AI_PROVIDER').toLowerCase() as ProviderId | '';
   if (preferred && serverKey(preferred)) return preferred;
   return serverProviders()[0] ?? null;
 }

@@ -1,5 +1,6 @@
 import 'server-only';
 import path from 'node:path';
+import { anyRedisUrl, setting } from '../env';
 import { FileStorage } from './file';
 import { MemoryStorage } from './memory';
 import { RedisStorage } from './redis';
@@ -17,12 +18,12 @@ let instance: Storage | null = null;
  * - STORAGE_DRIVER=memory → in-memory (tests)
  * - otherwise → JSON file in .data/ (local development)
  */
-/** A redis:// or rediss:// URL, as added by Vercel's Redis (Storage tab) or Redis Cloud. */
-const redisUrl = () => [process.env.REDIS_URL, process.env.KV_URL, process.env.STORAGE_URL].find((u) => u && /^rediss?:\/\//.test(u.trim()))?.trim();
+/** A redis:// or rediss:// URL, as added by Vercel's Redis (Storage tab) or Redis Cloud, under any name. */
+const redisUrl = () => anyRedisUrl() || undefined;
 
 /** Where data is kept: 'redis' (lasts), 'file' (your own computer), or 'memory' (lost on every restart). */
 export function storageKind(): 'redis' | 'file' | 'memory' {
-  if ((process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL) && (process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN)) return 'redis';
+  if (setting('UPSTASH_REDIS_REST_URL', 'KV_REST_API_URL') && setting('UPSTASH_REDIS_REST_TOKEN', 'KV_REST_API_TOKEN')) return 'redis';
   if (redisUrl()) return 'redis';
   if (process.env.STORAGE_DRIVER === 'memory' || process.env.VERCEL) return 'memory';
   return 'file';
@@ -30,8 +31,8 @@ export function storageKind(): 'redis' | 'file' | 'memory' {
 
 export function getStorage(): Storage {
   if (instance) return instance;
-  const url = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL;
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN;
+  const url = setting('UPSTASH_REDIS_REST_URL', 'KV_REST_API_URL');
+  const token = setting('UPSTASH_REDIS_REST_TOKEN', 'KV_REST_API_TOKEN');
   if (url && token) instance = new RedisStorage(url, token);
   else if (redisUrl()) instance = new TcpRedisStorage(redisUrl()!);
   // On Vercel there is no lasting disk, so without Redis data only lives in memory.

@@ -82,14 +82,14 @@ function watch() {
   return () => (subs.forEach((u) => u()), subProfile(), document.removeEventListener('visibilitychange', onHide));
 }
 
-let started: Promise<'ok' | 'signin'> | null = null;
+let started: Promise<'ok' | 'guest'> | null = null;
 let stop: (() => void) | null = null;
 
 /**
  * Before the app shows: check the session, load this account's data on a new
  * device, keep someone else's data from leaking into it, then keep saving.
  */
-export function startAccount() {
+export function startAccount(): Promise<'ok' | 'guest'> {
   started ??= (async () => {
     let me: Awaited<ReturnType<typeof api.auth.me>>;
     try {
@@ -100,8 +100,9 @@ export function startAccount() {
       return 'ok';
     }
     if (!me.user) {
-      await api.auth.signout().catch(() => undefined);
-      return 'signin';
+      // A visitor without an account: everything runs from this browser.
+      await hydrateStores();
+      return 'guest';
     }
     const user = me.user;
     const prevOwner = owner();
@@ -137,5 +138,5 @@ export async function signOut() {
   await saveNow().catch(() => undefined);
   await api.auth.signout().catch(() => undefined);
   stop?.();
-  location.href = '/signin';
+  location.href = '/';
 }

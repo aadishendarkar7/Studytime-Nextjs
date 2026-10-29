@@ -20,7 +20,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const [ready, setReady] = useState(false);
   const user = useAccount((s) => s.user);
   useEffect(() => {
-    startAccount().then((r) => (r === 'signin' ? location.replace(`/signin?next=${encodeURIComponent(location.pathname + location.search)}`) : setReady(true)));
+    void startAccount().then(() => setReady(true));
   }, []);
   if (ready && user && !user.onboarded) return <><Welcome /><Toaster /></>;
   if (!ready)

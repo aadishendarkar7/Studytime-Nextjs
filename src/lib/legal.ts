@@ -4,11 +4,11 @@
  */
 export const LEGAL = {
   /** Person or company that operates the site, as it should appear in the policies. */
-  operatorName: '',
+  operatorName: 'Aadi Shendarkar',
   /** Where people send privacy requests and questions. */
-  contactEmail: '',
+  contactEmail: 'aadishendarkar7@gmail.com',
   /** Whose law governs the terms, for example "the State of Maryland, United States". */
-  governingLaw: '',
+  governingLaw: 'the State of Maryland, United States',
   /** Date these documents were last changed. */
-  updated: 'October 26, 2026',
+  updated: 'October 29, 2026',
 } as const;

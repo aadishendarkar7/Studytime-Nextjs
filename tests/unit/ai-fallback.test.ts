@@ -56,14 +56,14 @@ describe('AI access', () => {
   });
   afterEach(() => (vi.unstubAllEnvs(), vi.unstubAllGlobals()));
 
-  it('lets signed-in students use the site key without the code, and blocks strangers', async () => {
+  it('lets everyone use the site key, signed in or not', async () => {
     vi.stubGlobal('fetch', vi.fn(async () => sse('hi')));
     const { POST } = await import('@/app/api/ai/route');
     const { signSession } = await import('@/lib/session-token');
     const body = JSON.stringify({ provider: 'gemini', model: 'gemini-3.8-flash', messages: [{ role: 'user', content: 'hi' }] });
     const signedIn = await POST(new Request('http://x/api/ai', { method: 'POST', headers: { cookie: `st_session=${signSession('u1')}` }, body }));
     expect(signedIn.status).toBe(200);
-    const stranger = await POST(new Request('http://x/api/ai', { method: 'POST', body }));
-    expect(stranger.status).toBe(401);
+    const visitor = await POST(new Request('http://x/api/ai', { method: 'POST', body }));
+    expect(visitor.status).toBe(200);
   });
 });

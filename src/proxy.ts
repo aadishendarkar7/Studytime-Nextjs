@@ -1,17 +1,18 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { readSession, SESSION_COOKIE } from '@/lib/session-token';
 
-/** Everyone signs in first. The sign-in page, legal pages, API routes and files stay public. */
+/**
+ * Anyone can use the site without an account. The only redirect: someone
+ * already signed in who opens the sign-in page goes back into the app.
+ */
 export function proxy(request: NextRequest) {
-  const signedIn = Boolean(readSession(request.cookies.get(SESSION_COOKIE)?.value));
-  const { pathname, search } = request.nextUrl;
-  if (pathname === '/signin') return signedIn ? NextResponse.redirect(new URL('/', request.url)) : NextResponse.next();
-  if (signedIn) return NextResponse.next();
-  const to = new URL('/signin', request.url);
-  if (pathname !== '/') to.searchParams.set('next', pathname + search);
-  return NextResponse.redirect(to);
+  if (readSession(request.cookies.get(SESSION_COOKIE)?.value)) {
+    const next = request.nextUrl.searchParams.get('next');
+    return NextResponse.redirect(new URL(next && next.startsWith('/') && !next.startsWith('//') ? next : '/', request.url));
+  }
+  return NextResponse.next();
 }
 
 export const config = {
-  matcher: ['/((?!api|_next|privacy|terms|reset|invite|.*\\..*).*)'],
+  matcher: ['/signin'],
 };

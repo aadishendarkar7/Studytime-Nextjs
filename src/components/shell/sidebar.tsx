@@ -9,6 +9,8 @@ import { useDropComposer } from '@/features/drop/composer';
 import { useDrops } from '@/features/drop/live';
 import { SoundDock } from '@/features/sounds/sound-dock';
 import { useProfile } from '@/lib/stores/profile';
+import { useAccount } from '@/features/auth/account';
+import { signInHref } from '@/features/auth/sign-in-gate';
 import { useNow } from '@/lib/use-now';
 import { cn } from '@/lib/utils';
 import { AppearanceButtons } from './appearance-picker';
@@ -87,6 +89,7 @@ export function Sidebar() {
   const pathname = usePathname();
   const name = useProfile((s) => s.name.trim() || 'Student');
   const school = useProfile((s) => s.school);
+  const signedIn = useAccount((s) => Boolean(s.user));
   return (
     <aside className="sticky top-0 hidden h-dvh w-60 shrink-0 flex-col border-r border-line bg-[var(--sidebar)] px-3 pt-4 pb-3 lg:flex">
       <Wordmark className="mx-2.5 mb-6 h-8" />
@@ -96,13 +99,20 @@ export function Sidebar() {
       <div className="mt-3 grid gap-2 border-t border-line pt-3">
         <SoundDock />
         <div className="flex items-center gap-1">
+          {signedIn ? (
           <Link href="/you?tab=profile" className="flex min-w-0 flex-1 items-center gap-2.5 rounded-lg px-2 py-1.5 hover:bg-surface-3">
-            <Avatar name={name} size={28} />
-            <span className="min-w-0">
-              <strong className="block truncate text-[13px] font-medium">{name}</strong>
-              <small className="block truncate text-[12px] text-muted">{school || 'Add your school'}</small>
-            </span>
-          </Link>
+              <Avatar name={name} size={28} />
+              <span className="min-w-0">
+                <strong className="block truncate text-[13px] font-medium">{name}</strong>
+                <small className="block truncate text-[12px] text-muted">{school || 'Add your school'}</small>
+              </span>
+            </Link>
+          ) : (
+            <Link href={signInHref('signup')} className="flex min-w-0 flex-1 items-center gap-2.5 rounded-lg bg-accent-fill px-3 py-2 text-white hover:opacity-90">
+              <Icon name="user" className="size-4" />
+              <span className="min-w-0"><strong className="block text-[13px] font-semibold">Create free account</strong><small className="block text-[12px] text-white/80">Save progress, join friends</small></span>
+            </Link>
+          )}
           <Link href="/settings" aria-label="Settings" title="Settings" className={cn('grid size-8 shrink-0 place-items-center rounded-lg hover:bg-surface-3 hover:text-ink', isActive(pathname, '/settings') ? 'bg-surface-3 text-ink' : 'text-muted')}><Icon name="settings" className="size-[17px]" /></Link>
         </div>
         <FooterLinks className="px-2" />
@@ -114,6 +124,7 @@ export function Sidebar() {
 const EXTRA_TITLES: Record<string, string> = { '/help': 'Support', '/privacy': 'Privacy', '/terms': 'Terms' };
 
 export function Topbar() {
+  const signedIn = useAccount((st) => Boolean(st.user));
   const pathname = usePathname();
   // The menu is open only for the page it was opened on, so navigating closes it.
   const [openAt, setOpenAt] = useState<string | null>(null);
@@ -142,6 +153,7 @@ export function Topbar() {
             </button>
           )}
           <AppearanceButtons />
+          {!signedIn && <Link href={signInHref('signin')} className="ml-1 inline-flex h-8 items-center rounded-lg bg-accent-fill px-3 text-[13px] font-semibold text-white hover:opacity-90 lg:hidden">Sign in</Link>}
           <button
             type="button"
             onClick={() => setOpenAt(open ? null : pathname)}

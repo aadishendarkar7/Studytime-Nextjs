@@ -9,11 +9,19 @@ export default function TermsPage() {
   return (
     <LegalPage title="Terms and conditions">
       <p>
-        These terms cover your use of Studytime, which is run by <Operator />. By using the app you agree to them. If you do not agree, do not use it.
+        These terms cover your use of Studytime, an independent student project run by <Operator />. Studytime is not affiliated with or endorsed by any university. By using the app you agree to these terms and the <Link href="/privacy" className="text-accent underline underline-offset-4">privacy policy</Link>. If you do not agree, do not use it.
       </p>
 
       <Section title="What Studytime is">
-        <p>Studytime is a study tool: a focus timer, a deadline planner, flashcards with spaced repetition, an AI tutor, study circles, class quizzes, and leaderboards.</p>
+        <p>Studytime is a free study tool for students: a focus timer, a calendar and planner, flashcards, notes and lecture recordings, an AI tutor and AI-made courses, Drop a Spot for studying with others, a Feed for sharing study sessions, challenges, and leaderboards.</p>
+      </Section>
+
+      <Section title="Who can use it">
+        <p>You must be at least 13 years old to use Studytime. If you are under 18, use it with the permission of a parent or guardian. You can use most of the app without an account; posting, following people and saving progress across devices need one.</p>
+      </Section>
+
+      <Section title="Your account">
+        <p>Give accurate details, keep your password private, and tell us at <Contact /> if you think someone else is using your account. You are responsible for what happens under your account. One account per person.</p>
       </Section>
 
       <Section title="AI output can be wrong">
@@ -21,13 +29,23 @@ export default function TermsPage() {
       </Section>
 
       <Section title="Your content">
-        <p>You keep ownership of what you write, upload, and share. You give the operator permission to store and display shared content, such as your leaderboard name or a shared deck, as needed to run those features. Do not share content that is unlawful, harassing, or that you do not have the right to share.</p>
+        <p>You keep ownership of what you write, upload, and share, including posts and photos. You give the operator a free, non-exclusive permission to store, display and resize that content only as needed to run Studytime, for example showing your post to the people you chose. This permission ends when you delete the content, except for copies kept briefly in backups or for a report under review.</p>
+      </Section>
+
+      <Section title="Posts and photos">
+        <ul>
+          <li>Post only your own study sessions, and only photos you took or have the right to share.</li>
+          <li>Do not post photos of other people without their permission, and never post anything sexual, violent, hateful, or showing someone&rsquo;s private information.</li>
+          <li>Only tag friends who actually studied with you.</li>
+          <li>Do not post exam questions, answer keys, or other material your school does not allow you to share.</li>
+          <li>Anyone can report a post. Reported posts may be hidden or removed, and accounts that break these rules may be suspended.</li>
+        </ul>
       </Section>
 
       <Section title="Acceptable use">
         <ul>
           <li>Do not try to break, overload, or bypass the limits of the service, including the AI request limits.</li>
-          <li>Do not use the site&rsquo;s shared AI key if you were not given access to it.</li>
+          <li>Do not use automated scripts or bots, or try to get around daily limits with extra accounts.</li>
           <li>Do not impersonate another student or enter someone else&rsquo;s details on a leaderboard, partner listing, or shared spot.</li>
           <li>Do not use partner listings to send spam, harass anyone, or collect contact details for anything other than studying together.</li>
           <li>Drop and share only public places. Never drop a private home or anyone&rsquo;s address, and do not use drops to track or follow someone.</li>
@@ -55,7 +73,7 @@ export default function TermsPage() {
       </Section>
 
       <Section title="Your data in the browser">
-        <p>Your progress is stored in your browser, not in an account. If you clear your browser data without making a backup, it is gone and cannot be recovered. See the <Link href="/privacy" className="text-accent underline underline-offset-4">privacy policy</Link> for what is stored where.</p>
+        <p>Without an account, your progress is stored only in your browser. If you clear your browser data it is gone and cannot be recovered. With an account, a copy is saved to your account. See the <Link href="/privacy" className="text-accent underline underline-offset-4">privacy policy</Link> for what is stored where.</p>
       </Section>
 
       <Section title="No warranty">
@@ -63,7 +81,7 @@ export default function TermsPage() {
       </Section>
 
       <Section title="Ending access">
-        <p>You can stop using Studytime at any time. The operator can restrict access for anyone who breaks these terms.</p>
+        <p>You can stop using Studytime and delete your account at any time from Settings. The operator can remove content or restrict access for anyone who breaks these terms.</p>
       </Section>
 
       <Section title="Governing law">

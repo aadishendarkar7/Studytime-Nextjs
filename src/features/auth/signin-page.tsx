@@ -3,16 +3,50 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Field, Input } from '@/components/ui/field';
-import { Icon, Logo } from '@/components/ui/icons';
+import '@fontsource-variable/bricolage-grotesque';
+import { Logo } from '@/components/ui/icons';
 import { Segmented } from '@/components/ui/segmented';
 import { api, ApiError } from '@/lib/api';
 import { cn } from '@/lib/utils';
 
-const POINTS: { icon: 'pin' | 'ai' | 'calendar'; title: string; body: string }[] = [
-  { icon: 'pin', title: 'Drop a Spot', body: 'Say where you are studying. Friends see it and pull up a chair.' },
-  { icon: 'ai', title: 'A tutor for your classes', body: 'Ask questions or turn slides into cheat sheets and practice tests.' },
-  { icon: 'calendar', title: 'A plan that fits your week', body: 'Connect your classes and get study time before every exam.' },
+const FEATURES = ['See who is studying where, and pull up a chair', 'An AI tutor that turns slides into practice tests', 'Post your sessions and keep each other going'];
+
+/** Illustration of the live map: a few study spots appearing on campus paths. */
+const PINS = [
+  { x: 96, y: 104, label: 'Calc II', people: 3 },
+  { x: 268, y: 92, label: 'Orgo', people: 2 },
+  { x: 210, y: 182, label: 'STAT400', people: 4 },
+  { x: 104, y: 226, label: 'Essay sprint', people: 1 },
 ];
+
+function CampusMap({ compact = false }: { compact?: boolean }) {
+  return (
+    <div className={cn('st-map relative overflow-hidden rounded-[22px] border border-white/10 bg-[#13241e]', compact ? 'h-[170px]' : 'h-[260px]')} aria-hidden="true">
+      <svg viewBox="0 0 360 260" preserveAspectRatio="xMidYMid slice" className="absolute inset-0 size-full">
+        <defs>
+          <pattern id="stgrid" width="24" height="24" patternUnits="userSpaceOnUse"><path d="M24 0H0v24" fill="none" stroke="#ffffff" strokeOpacity=".04" /></pattern>
+        </defs>
+        <rect width="360" height="260" fill="url(#stgrid)" />
+        <path d="M-10 120 C 80 100, 120 150, 200 128 S 320 90, 380 110" fill="none" stroke="#2b4a3e" strokeWidth="14" strokeLinecap="round" />
+        <path d="M150 -10 C 160 60, 120 120, 170 190 S 220 250, 230 280" fill="none" stroke="#2b4a3e" strokeWidth="10" strokeLinecap="round" />
+        <rect x="236" y="18" width="78" height="56" rx="10" fill="#1d3229" />
+        <rect x="24" y="40" width="70" height="44" rx="10" fill="#1d3229" />
+        <rect x="186" y="150" width="96" height="58" rx="10" fill="#1d3229" />
+        <circle cx="70" cy="200" r="30" fill="#1a2e26" />
+      </svg>
+      {PINS.map((p, i) => (
+        <div key={p.label} className="st-pin absolute flex flex-col items-center" style={{ left: `${(p.x / 360) * 100}%`, top: `${(p.y / 260) * 100}%`, animationDelay: `${0.25 + i * 0.18}s` }}>
+          <span className="flex items-center gap-1.5 rounded-full bg-[#f3f1ea] py-1 pr-2.5 pl-1 text-[12px] font-semibold whitespace-nowrap text-[#0e1a16] shadow-[0_6px_16px_-6px_rgba(0,0,0,.6)]">
+            <span className="flex -space-x-1.5">{Array.from({ length: Math.min(3, p.people) }, (_, k) => <span key={k} className="size-4 rounded-full border-2 border-[#f3f1ea]" style={{ background: ['#3f9f72', '#7fd39a', '#c9c7c0'][k] }} />)}</span>
+            {p.label}
+          </span>
+          <span className="h-2.5 w-0.5 bg-[#f3f1ea]" />
+          <span className="relative size-2.5 rounded-full bg-[#7fd39a]">{i === 2 && <span className="st-ring absolute -inset-2 rounded-full border-2 border-[#7fd39a]" />}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
 
 function GoogleMark() {
   return (
@@ -104,28 +138,38 @@ export function SignInPage() {
   const domainHint = opts.domains.length ? `Use your ${opts.domains.map((d) => `@${d}`).join(' or ')} email.` : '';
 
   return (
-    <div className="grid min-h-dvh bg-bg lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
-      <aside className="relative hidden overflow-hidden border-r border-line bg-accent-soft/60 p-12 lg:flex lg:flex-col">
-        <div className="flex items-center gap-2 text-[17px] font-semibold tracking-tight"><Logo className="size-7" /> Studytime</div>
-        <div className="my-auto max-w-[420px]">
-          <h1 className="text-[34px] leading-[42px] tracking-tight">Study with your campus, not alone in your room.</h1>
-          <ul className="mt-8 grid gap-5">
-            {POINTS.map((p) => (
-              <li key={p.title} className="flex gap-3">
-                <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-surface text-accent shadow-sm"><Icon name={p.icon} className="size-[18px]" /></span>
-                <span><span className="block text-[15px] font-semibold">{p.title}</span><span className="block text-[14px] leading-5 text-ink-2">{p.body}</span></span>
-              </li>
-            ))}
+    <div className="grid min-h-dvh bg-bg lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)]">
+      <style>{`
+        .st-display { font-family: 'Bricolage Grotesque Variable', var(--font-sans); font-variation-settings: 'opsz' 96; letter-spacing: -0.035em; }
+        @keyframes st-drop { from { opacity: 0; transform: translate(-50%, calc(-100% - 14px)); } to { opacity: 1; transform: translate(-50%, -100%); } }
+        @keyframes st-ring { 0% { transform: scale(.6); opacity: .9; } 100% { transform: scale(2.2); opacity: 0; } }
+        .st-pin { opacity: 0; transform: translate(-50%, -100%); animation: st-drop .55s cubic-bezier(.2,.9,.3,1.2) forwards; }
+        .st-ring { animation: st-ring 2.2s ease-out 1.4s infinite; }
+        @media (prefers-reduced-motion: reduce) { .st-pin { animation: none; opacity: 1; } .st-ring { animation: none; opacity: 0; } }
+      `}</style>
+      <aside className="relative hidden overflow-hidden bg-[#0e1a16] px-12 py-10 text-[#f3f1ea] lg:flex lg:flex-col">
+        <span className="pointer-events-none absolute -top-40 -right-40 size-[520px] rounded-full bg-[radial-gradient(circle,rgba(127,211,154,.16),transparent_65%)]" />
+        <Link href="/" className="relative flex items-center gap-2.5 text-[17px] font-semibold tracking-tight"><Logo className="size-9" /> Studytime</Link>
+        <div className="relative my-auto max-w-[520px] py-10">
+          <h1 className="st-display text-[64px] leading-[0.95] font-bold xl:text-[76px]">Study with your campus.</h1>
+          <p className="mt-5 max-w-[40ch] text-[17px] leading-7 text-[#c9c7c0]">Find people studying near you, get help from an AI tutor, and make the hours count.</p>
+          <div className="mt-9"><CampusMap /></div>
+          <ul className="mt-7 grid gap-2.5">
+            {FEATURES.map((f) => <li key={f} className="flex items-center gap-3 text-[15px] text-[#e4e2db]"><span className="size-1.5 shrink-0 rounded-full bg-[#7fd39a]" />{f}</li>)}
           </ul>
         </div>
-        <p className="text-[12px] text-muted">Free for students.</p>
+        <p className="relative text-[13px] text-[#8fa199]">Free for students</p>
       </aside>
 
       <main className="flex items-center justify-center px-5 py-10">
-        <div className="w-full max-w-[380px]">
-          <div className="mb-8 flex items-center gap-2 text-[17px] font-semibold tracking-tight lg:hidden"><Logo className="size-7" /> Studytime</div>
-          <h2 className="font-sans text-[26px] leading-8 font-semibold tracking-tight">{mode === 'signin' ? 'Welcome back' : 'Create your account'}</h2>
-          <p className="mt-1 text-[14px] text-muted">{mode === 'signin' ? 'Sign in to pick up where you left off.' : 'Takes a minute. Your progress follows you to every device.'}</p>
+        <div className="w-full max-w-[400px]">
+          <div className="-mx-5 -mt-10 mb-8 bg-[#0e1a16] px-5 pt-6 pb-5 text-[#f3f1ea] lg:hidden">
+            <Link href="/" className="flex items-center gap-2 text-[16px] font-semibold tracking-tight"><Logo className="size-8" /> Studytime</Link>
+            <p className="st-display mt-5 text-[40px] leading-[0.95] font-bold">Study with your campus.</p>
+            <div className="mt-5"><CampusMap compact /></div>
+          </div>
+          <h2 className="st-display text-[34px] leading-9 font-bold">{mode === 'signin' ? 'Welcome back' : 'Join Studytime'}</h2>
+          <p className="mt-2 text-[15px] text-muted">{mode === 'signin' ? 'Pick up where you left off.' : 'Free. Your progress follows you to every device.'}</p>
 
           <Segmented className="mt-6" label="Sign in or sign up" value={mode} onChange={(m) => (setMode(m), setError(''))} options={[{ value: 'signin', label: 'Sign in' }, { value: 'signup', label: 'Create account' }]} />
 
@@ -148,7 +192,8 @@ export function SignInPage() {
             {mode === 'signin' && <button type="button" className="mt-3 block text-[13px] font-medium text-accent-ink hover:underline" onClick={() => (setForgot('ask'), setError(''))}>Forgot your password?</button>}
           </form>
 
-          <p className="mt-6 text-center text-[13px] text-muted">
+          <Link href="/" className="mt-4 flex h-11 w-full items-center justify-center rounded-lg text-[14px] font-medium text-ink-2 hover:bg-surface-3 hover:text-ink">Look around first, no account needed</Link>
+          <p className="mt-4 text-center text-[13px] text-muted">
             {mode === 'signin' ? 'New here? ' : 'Already have an account? '}
             <button type="button" className="font-medium text-accent-ink hover:underline" onClick={() => (setMode(mode === 'signin' ? 'signup' : 'signin'), setError(''))}>{mode === 'signin' ? 'Create an account' : 'Sign in'}</button>
           </p>

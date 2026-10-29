@@ -88,3 +88,23 @@ describe('password reset and account deletion', () => {
     await createAccount({ email: 'd@umd.edu', password: 'password1', name: 'D2' });
   });
 });
+
+import { anyRedisUrl, setting } from '@/lib/server/env';
+
+describe('forgiving settings', () => {
+  it('strips quotes, spaces and a pasted NAME= prefix', () => {
+    process.env.T_KEY = '  "GEMINI_API_KEY=abc123"  ';
+    process.env.GEMINI_API_KEY_TEST = "'xyz'";
+    expect(setting('T_KEY')).toBe('GEMINI_API_KEY=abc123'); // only its own name is stripped
+    expect(setting('GEMINI_API_KEY_TEST')).toBe('xyz');
+    process.env.T_KEY2 = 'T_KEY2=  value ';
+    expect(setting('MISSING_ONE', 'T_KEY2')).toBe('value');
+  });
+  it('finds a Redis URL under any storage-like name', () => {
+    const saved = { ...process.env };
+    for (const k of ['REDIS_URL', 'KV_URL', 'STORAGE_URL', 'REDIS_TLS_URL']) delete process.env[k];
+    process.env.STUDYTIME_REDIS_URL = '"redis://default:pw@host:6379"';
+    expect(anyRedisUrl()).toBe('redis://default:pw@host:6379');
+    process.env = saved;
+  });
+});

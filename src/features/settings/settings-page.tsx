@@ -1,4 +1,5 @@
 'use client';
+import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import { Dialog } from '@/components/ui/dialog';
 import { Card, CardHeader, PageHeader } from '@/components/ui/card';
@@ -7,6 +8,7 @@ import { Checkbox, Field, Input, Note } from '@/components/ui/field';
 import { Icon } from '@/components/ui/icons';
 import { AppearanceOptions } from '@/components/shell/appearance-picker';
 import { clearLocalData, saveNow, signOut, useAccount } from '@/features/auth/account';
+import { signInHref } from '@/features/auth/sign-in-gate';
 import { shareInvite } from '@/features/auth/invite-card';
 import { api } from '@/lib/api';
 import { NotificationSettings } from '@/features/planner/notifications';
@@ -53,7 +55,17 @@ function AccountCard() {
   const savedAt = useAccount((s) => s.savedAt);
   const saving = useAccount((s) => s.saving);
   const [dialog, setDialog] = useState<'' | 'password' | 'delete' | 'blocked'>('');
-  if (!user) return null;
+  if (!user)
+    return (
+      <Card>
+        <CardHeader title="Account" />
+        <p className="text-[14px] text-ink-2">You are using Studytime without an account. Everything is saved in this browser only.</p>
+        <div className="mt-4 flex gap-2">
+          <Link href={signInHref('signup')}><Button>Create free account</Button></Link>
+          <Link href={signInHref('signin')}><Button variant="secondary">Sign in</Button></Link>
+        </div>
+      </Card>
+    );
   return (
     <Card>
       <CardHeader title="Account" description={`Signed in as ${user.email}${user.viaGoogle ? ' with Google' : ''}.`} />
@@ -111,7 +123,7 @@ function DeleteDialog({ hasPassword, onClose }: { hasPassword: boolean; onClose:
   const [busy, setBusy] = useState(false);
   return (
     <Dialog open onClose={onClose} title="Delete your account">
-      <p className="text-[14px] text-ink-2">This deletes your account, your saved progress, your highlights and who you follow. It cannot be undone. Data saved only in this browser is cleared too.</p>
+      <p className="text-[14px] text-ink-2">This deletes your account, your saved progress, your posts and photos, and who you follow. It cannot be undone. Data saved only in this browser is cleared too.</p>
       <form onSubmit={async (e) => {
         e.preventDefault();
         setBusy(true);

@@ -6,9 +6,16 @@ export const SESSION_DAYS = 60;
 
 const DEV_SECRET = 'studytime-local-dev-secret';
 
+/**
+ * The key that signs sign-in cookies. AUTH_SECRET if it is set; otherwise one
+ * derived from the database password, which is just as private and already set
+ * once a database is connected. Local development uses a fixed test secret.
+ */
 export function authSecret() {
-  const s = process.env.AUTH_SECRET?.trim();
+  const s = process.env.AUTH_SECRET?.trim().replace(/^["']|["']$/g, '');
   if (s) return s;
+  const db = Object.entries(process.env).find(([k, v]) => /REDIS|KV/i.test(k) && v && /^["']?rediss?:\/\//.test(v.trim()))?.[1] || process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN;
+  if (db) return crypto.createHash('sha256').update(`studytime-session:${db.trim()}`).digest('base64url');
   return process.env.NODE_ENV === 'production' ? '' : DEV_SECRET;
 }
 

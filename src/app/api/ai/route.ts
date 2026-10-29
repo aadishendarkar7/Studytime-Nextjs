@@ -75,14 +75,13 @@ export const POST = handle(async (request: Request) => {
     await rateLimit('ai-own', ip, 60, 60, 'Too many AI requests. Wait a minute and try again.');
   } else {
     key = serverKey(body.provider);
-    if (!key) throw new HttpError(503, 'No API key is set for this provider. Add your own free key in Settings → AI tutor.');
-    // Signed-in students use the site's key. Without an account, only someone with the access code can.
+    if (!key) throw new HttpError(503, 'The AI tutor is not set up on this site yet.');
+    // Everyone can use the site's AI. Visitors without an account get a smaller daily allowance.
     const userId = sessionUserId(request);
-    const code = process.env.AI_ACCESS_CODE;
-    if (!userId && !(code && request.headers.get('x-access-code') === code)) throw new HttpError(401, 'Sign in to use the AI tutor.');
     const who = userId ? `u:${userId}` : `ip:${ip}`;
+    const daily = env('AI_DAILY_LIMIT', 200);
     await rateLimit('ai-min', who, env('AI_RATE_LIMIT_PER_MIN', 15), 60, 'Too many AI requests. Wait a minute and try again.');
-    await rateLimit('ai-day', who, env('AI_DAILY_LIMIT', 200), 86_400, 'You reached today’s AI limit. It resets tomorrow.');
+    await rateLimit('ai-day', who, userId ? daily : Math.min(daily, env('AI_GUEST_DAILY_LIMIT', 40)), 86_400, userId ? 'You reached today’s AI limit. It resets tomorrow.' : 'You reached today’s AI limit for visitors. Sign in for more, or come back tomorrow.');
     // A cap per network too, so one person cannot get around limits with many accounts.
     await rateLimit('ai-ip-day', ip, env('AI_DAILY_LIMIT', 200) * 4, 86_400, 'This network reached today’s AI limit. It resets tomorrow.');
   }

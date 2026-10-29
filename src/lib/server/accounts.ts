@@ -71,7 +71,7 @@ const save = (a: Account) => getStorage().hset(USERS, a.id, a);
 
 /** Accounts must be stored somewhere that lasts. On Vercel that means Redis. */
 export function requireLastingStorage() {
-  if (storageKind() === 'memory' && process.env.VERCEL) throw new HttpError(503, 'Accounts cannot be saved yet: this site has no database connected. The site owner needs to connect a Redis database in Vercel (Storage tab), then redeploy.');
+  if (storageKind() === 'memory' && process.env.VERCEL) throw new HttpError(503, 'Accounts are not switched on for this site yet. You can still use everything else without one.');
 }
 
 export async function createAccount(input: { email: string; password: string; name: string }) {
