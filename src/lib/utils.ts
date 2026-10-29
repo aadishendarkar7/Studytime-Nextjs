@@ -1,5 +1,6 @@
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import { repairJsonBackslashes } from './math-text';
 
 /** Join class names; later Tailwind utilities override earlier conflicting ones. */
 export const cn = (...values: ClassValue[]) => twMerge(clsx(values));
@@ -71,7 +72,8 @@ export function parseJSONLoose<T = unknown>(text: string): T {
     const end = Math.max(text.lastIndexOf('}'), text.lastIndexOf(']'));
     if (end > start) attempts.push(text.slice(start, end + 1));
   }
-  for (const attempt of attempts) {
+  // LaTeX backslashes first (they can parse "fine" into control characters), then the raw text.
+  for (const attempt of [...attempts.map(repairJsonBackslashes), ...attempts]) {
     try {
       return JSON.parse(attempt) as T;
     } catch {

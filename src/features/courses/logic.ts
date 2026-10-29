@@ -1,8 +1,9 @@
 'use client';
-import { callJSON } from '@/lib/ai/client';
+import { callAI, callJSON } from '@/lib/ai/client';
+import { FORMAT } from '@/lib/ai/prompts';
+import { parseJSONLoose, uid } from '@/lib/utils';
 import { useAi } from '@/lib/stores/ai';
 import type { Lesson, MiniCourse } from '@/lib/stores/extras';
-import { uid } from '@/lib/utils';
 
 const who = () => {
   const a = useAi.getState();
@@ -25,18 +26,34 @@ export async function planCourse(topic: string): Promise<MiniCourse> {
   return { id: uid(), topic, title: String(r.title || topic).slice(0, 80), level: useAi.getState().level, createdAt: Date.now(), units };
 }
 
-/** Writes one lesson and a three-question check. */
+const QUIZ_MARK = '@@QUIZ@@';
+
+/**
+ * Writes one lesson and a three-question check. The lesson comes back as plain
+ * Markdown, not inside JSON, so its math survives; only the short quiz is JSON.
+ */
 export async function writeLesson(course: MiniCourse, lesson: Lesson) {
   const outline = course.units.map((u) => `${u.title}: ${u.lessons.map((l) => l.title).join('; ')}`).join('\n');
-  const r = await callJSON<{ body?: string; quiz?: { q: string; options: string[]; answer: number; why?: string }[] }>({
+  const text = await callAI({
     tier: 'main',
     maxTokens: 3500,
-    system: `You teach one lesson of a short course. ${who()} Return only JSON: {"body":"the lesson in Markdown","quiz":[{"q":"question","options":["A","B","C","D"],"answer":0,"why":"one sentence"}]}. The body is 300 to 500 words: a plain explanation, one worked example, and a "## Remember" list of 3 bullets. Use $...$ for math. The quiz has exactly 3 questions that check the lesson goal; answer is the 0-based index.`,
+    system: `You teach one lesson of a short course. ${who()} First write the lesson in Markdown, 300 to 500 words: a plain explanation, one worked example, and a "## Remember" list of 3 bullets. ${FORMAT} Then write a line containing only ${QUIZ_MARK}, then a JSON array of exactly 3 multiple-choice questions that check the lesson goal: [{"q":"question","options":["A","B","C","D"],"answer":0,"why":"one sentence"}]. answer is the 0-based index. In the JSON, write math as plain text, not LaTeX.`,
     messages: [{ role: 'user', content: `Course: ${course.title}\nOutline:\n${outline}\n\nWrite the lesson "${lesson.title}". Goal: ${lesson.goal}` }],
   });
-  const quiz = (r.quiz ?? []).filter((q) => q?.q && Array.isArray(q.options) && q.options.length >= 2).slice(0, 3).map((q) => ({ ...q, answer: Math.max(0, Math.min(q.options.length - 1, Number(q.answer) || 0)) }));
-  if (!r.body) throw new Error('Could not write this lesson. Try again.');
-  return { body: String(r.body), quiz };
+  const cut = text.indexOf(QUIZ_MARK);
+  const body = (cut >= 0 ? text.slice(0, cut) : text).trim();
+  let quiz: { q: string; options: string[]; answer: number; why?: string }[] = [];
+  if (cut >= 0) {
+    try {
+      const raw = parseJSONLoose<unknown>(text.slice(cut + QUIZ_MARK.length));
+      const list = (Array.isArray(raw) ? raw : (raw as { quiz?: unknown[] }).quiz ?? []) as { q: string; options: string[]; answer: number; why?: string }[];
+      quiz = list.filter((q) => q?.q && Array.isArray(q.options) && q.options.length >= 2).slice(0, 3).map((q) => ({ ...q, answer: Math.max(0, Math.min(q.options.length - 1, Number(q.answer) || 0)) }));
+    } catch {
+      quiz = []; // the lesson still works without its check
+    }
+  }
+  if (body.length < 80) throw new Error('Could not write this lesson. Try again.');
+  return { body, quiz };
 }
 
 export const lessonsOf = (c: MiniCourse) => c.units.flatMap((u) => u.lessons);

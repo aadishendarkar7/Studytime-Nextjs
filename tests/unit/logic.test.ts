@@ -94,3 +94,23 @@ describe('markdown math normalization', async () => {
     expect(normalizeMath('Price: $1,200.50, tax $3')).toBe('Price: \\$1,200.50, tax \\$3');
   });
 });
+
+describe('math in AI replies', async () => {
+  const { normalizeMath } = await import('@/lib/math-text');
+  const { parseJSONLoose } = await import('@/lib/utils');
+  it('treats a dollar before a number as math when the inside is math', () => {
+    const t = 'For a $2 \\times 2$ matrix $\\begin{bmatrix} a & b \\\\ c & d \\end{bmatrix}$, the inverse is $\\frac{1}{ad-bc}$.';
+    expect(normalizeMath(t)).toBe(t);
+  });
+  it('keeps prices as text and short expressions as math', () => {
+    expect(normalizeMath('Lunch was $12 and coffee $4.')).toBe('Lunch was \\$12 and coffee \\$4.');
+    expect(normalizeMath('Solve $2x + 1 = 5$ for $x$.')).toBe('Solve $2x + 1 = 5$ for $x$.');
+    expect(normalizeMath('Use `$PATH` and $y$')).toBe('Use `$PATH` and $y$');
+  });
+  it('rescues LaTeX inside JSON', () => {
+    const raw = '{"body":"The inverse is $\\frac{1}{ad-bc}$ and $2 \\times 2$ and \\(x\\)","n":"line\\nnext"}';
+    const r = parseJSONLoose<{ body: string; n: string }>(raw);
+    expect(r.body).toBe('The inverse is $\\frac{1}{ad-bc}$ and $2 \\times 2$ and \\(x\\)');
+    expect(r.n).toBe('line\nnext');
+  });
+});

@@ -4,17 +4,10 @@ import ReactMarkdown from 'react-markdown';
 import rehypeKatex from 'rehype-katex';
 import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
+import { normalizeMath } from '@/lib/math-text';
 import { cn } from '@/lib/utils';
 
-/**
- * Normalize \( \) and \[ \] delimiters to $ forms that remark-math understands,
- * and escape currency amounts like "$5" or "$1,200.50" so they aren't read as math.
- */
-export const normalizeMath = (text: string) =>
-  text
-    .replace(/\\\[([\s\S]+?)\\\]/g, (_, m) => `$$${m}$$`)
-    .replace(/\\\(([\s\S]+?)\\\)/g, (_, m) => `$${m}$`)
-    .replace(/(^|[^\\$])\$(?=\d[\d,]*(?:\.\d+)?(?:[kKmMbB]\b)?(?:\s|[.,;:!?)]|$))/gm, '$1\\$');
+export { normalizeMath };
 
 export const Markdown = memo(function Markdown({ children, streaming, className }: { children: string; streaming?: boolean; className?: string }) {
   return (

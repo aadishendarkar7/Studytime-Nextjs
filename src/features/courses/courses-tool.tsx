@@ -28,6 +28,7 @@ const patchLesson = (c: MiniCourse, id: string, patch: Partial<Lesson>): MiniCou
 function LessonView({ course, lesson, onBack, onNext }: { course: MiniCourse; lesson: Lesson; onBack: () => void; onNext: (() => void) | null }) {
   const [state, setState] = useState<{ busy: boolean; error: Error | null }>({ busy: !lesson.body, error: null });
   const [picks, setPicks] = useState<(number | null)[]>(() => lesson.quiz.map(() => null));
+  const [attempt, setAttempt] = useState(0);
   useEffect(() => {
     if (lesson.body) return;
     let live = true;
@@ -42,9 +43,9 @@ function LessonView({ course, lesson, onBack, onNext }: { course: MiniCourse; le
     return () => {
       live = false;
     };
-    // Write each lesson once, when it is first opened.
+    // Write each lesson once when it is first opened, and again on Try again.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [lesson.id]);
+  }, [lesson.id, attempt]);
   const answered = picks.every((p) => p !== null) && picks.length > 0;
   const score = lesson.quiz.reduce((n, q, i) => n + (picks[i] === q.answer ? 1 : 0), 0);
 
@@ -66,7 +67,7 @@ function LessonView({ course, lesson, onBack, onNext }: { course: MiniCourse; le
       <h2 className="text-[24px] leading-8">{lesson.title}</h2>
       {lesson.goal && <p className="mt-1 text-[14px] text-muted">{lesson.goal}</p>}
       <div className="mt-5">
-        {state.busy ? <Thinking label="Writing your lesson" /> : state.error ? <AiErrorBox error={state.error} /> : <Markdown>{lesson.body}</Markdown>}
+        {state.busy ? <Thinking label="Writing your lesson" /> : state.error ? <div className="grid justify-items-start gap-3"><AiErrorBox error={state.error} /><Button variant="secondary" onClick={() => (setState({ busy: true, error: null }), setAttempt(attempt + 1))}><Icon name="reset" className="size-4" /> Try again</Button></div> : <Markdown>{lesson.body}</Markdown>}
       </div>
       {!state.busy && lesson.quiz.length > 0 && (
         <section className="mt-8 grid gap-4 border-t border-line pt-6">
