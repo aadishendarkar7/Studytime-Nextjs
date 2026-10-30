@@ -182,7 +182,7 @@ function LiveTab({ openId, setOpenId }: { openId: string | null; setOpenId: (id:
 
   return (
     <div className="grid gap-5 lg:grid-cols-12 [&>*]:min-w-0">
-      <section className="relative self-start overflow-hidden rounded-xl border border-line bg-surface lg:sticky lg:top-6 lg:col-span-7">
+      <section className="relative self-start overflow-hidden panel lg:sticky lg:top-6 lg:col-span-7">
         <SpotMap pins={pins} focus={focus} onSelect={(id) => !id.startsWith('spot-') && open(id)} onPick={(lat, lng) => useDropComposer.getState().show({ lat, lng })} className="h-[620px] max-sm:h-[380px]" />
         <div className="pointer-events-none absolute inset-x-3 top-3 z-[500] flex justify-end">
           <button type="button" onClick={nearMe} className={cn('pointer-events-auto inline-flex h-8 items-center gap-1.5 rounded-lg border px-3 text-[13px] font-medium shadow-sm', me ? 'border-accent-fill bg-accent-fill text-white' : 'border-line bg-surface text-ink')}>
@@ -228,7 +228,7 @@ function LiveTab({ openId, setOpenId }: { openId: string | null; setOpenId: (id:
         )}
 
         <section>
-          <div className="divide-y divide-line overflow-hidden rounded-xl border border-line bg-surface empty:hidden">
+          <div className="divide-y divide-line overflow-hidden panel empty:hidden">
             {nowList.length ? nowList.map((d) => <DropRow key={d.id} d={d} me={me} selected={openId === d.id} onOpen={() => open(d.id)} />) : loaded && (
               <div className="flex flex-col items-center px-6 py-10 text-center">
                 <span className="grid size-12 place-items-center rounded-full bg-accent-soft text-accent-ink"><Icon name="pin" className="size-6" /></span>
@@ -244,11 +244,11 @@ function LiveTab({ openId, setOpenId }: { openId: string | null; setOpenId: (id:
         {later.length > 0 && (
           <section>
             <h2 className="mb-2 font-sans text-[13px] font-semibold text-muted">Later today</h2>
-            <div className="divide-y divide-line overflow-hidden rounded-xl border border-line bg-surface">{later.map((d) => <DropRow key={d.id} d={d} me={me} selected={openId === d.id} onOpen={() => open(d.id)} />)}</div>
+            <div className="divide-y divide-line overflow-hidden panel">{later.map((d) => <DropRow key={d.id} d={d} me={me} selected={openId === d.id} onOpen={() => open(d.id)} />)}</div>
           </section>
         )}
 
-        <section className="rounded-xl border border-line bg-surface p-4">
+        <section className="panel p-4">
           <div className="flex items-center justify-between gap-2">
             <h2 className="font-sans text-[13px] font-semibold">Saved spots</h2>
             <span className="text-[13px] text-muted">{x.spots.length} saved</span>
@@ -283,7 +283,7 @@ function LiveDot({ on }: { on: boolean }) {
 
 function Stat({ label, value, note, small }: { label: string; value: string; note?: string; small?: boolean }) {
   return (
-    <div className="min-w-0 rounded-xl border border-line bg-surface px-3 py-2.5">
+    <div className="well min-w-0 px-3 py-2.5">
       <p className="text-[12px] text-muted">{label}</p>
       <p className={cn('tnum mt-0.5 truncate font-display', small ? 'text-[17px] leading-7' : 'text-[22px] leading-7')}>{value}</p>
       {note && <p className="truncate text-[12px] text-muted">{note}</p>}
@@ -317,7 +317,7 @@ function YoursTab() {
           <h2 className="mb-2 font-sans text-[13px] font-semibold">Drop again</h2>
           <div className="grid gap-2">
             {again.map((e) => (
-              <button key={e.id} type="button" onClick={() => useDropComposer.getState().show({ again: e })} className="flex items-center gap-3 rounded-xl border border-line bg-surface px-3.5 py-2.5 text-left hover:border-line-strong/60">
+              <button key={e.id} type="button" onClick={() => useDropComposer.getState().show({ again: e })} className="flex items-center gap-3 panel px-3.5 py-2.5 text-left hover:border-line-strong/60">
                 <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-surface-3 text-ink-2"><Icon name="pin" className="size-4" /></span>
                 <span className="min-w-0 flex-1">
                   <strong className="block truncate text-[14px] font-medium">{e.spotName}</strong>
@@ -335,7 +335,7 @@ function YoursTab() {
           <h2 className="font-sans text-[13px] font-semibold">History</h2>
           <Button size="sm" variant="ghost" onClick={() => confirm('Clear your drop history from this browser?') && x.update({ dropLog: [] })}>Clear</Button>
         </div>
-        <ul className="divide-y divide-line rounded-xl border border-line bg-surface">
+        <ul className="divide-y divide-line panel">
           {log.map((e) => (
             <li key={e.id} className="flex flex-wrap items-center gap-x-4 gap-y-1 px-4 py-3">
               <span className="tnum w-20 shrink-0 text-[12px] text-muted">{new Date(e.at).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}</span>

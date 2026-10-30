@@ -152,7 +152,7 @@ function ShareMenu({ post }: { post: FeedPost }) {
     <div className="relative">
       <button type="button" aria-label="Share" title="Share" aria-expanded={open} onClick={() => setOpen(!open)} className="grid size-8 place-items-center rounded-lg text-muted hover:bg-surface-3 hover:text-ink"><Icon name="send" className="size-4" /></button>
       {open && (
-        <div role="menu" className="absolute top-9 right-0 z-30 w-60 rounded-xl border border-line bg-surface p-1 shadow-lg">
+        <div role="menu" className="absolute top-9 right-0 z-30 w-60 panel p-1 shadow-lg">
           {items.map((it) => (
             <button key={it.label} type="button" role="menuitem" disabled={busy} onClick={it.run} className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-[13px] hover:bg-surface-3 disabled:opacity-60">
               <Icon name={it.icon} className="size-4 text-muted" /> {it.label}
@@ -198,7 +198,7 @@ function MoreMenu({ post, onGone }: { post: FeedPost; onGone: () => void }) {
     <div className="relative">
       <button type="button" aria-label="More options" aria-expanded={Boolean(open)} onClick={() => setOpen(open ? '' : 'menu')} className="grid size-8 place-items-center rounded-lg text-muted hover:bg-surface-3 hover:text-ink"><Icon name="menu" className="size-4" /></button>
       {open && (
-        <div role="menu" className="absolute top-9 right-0 z-30 w-52 rounded-xl border border-line bg-surface p-1 shadow-lg">
+        <div role="menu" className="absolute top-9 right-0 z-30 w-52 panel p-1 shadow-lg">
           {open === 'menu' ? (
             <>
               <button type="button" role="menuitem" className="block w-full rounded-lg px-3 py-2 text-left text-[13px] hover:bg-surface-3" onClick={() => setOpen('report')}>Report this highlight</button>
@@ -244,7 +244,7 @@ export function HighlightCard({ post, onChange, onOpenPerson }: { post: FeedPost
   const names = people.length === 1 ? people[0].name : `${people.slice(0, -1).map((p) => p.name).join(', ')} and ${people[people.length - 1].name}`;
   const details = [post.place, post.with.filter((w) => !(post.crew ?? []).some((c) => c.name === w)).length ? `with ${post.with.filter((w) => !(post.crew ?? []).some((c) => c.name === w)).join(', ')}` : ''].filter(Boolean).join(' · ');
   return (
-    <article className="min-w-0 rounded-xl border border-line bg-surface p-4">
+    <article className="min-w-0 panel p-4">
       <header className="flex items-center gap-2.5">
         <span className="flex -space-x-2">{people.slice(0, 4).map((p) => <span key={p.id} className="rounded-full ring-2 ring-surface"><Avatar name={p.full} color={toneFor(p.id)} size={32} /></span>)}</span>
         <div className="min-w-0 flex-1">
@@ -352,7 +352,7 @@ export function FindPeople({ onOpen }: { onOpen: (id: string) => void }) {
     return () => ((stop = true), clearTimeout(id));
   }, [q]);
   return (
-    <section className="rounded-xl border border-line bg-surface p-4">
+    <section className="panel p-4">
       <h2 className="font-sans text-[15px] font-semibold">Find classmates</h2>
       <p className="text-[12px] text-muted">People at your school and in your classes show up first.</p>
       <Input className="mt-3 h-9 text-[14px]" placeholder="Search by name, school or major" value={q} onChange={(e) => setQ(e.target.value)} aria-label="Search people" />

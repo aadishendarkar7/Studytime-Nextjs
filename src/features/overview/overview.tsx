@@ -30,7 +30,7 @@ function OutNow() {
   const show = useDropComposer.getState().show;
   const list = [...live, ...drops.filter((d) => d.startsAt > now)].slice(0, 3);
   return (
-    <section className="flex flex-col rounded-xl border border-line bg-surface p-5 max-sm:p-4">
+    <section className="flex flex-col panel p-5 max-sm:p-4">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <h2 className="font-sans text-[15px] leading-6 font-semibold">Out studying now</h2>
@@ -73,15 +73,17 @@ function WeekStrip() {
   const max = Math.max(30, ...days.map((x) => x.min));
   const todayK = todayKey();
   return (
-    <section className="rounded-xl border border-line bg-surface p-5 max-sm:p-4">
+    <section className="panel p-5 max-sm:p-4">
       <div className="flex items-baseline justify-between">
         <h2 className="font-sans text-[15px] leading-6 font-semibold">This week</h2>
         <span className="tnum text-[13px] text-muted">{fmtMinutes(weekMinutes(sessions, d))}</span>
       </div>
-      <div className="mt-3 flex h-[72px] items-end gap-2" role="img" aria-label="Focus minutes for each day this week">
+      <div className="mt-3 flex items-end gap-1.5" role="img" aria-label="Focus minutes for each day this week">
         {days.map((x) => (
           <div key={x.key} className="flex flex-1 flex-col items-center gap-1">
-            <span className={cn('w-full rounded-[4px]', x.key === todayK ? 'bg-accent-fill' : x.min ? 'bg-accent/45' : 'bg-surface-3')} style={{ height: `${Math.max(4, (x.min / max) * 56)}px` }} title={`${fmtMinutes(x.min)}`} />
+            <span className="well relative flex h-14 w-full items-end overflow-hidden p-[3px]" title={fmtMinutes(x.min)}>
+              <span className={cn('w-full rounded-[6px] transition-[height] duration-700 ease-out', x.min ? 'bg-gradient-to-t from-accent-fill to-[color-mix(in_oklab,var(--accent-fill)_70%,white)]' : '', x.key === todayK && x.min && 'shadow-[0_0_14px_-2px_var(--accent-fill)]')} style={{ height: x.min ? `${Math.max(10, (x.min / max) * 100)}%` : 0 }} />
+            </span>
             <span className={cn('text-[11px]', x.key === todayK ? 'font-semibold text-ink' : 'text-muted')}>{x.label}</span>
           </div>
         ))}
@@ -99,12 +101,12 @@ function WeekStrip() {
 function CheckInCard() {
   const checkedIn = useExtras((s) => s.checkins.some((c) => c.day === todayKey()));
   return (
-    <section className="rounded-xl border border-line bg-surface p-5 max-sm:p-4">
+    <section className="panel p-5 max-sm:p-4">
       <div className="mb-3 flex items-center justify-between gap-3">
         <h2 className="font-sans text-[15px] leading-6 font-semibold">{checkedIn ? 'Checked in today' : 'How are you today?'}</h2>
         {!checkedIn && <Link href="/you"><Button size="sm">Check in</Button></Link>}
       </div>
-      <DailyLadder className="border-0 bg-transparent p-0" />
+      <DailyLadder />
     </section>
   );
 }

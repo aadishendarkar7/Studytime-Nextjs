@@ -25,7 +25,7 @@ export function DailyLadder({ checkInHref, className }: { checkInHref?: string; 
   const days = useExtras((s) => s.rewardDays);
   const r = dailyReward(days, todayKey());
   return (
-    <div className={cn('rounded-xl border border-line bg-surface p-3', className)}>
+    <div className={className}>
       <div className="mb-2 flex items-center justify-between gap-2 px-0.5">
         <p className="flex items-center gap-1.5 text-[13px] font-semibold"><Icon name="flame" className="size-4 text-accent" /> {r.streak ? `${r.streak} day${r.streak === 1 ? '' : 's'} in a row` : 'Daily check-in'}</p>
         {!r.claimed && checkInHref && <Link href={checkInHref} className="text-[13px] font-semibold text-accent-ink hover:underline">Check in</Link>}
@@ -35,7 +35,7 @@ export function DailyLadder({ checkInHref, className }: { checkInHref?: string; 
           const done = i < r.index || (r.claimed && i === r.index);
           const today = i === r.index;
           return (
-            <li key={i} className={cn('flex flex-col items-center gap-0.5 rounded-lg border py-2 text-center', done ? 'border-transparent bg-accent-fill text-white' : today ? 'border-accent bg-accent-soft text-accent-ink' : 'border-line bg-surface-2 text-muted', i === 6 && !done && 'border-dashed')}>
+            <li key={i} className={cn('well flex flex-col items-center gap-0.5 py-2 text-center', done ? 'well-done' : today && 'well-on', i === 6 && !done && !today && 'border-dashed')}>
               <span className="text-[11px] font-medium">{today && !r.claimed ? 'Today' : `Day ${i + 1}`}</span>
               {done ? <Icon name="check" className="size-4" /> : <span className="tnum text-[14px] font-semibold">+{pts}</span>}
             </li>

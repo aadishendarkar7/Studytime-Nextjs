@@ -97,7 +97,7 @@ export function GardenPage() {
 
   return (
     <div className="grid gap-4">
-      <section className="overflow-hidden rounded-xl border border-line bg-surface">
+      <section className="overflow-hidden panel">
         <div ref={scene} onPointerMove={follow} onPointerLeave={() => setLook({ x: 0, y: 0 })} className="relative h-[340px] select-none max-sm:h-[300px]" style={{ background: colors.bg }}>
           {/* Sun or moon, stars and clouds */}
           <svg viewBox="0 0 1000 340" preserveAspectRatio="xMidYMax slice" className="absolute inset-0 h-full w-full" aria-hidden="true">
@@ -160,7 +160,7 @@ export function GardenPage() {
 
       <div className="grid gap-4 sm:grid-cols-3">
         <Stat title="Tree" value={g.tree.name} hint={g.tree.next ? `${fmtMinutes(g.tree.next.need)} of focus to ${g.tree.next.name}` : 'Fully grown'} frac={g.tree.next?.frac ?? 1} />
-        <section className="rounded-xl border border-line bg-surface p-4">
+        <section className="panel p-4">
           {naming ? (
             <form className="flex gap-2" onSubmit={(e) => { e.preventDefault(); x.update({ petName: name.trim().slice(0, 20) || 'Pip' }); setNaming(false); }}>
               <Input aria-label="Pet name" className="h-8" maxLength={20} value={name} onChange={(e) => setName(e.target.value)} autoFocus />
@@ -181,7 +181,7 @@ export function GardenPage() {
 
 function Stat({ title, value, hint, frac }: { title: string; value: string; hint: string; frac: number }) {
   return (
-    <section className="rounded-xl border border-line bg-surface p-4">
+    <section className="panel p-4">
       <p className="text-[12px] font-medium text-muted">{title}</p>
       <p className="tnum mt-0.5 text-[17px] font-semibold">{value}</p>
       <span className="mt-2 block h-1.5 overflow-hidden rounded-full bg-surface-3"><span className="block h-full rounded-full bg-ok" style={{ width: `${Math.round(frac * 100)}%` }} /></span>
@@ -212,7 +212,7 @@ export function PacksPanel() {
     }, 650);
   };
   return (
-    <section className="rounded-xl border border-line bg-surface p-5">
+    <section className="panel p-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h2 className="font-sans text-[15px] leading-6 font-semibold">Mystery packs</h2>
@@ -241,7 +241,7 @@ export function PacksPanel() {
 export function Collection() {
   const inventory = useExtras((s) => s.inventory);
   return (
-    <section className="rounded-xl border border-line bg-surface p-5">
+    <section className="panel p-5">
       <div className="flex items-baseline justify-between">
         <h2 className="font-sans text-[15px] leading-6 font-semibold">Collection</h2>
         <span className="tnum text-[13px] text-muted">{ITEMS.filter((i) => inventory.includes(i.id)).length} of {ITEMS.length}</span>

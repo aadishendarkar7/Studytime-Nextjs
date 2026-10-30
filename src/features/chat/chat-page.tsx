@@ -241,7 +241,7 @@ function Composer({ placeholder, onSend }: { placeholder: string; onSend: (text:
     ref.current?.focus();
   };
   return (
-    <form onSubmit={(e) => (e.preventDefault(), void send())} className="flex items-end gap-2 rounded-xl border border-line bg-surface p-1.5 pl-3 focus-within:border-line-strong">
+    <form onSubmit={(e) => (e.preventDefault(), void send())} className="flex items-end gap-2 panel p-1.5 pl-3 focus-within:border-line-strong">
       <textarea
         ref={ref}
         rows={1}
@@ -424,7 +424,7 @@ export function ChatPage({ toolbar }: { toolbar?: React.ReactNode } = {}) {
         <Button size="sm" variant="secondary" onClick={() => setDrawer('people')}><span className="size-1.5 rounded-full bg-ok" /> {online.length} online</Button>
       </div>
 
-      <div className="grid h-[calc(100dvh-300px)] min-h-[520px] overflow-hidden rounded-xl border border-line bg-surface max-lg:h-[calc(100dvh-330px)] lg:grid-cols-[232px_minmax(0,1fr)] xl:grid-cols-[232px_minmax(0,1fr)_260px]">
+      <div className="grid h-[calc(100dvh-300px)] min-h-[520px] overflow-hidden panel max-lg:h-[calc(100dvh-330px)] lg:grid-cols-[232px_minmax(0,1fr)] xl:grid-cols-[232px_minmax(0,1fr)_260px]">
         <aside className="hidden min-h-0 overflow-y-auto border-r border-line bg-surface-2 lg:block">
           <Rooms channels={channels} open={safeOpen} go={go} onNew={() => setPicking(true)} />
         </aside>

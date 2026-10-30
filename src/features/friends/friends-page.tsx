@@ -42,12 +42,12 @@ function YourFriends({ onOpen }: { onOpen: (id: string) => void }) {
       <div className="grid grid-cols-1 content-start gap-6 [&>*]:min-w-0">
         <section>
           <h2 className="mb-1 font-sans text-[15px] font-semibold">Following · {data.following.length}</h2>
-          {data.following.length ? <ul className="divide-y divide-line rounded-xl border border-line bg-surface px-4">{data.following.map((p) => <PersonRow key={p.id} p={p} onOpen={onOpen} onChange={patch} />)}</ul> : <p className="rounded-xl border border-dashed border-line px-4 py-6 text-center text-[14px] text-muted">You are not following anyone yet. Find classmates or send your invite link.</p>}
+          {data.following.length ? <ul className="divide-y divide-line panel px-4">{data.following.map((p) => <PersonRow key={p.id} p={p} onOpen={onOpen} onChange={patch} />)}</ul> : <p className="rounded-xl border border-dashed border-line px-4 py-6 text-center text-[14px] text-muted">You are not following anyone yet. Find classmates or send your invite link.</p>}
         </section>
         {data.followers.length > 0 && (
           <section>
             <h2 className="mb-1 font-sans text-[15px] font-semibold">Follow back · {data.followers.length}</h2>
-            <ul className="divide-y divide-line rounded-xl border border-line bg-surface px-4">{data.followers.map((p) => <PersonRow key={p.id} p={p} onOpen={onOpen} onChange={patch} />)}</ul>
+            <ul className="divide-y divide-line panel px-4">{data.followers.map((p) => <PersonRow key={p.id} p={p} onOpen={onOpen} onChange={patch} />)}</ul>
           </section>
         )}
       </div>

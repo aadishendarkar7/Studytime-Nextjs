@@ -127,7 +127,7 @@ function CourseView({ course, onBack }: { course: MiniCourse; onBack: () => void
       {course.units.map((u, ui) => (
         <section key={ui}>
           <h3 className="mb-1.5 text-[13px] font-semibold text-muted">Unit {ui + 1} · {u.title}</h3>
-          <ol className="divide-y divide-line rounded-xl border border-line bg-surface">
+          <ol className="divide-y divide-line panel">
             {u.lessons.map((l) => (
               <li key={l.id}>
                 <button type="button" onClick={() => setLessonId(l.id)} className="group flex w-full items-center gap-3 px-3.5 py-3 text-left">
@@ -179,7 +179,7 @@ export function CoursesTool() {
 
   return (
     <div className="grid gap-6">
-      <form className="rounded-xl border border-line bg-surface p-4" onSubmit={(e) => (e.preventDefault(), void make())}>
+      <form className="panel p-4" onSubmit={(e) => (e.preventDefault(), void make())}>
         <label htmlFor="courseTopic" className="text-[15px] font-semibold">What do you want to learn?</label>
         <div className="mt-2 flex gap-2">
           <Input id="courseTopic" value={topic} maxLength={120} onChange={(e) => setTopic(e.target.value)} placeholder="Any topic" className="h-10" />
@@ -199,7 +199,7 @@ export function CoursesTool() {
             const { done, total } = progressOf(c);
             return (
               <li key={c.id}>
-                <button type="button" onClick={() => setOpenId(c.id)} className="flex h-full w-full flex-col rounded-xl border border-line bg-surface p-4 text-left transition-colors hover:border-ink/25">
+                <button type="button" onClick={() => setOpenId(c.id)} className="flex h-full w-full flex-col panel p-4 text-left transition-colors hover:border-ink/25">
                   <span className="flex items-center gap-2 text-[12px] text-muted"><Icon name="layers" className="size-3.5" /> {c.units.length} units · {total} lessons</span>
                   <strong className="mt-1 line-clamp-2 text-[16px] leading-6 font-semibold">{c.title}</strong>
                   <span className="mt-auto flex items-center gap-3 pt-4">

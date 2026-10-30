@@ -53,7 +53,7 @@ function ResultBar({ content, title, kind }: { content: string; title: string; k
 }
 
 /** compact: a narrow side panel with the chat list folded into a menu. */
-export function ChatTool({ compact = false, initialAction = '' }: { compact?: boolean; initialAction?: string } = {}) {
+export function ChatTool({ compact = false, initialAction = '', onHide }: { compact?: boolean; initialAction?: string; onHide?: () => void } = {}) {
   const ai = useAi();
   const run = useAiRun();
   const att = useAttachments(5);
@@ -242,11 +242,12 @@ export function ChatTool({ compact = false, initialAction = '' }: { compact?: bo
     return (
       <div className="flex h-full min-h-0 flex-col">
         <div className="flex items-center gap-2 border-b border-line px-3 py-2">
-          <select aria-label="Chats" value={ai.activeChat} onChange={(e) => ai.update({ activeChat: e.target.value })} className="h-8 min-w-0 flex-1 rounded-lg border border-line bg-surface px-2 text-[13px]">
+          <select aria-label="Chats" value={ai.activeChat} onChange={(e) => ai.update({ activeChat: e.target.value })} className="well h-8 min-w-0 flex-1 px-2 text-[13px] text-ink">
             <option value="">New chat</option>
             {ai.chats.map((c) => <option key={c.id} value={c.id}>{c.title}</option>)}
           </select>
           <Button size="sm" variant="ghost" aria-label="New chat" onClick={newChat}><Icon name="plus" className="size-4" /></Button>
+          {onHide && <Button size="sm" variant="ghost" aria-label="Hide tutor" title="Hide tutor" onClick={onHide}><Icon name="panel" className="size-4" /></Button>}
         </div>
         {empty ? welcome : <>{thread}<div className="border-t border-line p-3">{composer}</div></>}
       </div>
@@ -273,11 +274,12 @@ export function ChatTool({ compact = false, initialAction = '' }: { compact?: bo
       </aside>
       <div className="flex min-h-0 flex-col">
         <div className="flex items-center gap-2 border-b border-line px-3 py-2 lg:hidden">
-          <select aria-label="Chats" value={ai.activeChat} onChange={(e) => ai.update({ activeChat: e.target.value })} className="h-8 min-w-0 flex-1 rounded-lg border border-line bg-surface px-2 text-[13px]">
+          <select aria-label="Chats" value={ai.activeChat} onChange={(e) => ai.update({ activeChat: e.target.value })} className="well h-8 min-w-0 flex-1 px-2 text-[13px] text-ink">
             <option value="">New chat</option>
             {ai.chats.map((c) => <option key={c.id} value={c.id}>{c.title}</option>)}
           </select>
           <Button size="sm" variant="ghost" aria-label="New chat" onClick={newChat}><Icon name="plus" className="size-4" /></Button>
+          {onHide && <Button size="sm" variant="ghost" aria-label="Hide tutor" title="Hide tutor" onClick={onHide}><Icon name="panel" className="size-4" /></Button>}
         </div>
         {empty ? welcome : <>{thread}<div className="px-5 pb-4">{composer}</div></>}
       </div>

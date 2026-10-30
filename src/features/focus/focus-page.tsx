@@ -29,7 +29,7 @@ function LengthPicker({ locked }: { locked: boolean }) {
     p.setDuration(n);
     toast(`${n} minute session, ${awardFor(n)} points.`);
   };
-  const chip = (on: boolean) => cn('tnum h-9 rounded-lg border text-[13px] font-medium transition-colors disabled:opacity-50', on ? 'border-accent-fill bg-accent-fill text-white' : 'border-line bg-surface text-ink hover:bg-surface-2');
+  const chip = (on: boolean) => cn('well tnum h-9 text-[13px] font-medium disabled:opacity-50', on && 'well-on');
   return (
     <div>
       <div className="grid grid-cols-3 gap-2 sm:grid-cols-6" role="radiogroup" aria-label="Session length">

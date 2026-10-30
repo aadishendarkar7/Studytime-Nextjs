@@ -82,7 +82,7 @@ function CoursesCard() {
 
 function Stat({ label, value, note }: { label: string; value: ReactNode; note?: string }) {
   return (
-    <div className="rounded-xl bg-surface-3 p-4">
+    <div className="well p-4">
       <p className="text-[14px] text-muted">{label}</p>
       <p className="tnum mt-1 font-display text-[28px] leading-8">{value}</p>
       {note && <p className="mt-1 text-[13px] text-muted">{note}</p>}

@@ -72,7 +72,7 @@ export function PopQuiz() {
     setChosen(null);
   };
   return (
-    <div role="dialog" aria-labelledby="pq-title" className="water-pop fixed right-4 bottom-20 z-50 w-[min(380px,calc(100vw-32px))] rounded-xl border border-line bg-surface p-4 shadow-lg lg:right-6 lg:bottom-6">
+    <div role="dialog" aria-labelledby="pq-title" className="water-pop fixed right-4 bottom-20 z-50 w-[min(380px,calc(100vw-32px))] panel p-4 shadow-lg lg:right-6 lg:bottom-6">
       <div className="flex items-start gap-2">
         <div className="min-w-0 flex-1">
           <p className="text-[12px] font-medium text-muted">Pop quiz · {q.setName}</p>

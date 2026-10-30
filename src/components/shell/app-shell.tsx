@@ -1,12 +1,12 @@
 'use client';
 import { useEffect, useState, type ReactNode } from 'react';
-import Noise from '@/components/bits/Noise';
 import { Logo } from '@/components/ui/icons';
 import { Toaster } from '@/components/ui/toaster';
 import { DropComposerHost } from '@/features/drop/composer';
 import { startAccount, useAccount } from '@/features/auth/account';
 import { Welcome } from '@/features/auth/welcome';
 import { GlobalEffects } from './global-effects';
+import { PanelLight } from './panel-light';
 import { PrintPortal } from './print-portal';
 import { ReflectionDialog } from './reflection-dialog';
 import { BottomTabs, Sidebar, Topbar } from './sidebar';
@@ -43,8 +43,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       <ReflectionDialog />
       <PrintPortal />
       <DropComposerHost />
-      {/* A fine, still film grain over everything, so flat colors read like paper instead of plastic. */}
-      <Noise fixed fps={0} opacity={0.05} blendMode="overlay" contrast={0.5} zIndex={60} />
+      <PanelLight />
       <BottomTabs />
       <Toaster />
     </div>

@@ -1,7 +1,7 @@
 import { forwardRef, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes } from 'react';
 import { cn } from '@/lib/utils';
 
-const control = 'w-full min-w-0 rounded-lg border border-line bg-surface px-3 text-[14px] text-ink shadow-sm outline-none transition-colors hover:border-line-strong/60 focus:border-accent focus:ring-3 focus:ring-accent/15 disabled:opacity-50';
+const control = 'well w-full min-w-0 px-3 text-[14px] text-ink outline-none hover:border-line-strong/60 focus:border-[color-mix(in_oklab,var(--glow)_70%,transparent)] focus:shadow-[inset_0_1px_2px_rgb(0_0_0/0.28),0_0_0_3px_color-mix(in_oklab,var(--glow)_18%,transparent)] disabled:opacity-50';
 
 export function Label({ htmlFor, children, hint, className }: { htmlFor?: string; children: ReactNode; hint?: string; className?: string }) {
   return (

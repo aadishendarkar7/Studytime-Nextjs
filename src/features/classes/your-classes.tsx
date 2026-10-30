@@ -13,7 +13,7 @@ export function YourClasses({ className }: { className?: string }) {
   const feeds = useExtras((s) => s.calendarFeeds);
   const list = myClasses(courses, [...reminders.map((r) => r.title), ...allEvents(feeds).map((e) => e.title)]).slice(0, 10);
   return (
-    <section className={cn('rounded-xl border border-line bg-surface p-4', className)}>
+    <section className={cn('panel p-4', className)}>
       <h2 className="font-sans text-[15px] font-semibold">Your classes</h2>
       {list.length ? (
         <ul className="mt-2 flex flex-wrap gap-1.5">

@@ -15,7 +15,7 @@ export const TAGLINE = 'If it’s not on Studytime, it didn’t happen.';
 
 function Tile({ label, value, note, big }: { label: string; value: string; note?: string; big?: boolean }) {
   return (
-    <div className={`min-w-0 rounded-xl border border-line bg-surface p-5 ${big ? 'sm:col-span-2 lg:row-span-2' : ''}`}>
+    <div className={`min-w-0 panel p-5 ${big ? 'sm:col-span-2 lg:row-span-2' : ''}`}>
       <p className="text-[13px] font-medium text-muted">{label}</p>
       <p className={`tnum mt-2 truncate font-semibold tracking-tight ${big ? 'text-[56px] leading-[60px]' : 'text-[26px] leading-8'}`}>{value}</p>
       {note && <p className="mt-1 text-[13px] text-muted">{note}</p>}

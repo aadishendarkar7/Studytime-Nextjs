@@ -71,7 +71,7 @@ function ClassPageBody() {
 
       <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_320px] [&>*]:min-w-0">
         <div className="grid content-start gap-4">
-          <section className="rounded-xl border border-line bg-surface p-5">
+          <section className="panel p-5">
             <div className="flex items-center justify-between"><h2 className="font-sans text-[15px] font-semibold">Coming up</h2><Link href="/calendar?plan=exams"><Button size="sm" variant="ghost">Exam prep</Button></Link></div>
             {due.length ? (
               <ul className="mt-1 divide-y divide-line">
@@ -87,7 +87,7 @@ function ClassPageBody() {
           </section>
 
           {live.length > 0 && (
-            <section className="rounded-xl border border-line bg-surface p-5">
+            <section className="panel p-5">
               <h2 className="font-sans text-[15px] font-semibold">Studying {key} now</h2>
               <ul className="mt-1 divide-y divide-line">
                 {live.map((d) => (
@@ -110,7 +110,7 @@ function ClassPageBody() {
         </div>
 
         <aside className="grid content-start gap-4">
-          <section className="rounded-xl border border-line bg-surface p-4">
+          <section className="panel p-4">
             <h2 className="font-sans text-[15px] font-semibold">Classmates this week</h2>
             <p className="text-[12px] text-muted">Ranked by highlighted study time in {key}.</p>
             {data && data.members.length ? (

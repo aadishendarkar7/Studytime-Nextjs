@@ -2,7 +2,7 @@ import type { HTMLAttributes, ReactNode } from 'react';
 import { cn } from '@/lib/utils';
 
 export function Card({ className, ...props }: HTMLAttributes<HTMLElement>) {
-  return <section className={cn('rounded-xl border border-line bg-surface p-5 max-sm:p-4', className)} {...props} />;
+  return <section className={cn('panel p-5 max-sm:p-4', className)} {...props} />;
 }
 
 /** Small metadata label for table headers and record details. */
@@ -37,7 +37,7 @@ export function PageHeader({ title, description, action, level = 1 }: { title: s
 
 export function Empty({ title, children, action }: { title?: string; children: ReactNode; action?: ReactNode }) {
   return (
-    <div className="rounded-lg bg-surface-2 px-4 py-4">
+    <div className="well px-4 py-4">
       {title && <p className="text-[14px] leading-6 font-semibold text-ink">{title}</p>}
       <p className="mt-0.5 max-w-[68ch] text-[13px] leading-5 text-muted">{children}</p>
       {action && <div className="mt-4">{action}</div>}

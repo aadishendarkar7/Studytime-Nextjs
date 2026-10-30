@@ -82,7 +82,7 @@ function NoteView({ note, onOpen, onBack }: { note: Note; onOpen: (id: string) =
         <div className="relative ml-auto">
           <Button size="sm" variant="ghost" aria-label="More" aria-expanded={more} onClick={() => setMore(!more)}><Icon name="menu" className="size-4" /></Button>
           {more && (
-            <div className="absolute top-10 right-0 z-30 grid w-52 gap-0.5 rounded-xl border border-line bg-surface p-1.5 shadow-lg" onMouseLeave={() => setMore(false)}>
+            <div className="absolute top-10 right-0 z-30 grid w-52 gap-0.5 panel p-1.5 shadow-lg" onMouseLeave={() => setMore(false)}>
               <MenuItem icon="download" onClick={() => useUi.getState().print({ title: note.title, markdown: note.content })}>Download PDF</MenuItem>
               <MenuItem icon="copy" onClick={async () => toast((await copyText(note.content)) ? 'Copied.' : 'Could not copy.')}>Copy text</MenuItem>
               <label className="flex items-center gap-2 px-2.5 py-1.5 text-[13px] text-ink-2">

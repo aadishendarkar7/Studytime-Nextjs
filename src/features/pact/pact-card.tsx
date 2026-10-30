@@ -120,7 +120,7 @@ export function PactCard({ className }: { className?: string }) {
   };
   const both = pact && pact.members.length === 2 && pact.members.every((m) => m.minutes >= pact.goal);
   return (
-    <section className={cn('rounded-xl border border-line bg-surface p-5 max-sm:p-4', className)}>
+    <section className={cn('panel p-5 max-sm:p-4', className)}>
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <h2 className="font-sans text-[15px] leading-6 font-semibold">Weekly pact</h2>

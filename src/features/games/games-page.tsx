@@ -204,7 +204,7 @@ function SetView({ set, onBack }: { set: StudySet; onBack: () => void }) {
           </button>
         ))}
       </div>
-      <div className="min-h-72 rounded-xl border border-line bg-surface p-5 max-sm:p-4">
+      <div className="min-h-72 panel p-5 max-sm:p-4">
         {set.cards.length ? <GameStage key={`${set.id}-${mode}`} set={set} mode={mode} /> : (
           <div className="grid place-items-center py-10 text-center">
             <p className="text-[15px] font-semibold">No cards yet</p>
@@ -261,7 +261,7 @@ export function GamesPage({ embedded = false }: { embedded?: boolean } = {}) {
             {shown.map((s) => {
               const due = dueIn(s);
               return (
-                <li key={s.id} className="flex flex-col rounded-xl border border-line bg-surface p-4 transition-colors hover:border-ink/25">
+                <li key={s.id} className="flex flex-col panel p-4 transition-colors hover:border-ink/25">
                   <button type="button" onClick={() => go(s.id)} className="grid min-w-0 text-left">
                     <span className="text-[12px] text-muted">{s.folder}</span>
                     <strong className="mt-0.5 line-clamp-2 text-[16px] leading-6 font-semibold">{s.name}</strong>

@@ -77,7 +77,7 @@ export function ChallengesPanel() {
       )}
       <ul className="grid gap-2 sm:grid-cols-2 [&>*]:min-w-0">
         {rest.map((s) => (
-          <li key={s.challenge.id} className="flex min-w-0 items-center gap-3 rounded-xl border border-line bg-surface px-4 py-3">
+          <li key={s.challenge.id} className="flex min-w-0 items-center gap-3 panel px-4 py-3">
             <span className={cn('grid size-9 shrink-0 place-items-center rounded-lg', s.wins ? 'bg-[#e9b93a]/15 text-[#b8860b]' : 'bg-surface-3 text-muted')}><Icon name={s.wins ? 'trophy' : 'target'} className="size-5" /></span>
             <div className="min-w-0 flex-1">
               <p className="truncate text-[14px] font-semibold">{s.challenge.title}{s.wins > 1 && <span className="ml-1 text-[12px] font-normal text-muted">×{s.wins}</span>}</p>

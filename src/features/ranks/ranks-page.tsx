@@ -113,14 +113,14 @@ function Leaderboard() {
 
   return (
     <div className="grid gap-5">
-      <div className="grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-line bg-line lg:grid-cols-4">
+      <div className="panel grid grid-cols-2 gap-2 p-2 lg:grid-cols-4">
         {[
           ['Your rank', myIndex >= 0 ? `#${myIndex + 1}` : 'Unranked', myIndex >= 0 ? `of ${sorted.length} ${current?.label ? `in ${current.label}` : ''}` : 'Pick a group below'],
           ['Focus this week', fmtMinutes(myMinutes), `${p.weeklyGoal ? Math.min(100, Math.round((myMinutes / p.weeklyGoal) * 100)) : 0}% of your weekly goal`],
           ['Drops this week', <CountUp key="d" to={myDrops} duration={1} />, 'Hosted or joined'],
           ['Board resets in', resetsIn(now), 'Monday, midnight UTC'],
         ].map(([label, value, note]) => (
-          <div key={String(note)} className="min-w-0 bg-surface px-4 py-3.5">
+          <div key={String(note)} className="well min-w-0 px-4 py-3.5">
             <p className="text-[12px] font-medium text-muted">{label}</p>
             <p className="tnum mt-0.5 truncate text-[22px] leading-8 font-semibold tracking-tight max-sm:text-[18px] max-sm:leading-7">{value}</p>
             <p className="truncate text-[12px] text-muted">{note}</p>
@@ -128,7 +128,7 @@ function Leaderboard() {
         ))}
       </div>
 
-      <section className="overflow-hidden rounded-xl border border-line bg-surface">
+      <section className="overflow-hidden panel">
         <div className="flex flex-wrap items-center gap-2 border-b border-line px-4 py-3">
           <Segmented wrap={false} label="Group" value={scope} onChange={setScope} options={scopes} />
           <Segmented wrap={false} label="Ranked by" value={metric} onChange={setMetric} options={[{ value: 'minutes', label: 'Focus time' }, { value: 'drops', label: 'Drops' }]} />
@@ -230,7 +230,7 @@ function Trophies() {
     <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_280px] [&>*]:min-w-0">
       <TrophyCabinet list={list} extra={{ title: 'Challenges', items: won }} />
       <aside className="grid content-start gap-4 lg:sticky lg:top-6">
-        <section className="rounded-xl border border-line bg-surface p-4">
+        <section className="panel p-4">
           <div className="flex items-baseline justify-between">
             <p className="text-[12px] font-medium text-muted">Level</p>
             <p className="tnum text-[12px] text-muted">{p.points} points</p>
@@ -239,7 +239,7 @@ function Trophies() {
           <span className="mt-2 block h-1.5 overflow-hidden rounded-full bg-surface-3"><span className="block h-full rounded-full bg-accent" style={{ width: `${(lv.into / lv.span) * 100}%` }} /></span>
           <p className="tnum mt-1.5 text-[12px] text-muted">{lv.span - lv.into} to level {lv.level + 1}</p>
         </section>
-        <section className="rounded-xl border border-line bg-surface p-4">
+        <section className="panel p-4">
           <p className="mb-2 text-[13px] font-semibold">Points</p>
           <dl className="grid gap-1.5 text-[13px]">
             {ways.map(([k, v]) => <div key={k} className="flex justify-between gap-3"><dt className="text-muted">{k}</dt><dd className="tnum font-medium">{v}</dd></div>)}

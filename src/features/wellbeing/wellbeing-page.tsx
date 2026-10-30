@@ -38,7 +38,7 @@ export function WellbeingPage({ embedded = false }: { embedded?: boolean } = {})
         <StrainNotice />
         <Card className={cn('lg:col-span-7', !checkedIn && 'ring-2 ring-accent/30')}>
           <CardHeader title={checkedIn ? 'Today’s check-in' : 'Check in for today'} />
-          <DailyLadder className="mb-4 border-0 bg-surface-2 p-2.5" />
+          <DailyLadder className="mb-4" />
           <CheckInForm />
         </Card>
       </div>

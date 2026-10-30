@@ -25,7 +25,7 @@ export function SoundDock({ className }: { className?: string }) {
   return (
     <div ref={box} className={cn('relative rounded-lg border border-line bg-surface p-2', className)}>
       {open && (
-        <div role="menu" aria-label="Focus sounds" className="absolute bottom-full left-0 z-40 mb-2 max-h-[70dvh] w-64 overflow-y-auto rounded-xl border border-line bg-surface p-2 shadow-lg">
+        <div role="menu" aria-label="Focus sounds" className="absolute bottom-full left-0 z-40 mb-2 max-h-[70dvh] w-64 overflow-y-auto panel p-2 shadow-lg">
           {GROUPS.map((g) => (
             <div key={g.label} className="mb-1.5">
               <p className="px-2 pt-1 pb-0.5 text-[11px] font-medium text-muted">{g.label}</p>
