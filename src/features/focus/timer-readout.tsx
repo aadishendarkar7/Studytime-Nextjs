@@ -2,7 +2,8 @@
 import { Eyebrow } from '@/components/ui/card';
 import { Ruler } from '@/components/ui/progress';
 import { useProfile } from '@/lib/stores/profile';
-import { cn, fmtClock } from '@/lib/utils';
+import Counter from '@/components/bits/Counter';
+import { cn } from '@/lib/utils';
 import { awardFor } from './logic';
 
 const STATUS = { ready: 'Ready', running: 'Running', paused: 'Paused' } as const;
@@ -19,8 +20,11 @@ export function TimerReadout({ className }: { className?: string }) {
         <Eyebrow className={cn(timer.mode === 'running' && 'text-accent')}>{STATUS[timer.mode]}</Eyebrow>
         <Eyebrow className="tnum">{duration} min session, +{awardFor(duration)} pts</Eyebrow>
       </div>
-      <div className="tnum mt-3 text-[96px] leading-[96px] font-medium tracking-[-0.04em] text-ink max-sm:text-[60px] max-sm:leading-[64px]" aria-live="off">
-        {fmtClock(timer.remaining)}
+      {/* Digits roll like a flip clock. Screen readers get the plain time. */}
+      <div className="mt-3 flex items-baseline text-[112px] leading-none font-medium tracking-[-0.04em] text-ink max-sm:text-[64px]" role="timer" aria-label={`${Math.floor(timer.remaining / 60)} minutes ${timer.remaining % 60} seconds left`}>
+        <Counter value={Math.floor(timer.remaining / 60)} minDigits={2} format={{ useGrouping: false }} fontSize="1em" duration={0.55} bounce={0.12} />
+        <span className="mx-[0.04em] -translate-y-[0.06em] text-ink/50" aria-hidden="true">:</span>
+        <Counter value={timer.remaining % 60} minDigits={2} fontSize="1em" duration={0.55} bounce={0.12} />
       </div>
       <Ruler value={pct} className="mt-5" />
       <div className="tnum mt-1.5 flex justify-between text-[12px] leading-4 text-muted">

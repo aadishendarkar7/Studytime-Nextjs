@@ -1,6 +1,7 @@
 'use client';
 import { DailyLadder } from '@/features/rewards/daily-ladder';
 import Link from 'next/link';
+import BlurText from '@/components/bits/BlurText';
 import { Avatar } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Icon } from '@/components/ui/icons';
@@ -116,7 +117,7 @@ export function Overview() {
     <>
       <header className="mt-4 mb-6 flex flex-wrap items-end justify-between gap-4 max-sm:mt-2">
         <div>
-          <h1 className="text-[28px] leading-9 max-sm:text-[22px]">{greeting(new Date(now).getHours())}{first}</h1>
+          <h1 className="text-[28px] leading-9 max-sm:text-[22px]"><BlurText key={greeting(new Date(now).getHours())} text={`${greeting(new Date(now).getHours())}${first}`} trigger="load" delay={90} blur={8} distance={10} /></h1>
           <p className="text-[13px] text-muted">{new Date(now).toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}</p>
         </div>
         <PetCompanion className="max-sm:hidden" />

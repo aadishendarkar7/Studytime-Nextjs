@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useState, type ReactNode } from 'react';
+import Noise from '@/components/bits/Noise';
 import { Logo } from '@/components/ui/icons';
 import { Toaster } from '@/components/ui/toaster';
 import { DropComposerHost } from '@/features/drop/composer';
@@ -42,6 +43,8 @@ export function AppShell({ children }: { children: ReactNode }) {
       <ReflectionDialog />
       <PrintPortal />
       <DropComposerHost />
+      {/* A fine, still film grain over everything, so flat colors read like paper instead of plastic. */}
+      <Noise fixed fps={0} opacity={0.05} blendMode="overlay" contrast={0.5} zIndex={60} />
       <BottomTabs />
       <Toaster />
     </div>

@@ -1,6 +1,7 @@
 'use client';
 import Link from 'next/link';
-import { useMemo, useState } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
+import CountUp from '@/components/bits/CountUp';
 import { Card, CardHeader, Empty, PageHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Field, FieldRow, Input, Note, Select } from '@/components/ui/field';
@@ -79,7 +80,7 @@ function CoursesCard() {
   );
 }
 
-function Stat({ label, value, note }: { label: string; value: string; note?: string }) {
+function Stat({ label, value, note }: { label: string; value: ReactNode; note?: string }) {
   return (
     <div className="rounded-xl bg-surface-3 p-4">
       <p className="text-[14px] text-muted">{label}</p>
@@ -109,8 +110,8 @@ export function StatsCard() {
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <Stat label="Total focus time" value={fmtMinutes(total)} note={plural(p.sessions.length, 'session')} />
         <Stat label="Current streak" value={plural(s.current, 'day')} note={`Best: ${plural(s.best, 'day')}`} />
-        <Stat label="Points" value={String(p.points)} />
-        <Stat label="Drops" value={String(spots)} note={people ? `Studied with ${plural(people, 'person', 'people')}` : 'From Drop a Spot'} />
+        <Stat label="Points" value={<CountUp to={p.points} duration={1.2} separator="," />} />
+        <Stat label="Drops" value={<CountUp to={spots} duration={1} />} note={people ? `Studied with ${plural(people, 'person', 'people')}` : 'From Drop a Spot'} />
       </div>
       <h3 className="mt-6 mb-3 text-[18px]">Time by subject</h3>
       {bySubject.length ? (

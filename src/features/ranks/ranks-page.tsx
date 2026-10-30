@@ -1,6 +1,8 @@
 'use client';
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
+import { motion, MotionConfig } from 'motion/react';
+import CountUp from '@/components/bits/CountUp';
 import { Avatar } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Dialog } from '@/components/ui/dialog';
@@ -115,10 +117,10 @@ function Leaderboard() {
         {[
           ['Your rank', myIndex >= 0 ? `#${myIndex + 1}` : 'Unranked', myIndex >= 0 ? `of ${sorted.length} ${current?.label ? `in ${current.label}` : ''}` : 'Pick a group below'],
           ['Focus this week', fmtMinutes(myMinutes), `${p.weeklyGoal ? Math.min(100, Math.round((myMinutes / p.weeklyGoal) * 100)) : 0}% of your weekly goal`],
-          ['Drops this week', String(myDrops), 'Hosted or joined'],
+          ['Drops this week', <CountUp key="d" to={myDrops} duration={1} />, 'Hosted or joined'],
           ['Board resets in', resetsIn(now), 'Monday, midnight UTC'],
         ].map(([label, value, note]) => (
-          <div key={label} className="min-w-0 bg-surface px-4 py-3.5">
+          <div key={String(note)} className="min-w-0 bg-surface px-4 py-3.5">
             <p className="text-[12px] font-medium text-muted">{label}</p>
             <p className="tnum mt-0.5 truncate text-[22px] leading-8 font-semibold tracking-tight max-sm:text-[18px] max-sm:leading-7">{value}</p>
             <p className="truncate text-[12px] text-muted">{note}</p>
@@ -160,6 +162,7 @@ function Leaderboard() {
             <Button size="sm" className="mt-3" onClick={() => setEditing(true)}>Set your groups</Button>
           </div>
         ) : sorted.length ? (
+          <MotionConfig reducedMotion="user">
           <table className="w-full text-[14px]">
             <thead>
               <tr className="border-b border-line text-left text-[12px] text-muted">
@@ -171,7 +174,8 @@ function Leaderboard() {
             </thead>
             <tbody>
               {sorted.slice(0, 50).map((r, i) => (
-                <tr key={r.id} className={cn('border-b border-line last:border-0', r.me ? 'bg-accent-soft' : 'hover:bg-surface-2')}>
+                // Rows slide to their new place when the ranking changes.
+                <motion.tr key={r.id} layout="position" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ type: 'spring', stiffness: 380, damping: 34, delay: Math.min(i, 12) * 0.03 }} className={cn('border-b border-line last:border-0', r.me ? 'bg-accent-soft' : 'hover:bg-surface-2')}>
                   <td className="tnum py-2.5 pl-4 text-[13px] font-semibold text-muted">{i < 3 ? <span className={cn('grid size-6 place-items-center rounded-md text-[12px]', i === 0 ? 'bg-accent-fill text-white' : 'bg-surface-3 text-ink')}>{i + 1}</span> : i + 1}</td>
                   <td className="py-2.5">
                     <span className="flex min-w-0 items-center gap-2.5">
@@ -183,13 +187,14 @@ function Leaderboard() {
                     </span>
                   </td>
                   <td className="hidden py-2.5 pr-6 sm:table-cell">
-                    <span className="block h-1.5 overflow-hidden rounded-full bg-surface-3"><span className={cn('block h-full rounded-full', r.me ? 'bg-accent' : 'bg-line-strong')} style={{ width: `${(r[metric] / top) * 100}%` }} /></span>
+                    <span className="block h-1.5 overflow-hidden rounded-full bg-surface-3"><span className={cn('block h-full rounded-full transition-[width] duration-700 ease-out', r.me ? 'bg-accent' : 'bg-line-strong')} style={{ width: `${(r[metric] / top) * 100}%` }} /></span>
                   </td>
                   <td className="tnum py-2.5 pr-4 text-right font-medium">{fmt(r)}</td>
-                </tr>
+                </motion.tr>
               ))}
             </tbody>
           </table>
+          </MotionConfig>
         ) : (
           <p className="px-4 py-10 text-center text-[13px] text-muted">No one else on this board yet. Share Studytime with classmates.</p>
         )}

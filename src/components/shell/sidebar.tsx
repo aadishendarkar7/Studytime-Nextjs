@@ -12,7 +12,7 @@ import { useProfile } from '@/lib/stores/profile';
 import { useAccount } from '@/features/auth/account';
 import { signInHref } from '@/features/auth/sign-in-gate';
 import { useNow } from '@/lib/use-now';
-import { cn } from '@/lib/utils';
+import { cn, fmtClock } from '@/lib/utils';
 import { AppearanceButtons } from './appearance-picker';
 import { GROUP_LABEL, isActive, MOBILE_TABS, NAV, type NavItem } from './nav';
 
@@ -123,6 +123,19 @@ export function Sidebar() {
 
 const EXTRA_TITLES: Record<string, string> = { '/help': 'Support', '/privacy': 'Privacy', '/terms': 'Terms' };
 
+/** While a session is going, a small live timer follows you to every page. Tap it to go back. */
+function TimerChip({ hidden }: { hidden: boolean }) {
+  const timer = useProfile((s) => s.timer);
+  if (hidden || timer.mode === 'ready') return null;
+  return (
+    <Link href="/" className="inline-flex h-8 items-center gap-2 rounded-lg border border-line bg-surface px-2.5 text-[13px] font-medium text-ink hover:bg-surface-2">
+      <span className={cn('size-2 rounded-full', timer.mode === 'running' ? 'bg-accent' : 'bg-muted')} aria-hidden="true" />
+      <span className="tnum">{fmtClock(timer.remaining)}</span>
+      <span className="text-muted max-sm:hidden">{timer.mode === 'running' ? 'focusing' : 'paused'}</span>
+    </Link>
+  );
+}
+
 export function Topbar() {
   const signedIn = useAccount((st) => Boolean(st.user));
   const pathname = usePathname();
@@ -139,13 +152,10 @@ export function Topbar() {
   const title = pathname === '/' ? 'Home' : section?.label ?? EXTRA_TITLES[pathname] ?? (pathname.startsWith('/class/') ? 'Classes' : '');
   return (
     <>
-      <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-line/70 bg-bg/60 px-4 backdrop-blur-md sm:px-6 lg:px-8">
+      <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-line bg-bg px-4 sm:px-6 lg:px-8">
         <Wordmark className="lg:hidden" />
-        <nav aria-label="Breadcrumb" className="flex min-w-0 items-center gap-1.5 text-[14px] max-lg:hidden">
-          <span className="text-muted">Studytime</span>
-          <Icon name="chevron" className="size-3.5 text-line-strong" />
-          <span className="truncate font-medium text-ink">{title}</span>
-        </nav>
+        <span className="truncate text-[14px] font-medium text-ink max-lg:hidden">{title}</span>
+        <TimerChip hidden={pathname === '/'} />
         <div className="ml-auto flex items-center gap-1">
           {pathname !== '/drop' && (
             <button type="button" onClick={() => useDropComposer.getState().show()} className="mr-1 inline-flex h-8 items-center gap-1.5 rounded-lg border border-line bg-surface px-2.5 text-[13px] font-medium text-ink shadow-sm hover:bg-surface-2 max-sm:hidden">
