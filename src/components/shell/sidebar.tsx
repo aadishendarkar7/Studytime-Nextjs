@@ -108,7 +108,7 @@ export function Sidebar() {
   };
   // A round arrow on the sidebar's edge: points left to fold it away, right to open it.
   const collapse = (
-    <button type="button" onClick={toggle} aria-label={mini ? 'Expand sidebar' : 'Collapse sidebar'} title={mini ? 'Expand sidebar' : 'Collapse sidebar'} className="absolute top-[30px] -right-3.5 z-10 grid size-7 place-items-center rounded-full border border-line bg-surface text-muted shadow-sm transition-colors hover:border-line-strong hover:text-ink">
+    <button type="button" onClick={toggle} aria-label={mini ? 'Expand sidebar' : 'Collapse sidebar'} title={mini ? 'Expand sidebar' : 'Collapse sidebar'} className="absolute top-1/2 -right-3.5 z-10 grid size-7 -translate-y-1/2 place-items-center rounded-full border border-line bg-surface text-muted shadow-sm transition-colors hover:border-line-strong hover:text-ink">
       <Icon name="chevron" className={cn('size-4', !mini && 'rotate-180')} />
     </button>
   );
