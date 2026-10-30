@@ -106,23 +106,21 @@ export function Sidebar() {
     setMini(!mini);
     try { localStorage.setItem(MINI_KEY, mini ? '0' : '1'); } catch {}
   };
+  // A round arrow on the sidebar's edge: points left to fold it away, right to open it.
   const collapse = (
-    <button type="button" onClick={toggle} aria-label={mini ? 'Expand sidebar' : 'Collapse sidebar'} title={mini ? 'Expand sidebar' : 'Collapse sidebar'} className="grid size-8 shrink-0 place-items-center rounded-lg text-muted hover:bg-surface-3 hover:text-ink">
-      <Icon name="panel" className="size-[17px]" />
+    <button type="button" onClick={toggle} aria-label={mini ? 'Expand sidebar' : 'Collapse sidebar'} title={mini ? 'Expand sidebar' : 'Collapse sidebar'} className="absolute top-[30px] -right-3.5 z-10 grid size-7 place-items-center rounded-full border border-line bg-surface text-muted shadow-sm transition-colors hover:border-line-strong hover:text-ink">
+      <Icon name="chevron" className={cn('size-4', !mini && 'rotate-180')} />
     </button>
   );
   return (
-    <aside className={cn('sticky top-0 hidden h-dvh shrink-0 flex-col border-r border-line bg-[var(--sidebar)] pt-4 pb-3 transition-[width] duration-200 lg:flex', mini ? 'w-[68px] px-2.5' : 'w-60 px-3')}>
+    <aside className={cn('sticky top-0 z-40 hidden h-dvh shrink-0 flex-col border-r border-line bg-[var(--sidebar)] pt-4 pb-3 transition-[width] duration-200 lg:flex', mini ? 'w-[68px] px-2.5' : 'w-60 px-3')}>
+      {collapse}
       {mini ? (
-        <div className="mb-5 grid justify-items-center gap-2">
-          <Link href="/" aria-label="Studytime home"><Logo className="size-10" /></Link>
-          {collapse}
+        <div className="mb-6 grid h-12 justify-items-center">
+          <Link href="/" aria-label="Studytime home" className="self-center"><Logo className="size-10" /></Link>
         </div>
       ) : (
-        <div className="mb-6 flex items-center justify-between gap-2 pr-0.5">
-          <Wordmark className="mx-1.5 h-12" />
-          {collapse}
-        </div>
+        <Wordmark className="mx-1.5 mb-6 h-12" />
       )}
       <nav aria-label="Main navigation" className="min-h-0 flex-1 overflow-y-auto">
         <NavLinks pathname={pathname} mini={mini} />

@@ -1,6 +1,5 @@
 'use client';
 import '@fontsource/caveat/600.css';
-import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { AnimatePresence, motion, MotionConfig } from 'motion/react';
 import { useEffect, useMemo, useState } from 'react';
@@ -10,8 +9,6 @@ import { cn } from '@/lib/utils';
 
 /* Campus at night: windows light up as people sit down to study. The form is a study pass. */
 
-// The moving sky is WebGL, so it loads in the browser only.
-const Galaxy = dynamic(() => import('@/components/bits/Galaxy'), { ssr: false });
 
 const COLS = 7;
 const ROWS = 5;
@@ -134,21 +131,11 @@ function Stars() {
   );
 }
 
-/** The sky: a live star field that drifts toward you and scatters from the pointer. Click to warp. Plain stars if WebGL or motion is off. */
+/** The sky: twinkling stars and the odd shooting star. */
 function Sky() {
-  const [live, setLive] = useState(false);
-  useEffect(() => {
-    const t = setTimeout(() => setLive(!window.matchMedia('(prefers-reduced-motion: reduce)').matches && !!document.createElement('canvas').getContext('webgl')), 0);
-    return () => clearTimeout(t);
-  }, []);
   return (
     <>
-      {!live && <Stars />}
-      {live && (
-        <div className="pointer-events-none absolute inset-0" aria-hidden="true">
-          <Galaxy starColors={['#f6ecd2', '#ffd98a', '#ffffff']} saturation={0} density={1.2} glowIntensity={0.35} twinkleIntensity={0.6} rotationSpeed={0.04} starSpeed={0.4} speed={0.8} repulsionStrength={2.5} flareIntensity={0.8} dpr={1.25} />
-        </div>
-      )}
+      <Stars />
       {/* Shooting stars, every few seconds, at different spots. */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
         {[{ top: '8%', left: '62%', d: '0s' }, { top: '18%', left: '88%', d: '4.5s' }, { top: '4%', left: '38%', d: '9s' }].map((m, i) => (
