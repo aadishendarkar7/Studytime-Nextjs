@@ -9,17 +9,30 @@ let statusCache: AiStatus | null = null;
 let statusPromise: Promise<AiStatus> | null = null;
 const listeners = new Set<(s: AiStatus) => void>();
 
+const fetchStatus = async (): Promise<AiStatus> => {
+  // Two tries: the first request to a cold server can fail or time out.
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const r = await fetch('/api/ai/status', { cache: 'no-store' });
+      if (r.ok) return (await r.json()) as AiStatus;
+    } catch {
+      // try again below
+    }
+    await new Promise((res) => setTimeout(res, 800));
+  }
+  return { serverProviders: [], defaultProvider: null, requiresAccessCode: false, failed: true };
+};
+
 export function loadAiStatus(force = false): Promise<AiStatus> {
   if (statusCache && !force) return Promise.resolve(statusCache);
   if (!statusPromise || force) {
-    statusPromise = fetch('/api/ai/status', { cache: 'no-store' })
-      .then((r) => (r.ok ? (r.json() as Promise<AiStatus>) : Promise.reject()))
-      .catch(() => ({ serverProviders: [], defaultProvider: null, requiresAccessCode: false }) as AiStatus)
-      .then((s) => {
-        statusCache = s;
-        listeners.forEach((l) => l(s));
-        return s;
-      });
+    statusPromise = fetchStatus().then((s) => {
+      // A failed check is never remembered, so the next AI request asks again instead of giving up.
+      if (s.failed) statusPromise = null;
+      else statusCache = s;
+      listeners.forEach((l) => l(s));
+      return s;
+    });
   }
   return statusPromise;
 }
@@ -73,14 +86,15 @@ export interface CallOptions {
 
 /** Stream a reply through /api/ai. Resolves with the full text. */
 export async function callAI({ system, messages, maxTokens = 2500, tier = 'main', onText, signal, provider }: CallOptions): Promise<string> {
-  const status = await loadAiStatus();
+  let status = await loadAiStatus();
+  if (status.failed) status = await loadAiStatus(true);
   let conn = resolveConnection(status);
   if (provider && conn.provider !== provider) {
     if (useAi.getState().keys[provider]) conn = { mode: 'own', provider };
     else if (status.serverProviders.includes(provider)) conn = { mode: 'server', provider };
     else throw new AiError(`This needs ${PROVIDERS[provider].label}. Add a free ${PROVIDERS[provider].label} key in Settings → AI tutor.`, true);
   }
-  if (conn.mode === 'none') throw new AiError('Add a free AI key in Settings → AI tutor to use AI features.', true);
+  if (conn.mode === 'none') throw status.failed ? new AiError('Could not reach the AI just now. Check your connection and try again.') : new AiError('Add a free AI key in Settings → AI tutor to use AI features.', true);
   const settings = useAi.getState();
   const info = PROVIDERS[conn.provider];
   const model = provider && provider !== settings.provider ? PROVIDERS[provider].defaults[tier] : modelFor({ provider: conn.provider, models: settings.models }, tier);
@@ -89,9 +103,15 @@ export async function callAI({ system, messages, maxTokens = 2500, tier = 'main'
   const headers: Record<string, string> = { 'content-type': 'application/json' };
   if (conn.mode === 'own') headers['x-ai-key'] = settings.keys[conn.provider]!;
   if (settings.accessCode) headers['x-access-code'] = settings.accessCode;
+  const send = () => fetch('/api/ai', { method: 'POST', headers, signal, body: JSON.stringify({ provider: conn.provider, model, system, messages, maxTokens }) });
   let response: Response;
   try {
-    response = await fetch('/api/ai', { method: 'POST', headers, signal, body: JSON.stringify({ provider: conn.provider, model, system, messages, maxTokens }) });
+    response = await send();
+    // Every model busy: wait a moment and try once more before showing an error.
+    if (response.status === 503 || response.status === 502 || response.status === 504) {
+      await new Promise((r) => setTimeout(r, 2500));
+      response = await send();
+    }
   } catch (error) {
     if ((error as Error).name === 'AbortError') throw error;
     throw new AiError('Could not reach Studytime. Check your internet connection.');
@@ -99,7 +119,9 @@ export async function callAI({ system, messages, maxTokens = 2500, tier = 'main'
   if (!response.ok || !response.body) {
     const body = (await response.json().catch(() => ({}))) as { error?: string };
     if (response.status === 413) throw new AiError('Those files are too large. Use fewer or smaller pages.');
-    throw new AiError(body.error || `AI request failed (${response.status}).`, response.status === 503 || response.status === 401);
+    // Only point people at Settings when the AI is truly not set up, not when it is just busy.
+    const setup = response.status === 401 || (response.status === 503 && /not set up/i.test(body.error ?? ''));
+    throw new AiError(body.error || `AI request failed (${response.status}).`, setup);
   }
   const reader = response.body.getReader();
   const decoder = new TextDecoder();

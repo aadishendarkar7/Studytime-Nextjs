@@ -117,4 +117,6 @@ export interface AiStatus {
   serverProviders: ProviderId[];
   defaultProvider: ProviderId | null;
   requiresAccessCode: boolean;
+  /** True when the status could not be loaded (network blip, cold start). Not the same as "no AI". */
+  failed?: boolean;
 }

@@ -81,7 +81,7 @@ export const POST = handle(async (request: Request) => {
     const who = userId ? `u:${userId}` : `ip:${ip}`;
     const daily = env('AI_DAILY_LIMIT', 200);
     await rateLimit('ai-min', who, env('AI_RATE_LIMIT_PER_MIN', 15), 60, 'Too many AI requests. Wait a minute and try again.');
-    await rateLimit('ai-day', who, userId ? daily : Math.min(daily, env('AI_GUEST_DAILY_LIMIT', 40)), 86_400, userId ? 'You reached today’s AI limit. It resets tomorrow.' : 'You reached today’s AI limit for visitors. Sign in for more, or come back tomorrow.');
+    await rateLimit('ai-day', who, userId ? daily : Math.min(daily, env('AI_GUEST_DAILY_LIMIT', 150)), 86_400, userId ? 'You reached today’s AI limit. It resets tomorrow.' : 'You reached today’s AI limit for visitors. Sign in for more, or come back tomorrow.');
     // A cap per network too, so one person cannot get around limits with many accounts.
     await rateLimit('ai-ip-day', ip, env('AI_DAILY_LIMIT', 200) * 4, 86_400, 'This network reached today’s AI limit. It resets tomorrow.');
   }

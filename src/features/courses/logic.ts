@@ -12,6 +12,16 @@ const who = () => {
 
 /** Plans a short course: up to 3 units of up to 4 lessons. Lesson text is written later, when opened. */
 export async function planCourse(topic: string): Promise<MiniCourse> {
+  // One retry: a model now and then sends back JSON that will not parse.
+  try {
+    return await planOnce(topic);
+  } catch (e) {
+    if ((e as { needsSetup?: boolean }).needsSetup) throw e;
+    return planOnce(topic);
+  }
+}
+
+async function planOnce(topic: string): Promise<MiniCourse> {
   const r = await callJSON<{ title?: string; units?: { title?: string; lessons?: { title?: string; goal?: string }[] }[] }>({
     tier: 'main',
     maxTokens: 1500,
