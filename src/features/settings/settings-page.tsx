@@ -31,11 +31,9 @@ function NotificationsCard() {
   const x = useExtras();
   return (
     <Card>
-      <CardHeader title="Notifications" description="Reminders for deadlines, study blocks, water breaks and friends' drops." />
+      <CardHeader title="Notifications" description="Reminders for deadlines, study blocks and friends' drops." />
       <NotificationSettings />
       <Checkbox label="Tell me when friends drop a spot" checked={!x.dropQuiet} onChange={(e) => x.update({ dropQuiet: !e.target.checked })} />
-      <Checkbox label="Water reminders every half hour" checked={x.waterRemind} onChange={(e) => x.update({ waterRemind: e.target.checked })} />
-      <Checkbox label="Pop quiz from my flashcards after sessions" checked={x.popQuiz} onChange={(e) => x.update({ popQuiz: e.target.checked })} />
       <div className="mt-4 border-t border-line pt-4">
         <Checkbox label="Quiet hours" checked={x.quiet.on} onChange={(e) => x.update({ quiet: { ...x.quiet, on: e.target.checked } })} />
         <div className={cn('mt-2 flex flex-wrap items-center gap-2 pl-6 text-[13px]', !x.quiet.on && 'opacity-50')}>
@@ -44,7 +42,7 @@ function NotificationsCard() {
           <span className="text-muted">to</span>
           <Input type="time" aria-label="Quiet hours end" className="h-9 w-[120px]" disabled={!x.quiet.on} value={x.quiet.to} onChange={(e) => x.update({ quiet: { ...x.quiet, to: e.target.value } })} />
         </div>
-        <p className="mt-1.5 pl-6 text-[12px] text-muted">No water breaks, pop quizzes, nudges or message alerts. Deadline reminders and your own timer still come through.</p>
+        <p className="mt-1.5 pl-6 text-[12px] text-muted">No drop or message alerts. Deadline reminders and your own timer still come through.</p>
       </div>
     </Card>
   );
@@ -74,7 +72,7 @@ function AccountCard() {
       <div className="mt-4 flex flex-wrap gap-2">
         <Button variant="secondary" onClick={() => saveNow().then(() => toast('Saved to your account.'))}>Save now</Button>
         <Button variant="secondary" onClick={() => void shareInvite(user.id, user.name)}><Icon name="send" className="size-4" /> Invite friends</Button>
-        <Button variant="ghost" onClick={() => void signOut()}>Sign out</Button>
+        <Button variant="destructive" onClick={() => void signOut()}>Sign out</Button>
       </div>
       <div className="mt-5 grid gap-2 border-t border-line pt-4">
         <Checkbox label="Email me a short recap of my week on Sundays" checked={user.recapEmail} onChange={(e) => api.auth.profile({ recapEmail: e.target.checked }).then((r) => useAccount.setState({ user: r.user }), () => toast('Could not save.', 'error'))} />

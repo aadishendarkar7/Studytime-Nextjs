@@ -31,14 +31,14 @@
 }
 
 html[data-theme='dark'] {
-  --bg: #09090b;
-  --ink: #fafafa;
+  --bg: #0b0b0d;
+  --ink: #f4f4f5;
   --ink-2: #d4d4d8;
   --muted: #a1a1aa;
-  --line: #27272a;
-  --line-strong: #52525b;
-  --surface: #09090b;
-  --surface-2: #101013;
+  --line: #26262a;
+  --line-strong: #4b4b52;
+  --surface: #131316;
+  --surface-2: #0f0f12;
   --shadow-color: 0 0 0;
   --ok: #5fd08a;
   --warn: #e8b44c;
@@ -47,39 +47,10 @@ html[data-theme='dark'] {
   color-scheme: dark;
 }
 
-/* Night: the sign-in page's colors. Navy sky, warm paper text, lamplight glow, serif headings. */
-html[data-theme='night'] {
-  --bg: #0d1226;
-  --ink: #f6ecd2;
-  --ink-2: #d9d2bf;
-  --muted: #9d9886;
-  --line: #252e51;
-  --line-strong: #3d4975;
-  --surface: #131a35;
-  --surface-2: #10162e;
-  --shadow-color: 0 0 0;
-  --ok: #7fd39a;
-  --warn: #f4b553;
-  --danger: #f08a7a;
-  --pattern-strength: 0.55;
-  color-scheme: dark;
-}
-html[data-theme='night'] body::before {
-  background:
-    radial-gradient(1px 1px at 12% 18%, rgba(246,236,210,.7), transparent 60%),
-    radial-gradient(1px 1px at 34% 8%, rgba(246,236,210,.5), transparent 60%),
-    radial-gradient(1.5px 1.5px at 58% 22%, rgba(246,236,210,.6), transparent 60%),
-    radial-gradient(1px 1px at 76% 12%, rgba(246,236,210,.5), transparent 60%),
-    radial-gradient(1.5px 1.5px at 91% 30%, rgba(246,236,210,.55), transparent 60%),
-    radial-gradient(1px 1px at 22% 44%, rgba(246,236,210,.35), transparent 60%),
-    radial-gradient(1px 1px at 67% 52%, rgba(246,236,210,.3), transparent 60%),
-    radial-gradient(70vw 40vh at 100% -8%, color-mix(in oklab, var(--glow) calc(var(--wash) * 0.8), transparent), transparent 72%),
-    radial-gradient(120% 70% at 30% 0%, #1c2550 0%, #0d1226 60%);
-}
-/* Page titles get the display face; everything else stays in Lexend. */
-h1 { font-family: 'Unbounded Variable', var(--font-display); font-weight: 600; letter-spacing: -0.02em; }
+/* One family across the app. The sign-in page keeps its own display face. */
+h1 { font-weight: 600; letter-spacing: -0.025em; }
 
-:root, html[data-theme='dark'], html[data-theme='night'] {
+:root, html[data-theme='dark'] {
   --surface-3: color-mix(in oklab, var(--ink) 5%, var(--surface));
   /* Your color: primary buttons, the open page, selections and data. Surfaces stay neutral. */
   --brand: var(--accent-fill);
@@ -177,9 +148,9 @@ body::after {
 }
 
 /* Map tiles follow dark mode. */
-html[data-theme='dark'] .leaflet-tile-pane, html[data-theme='night'] .leaflet-tile-pane { filter: invert(1) hue-rotate(180deg) brightness(0.85) contrast(0.9) saturate(0.6); }
-html[data-theme='dark'] .leaflet-control-zoom a, html[data-theme='dark'] .leaflet-control-attribution, html[data-theme='night'] .leaflet-control-zoom a, html[data-theme='night'] .leaflet-control-attribution { background: var(--surface) !important; color: var(--ink) !important; }
-html[data-theme='dark'] .leaflet-popup-content-wrapper, html[data-theme='dark'] .leaflet-popup-tip, html[data-theme='night'] .leaflet-popup-content-wrapper, html[data-theme='night'] .leaflet-popup-tip { background: var(--surface); }
+html[data-theme='dark'] .leaflet-tile-pane { filter: invert(1) hue-rotate(180deg) brightness(0.85) contrast(0.9) saturate(0.6); }
+html[data-theme='dark'] .leaflet-control-zoom a, html[data-theme='dark'] .leaflet-control-attribution { background: var(--surface) !important; color: var(--ink) !important; }
+html[data-theme='dark'] .leaflet-popup-content-wrapper, html[data-theme='dark'] .leaflet-popup-tip { background: var(--surface); }
 
 /* Inside the Study workspace, tools drop their own card chrome so the page reads as one surface. */
 .ws-flat section.rounded-2xl { border-color: transparent; box-shadow: none; background: transparent; padding-left: 0; padding-right: 0; padding-top: 0.5rem; }
@@ -318,50 +289,28 @@ html.color-ripple::view-transition-new(root) { animation: color-ripple 700ms cub
 
 /*
  * Panels and wells.
- * A panel is a widget: lit from above like a desk under a lamp, with a hairline
- * edge that catches the light where your pointer is. A well is a small box set
- * into a panel (a day, a length, a stat, an input). Selected wells light up.
+ * A panel is a widget: one hairline border, a faint top highlight, a soft shadow.
+ * A well is a small box set into a panel (a day, a length, a stat, an input).
+ * The selected well gets your color. No glows, nothing that follows the mouse.
  */
-@property --edge { syntax: '<percentage>'; inherits: false; initial-value: 0%; }
 @layer components {
   .panel {
-    --mx: 50%;
-    --my: -40%;
     position: relative;
-    border-radius: 16px;
-    border: 1px solid transparent;
-    background:
-      linear-gradient(180deg, color-mix(in oklab, var(--ink) 4.5%, var(--surface)) 0%, var(--surface) 46%) padding-box,
-      radial-gradient(220px circle at var(--mx) var(--my), color-mix(in oklab, var(--glow) var(--edge), transparent), transparent 72%) border-box,
-      linear-gradient(180deg, color-mix(in oklab, var(--ink) 17%, transparent), color-mix(in oklab, var(--ink) 5%, transparent) 55%) border-box;
-    box-shadow:
-      inset 0 1px 0 color-mix(in oklab, var(--ink) 7%, transparent),
-      0 22px 44px -28px rgb(var(--shadow-color) / 0.7);
-    transition: --edge 0.35s ease;
+    border-radius: 14px;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    box-shadow: 0 1px 2px rgb(var(--shadow-color) / 0.05), 0 8px 24px -18px rgb(var(--shadow-color) / 0.25);
   }
-  .panel[data-lit] { --edge: 85%; }
-  :root:not([data-theme='night']):not([data-theme='dark']) .panel { box-shadow: inset 0 1px 0 #fff, 0 18px 36px -26px rgb(var(--shadow-color) / 0.35); }
+  html[data-theme='dark'] .panel { box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.04); }
 
   .well {
-    border-radius: 10px;
-    border: 1px solid color-mix(in oklab, var(--ink) 7%, transparent);
-    background: color-mix(in oklab, #000 16%, var(--surface));
-    box-shadow: inset 0 1px 2px rgb(0 0 0 / 0.28);
+    border-radius: 9px;
+    border: 1px solid var(--line);
+    background: var(--surface-2);
     color: var(--muted);
-    transition: background-color 0.2s, border-color 0.2s, box-shadow 0.2s, color 0.2s;
+    transition: background-color 0.15s, border-color 0.15s, color 0.15s;
   }
-  :root:not([data-theme='night']):not([data-theme='dark']) .well { background: var(--surface-2); box-shadow: inset 0 1px 2px rgb(0 0 0 / 0.06); }
-  button.well:not(:disabled):hover { color: var(--ink); border-color: color-mix(in oklab, var(--ink) 16%, transparent); }
-  .well-on {
-    color: var(--ink);
-    border-color: color-mix(in oklab, var(--glow) 70%, transparent);
-    background: color-mix(in oklab, var(--glow) 13%, var(--surface));
-    box-shadow: inset 0 1px 0 color-mix(in oklab, var(--glow) 30%, transparent), 0 0 22px -6px color-mix(in oklab, var(--glow) 55%, transparent);
-  }
-  .well-done {
-    color: #fff;
-    border-color: transparent;
-    background: linear-gradient(180deg, color-mix(in oklab, var(--accent-fill) 82%, #fff), var(--accent-fill));
-    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.18), 0 6px 16px -8px var(--accent-fill);
-  }
+  button.well:not(:disabled):hover { color: var(--ink); border-color: var(--line-strong); }
+  .well-on { color: var(--accent-ink); border-color: var(--accent); background: var(--accent-soft); }
+  .well-done { color: #fff; border-color: transparent; background: var(--accent-fill); }
 }

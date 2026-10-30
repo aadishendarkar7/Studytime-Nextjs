@@ -6,7 +6,6 @@ import { DropComposerHost } from '@/features/drop/composer';
 import { startAccount, useAccount } from '@/features/auth/account';
 import { Welcome } from '@/features/auth/welcome';
 import { GlobalEffects } from './global-effects';
-import { PanelLight } from './panel-light';
 import { PrintPortal } from './print-portal';
 import { ReflectionDialog } from './reflection-dialog';
 import { BottomTabs, Sidebar, Topbar } from './sidebar';
@@ -43,7 +42,6 @@ export function AppShell({ children }: { children: ReactNode }) {
       <ReflectionDialog />
       <PrintPortal />
       <DropComposerHost />
-      <PanelLight />
       <BottomTabs />
       <Toaster />
     </div>

@@ -4,7 +4,7 @@ import { cn } from '@/lib/utils';
 /** A segmented control: a gray track with the chosen option raised on it. */
 export function Segmented<T extends string>({ options, value, onChange, label, className, wrap = true }: { options: { value: T; label: string }[]; value: T; onChange: (v: T) => void; label?: string; className?: string; wrap?: boolean }) {
   return (
-    <div role="radiogroup" aria-label={label} className={cn('well flex max-w-full gap-0.5 p-[3px]', wrap ? 'flex-wrap' : 'overflow-x-auto [scrollbar-width:none]', className)}>
+    <div role="radiogroup" aria-label={label} className={cn('flex max-w-full gap-0.5 rounded-lg bg-surface-3 p-[3px]', wrap ? 'flex-wrap' : 'overflow-x-auto [scrollbar-width:none]', className)}>
       {options.map((o) => (
         <button
           key={o.value}
@@ -14,7 +14,7 @@ export function Segmented<T extends string>({ options, value, onChange, label, c
           onClick={() => onChange(o.value)}
           className={cn(
             'h-8 shrink-0 rounded-md px-3 text-[13px] font-medium whitespace-nowrap transition-colors max-sm:h-9',
-            value === o.value ? 'bg-[color-mix(in_oklab,var(--ink)_9%,var(--surface))] text-ink shadow-[inset_0_1px_0_color-mix(in_oklab,var(--ink)_10%,transparent),0_2px_6px_-2px_rgb(0_0_0/0.4)]' : 'text-muted hover:text-ink',
+            value === o.value ? 'bg-surface text-ink shadow-[0_1px_2px_rgb(var(--shadow-color)/0.12),0_0_0_1px_var(--line)]' : 'text-muted hover:text-ink',
           )}
         >
           {o.label}

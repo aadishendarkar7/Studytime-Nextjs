@@ -19,7 +19,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: LayoutProps<'/'>) {
   return (
-    <html lang="en" data-backdrop="plain" data-wash="soft" data-theme="night" data-font="sans" data-corners="soft" suppressHydrationWarning>
+    <html lang="en" data-backdrop="plain" data-wash="none" data-theme="light" data-font="sans" data-corners="soft" suppressHydrationWarning>
       <head>
         {/* Applies the saved colors and backdrop before the first paint. */}
         <script dangerouslySetInnerHTML={{ __html: APPEARANCE_SCRIPT }} />

@@ -11,8 +11,6 @@ import { useDropComposer } from '@/features/drop/composer';
 import { Icon } from '@/components/ui/icons';
 import { awardFor, DURATIONS, MAX_LENGTH, MIN_LENGTH } from './logic';
 import { TimerReadout } from './timer-readout';
-import ClickSpark from '@/components/bits/ClickSpark';
-import { Lamp } from './lamp';
 
 const MAJOR_SUGGESTIONS: Record<string, string[]> = { Biology: ['Biology', 'Chemistry', 'Lab'], Business: ['Accounting', 'Economics', 'Marketing'], 'Computer Science': ['Programming', 'Algorithms', 'Mathematics'], Engineering: ['Calculus', 'Physics', 'Design'], Psychology: ['Psychology', 'Statistics', 'Research'], 'Arts & Humanities': ['Writing', 'History', 'Studio'] };
 export const subjectSuggestions = (major: string, courses: string[]) => [...new Set([...(MAJOR_SUGGESTIONS[major] ?? []), ...courses])];
@@ -61,17 +59,19 @@ export function FocusPanel({ className }: { className?: string }) {
     p.startOrPause();
     toast('Nice. 30 more minutes.');
   };
-  const glowColor = p.glow || '#f4b553';
   const t = p.timer;
   const locked = t.mode !== 'ready';
   return (
     <Card className={cn('relative isolate overflow-hidden', className)}>
-      <Lamp on={t.mode === 'running'} />
+      {/* The card's top edge fills as the session runs. */}
+      {locked && (
+        <div className="absolute inset-x-0 top-0 h-[3px] bg-surface-3" aria-hidden="true">
+          <div className="h-full bg-accent-fill transition-[width] duration-1000 ease-linear" style={{ width: `${Math.min(100, (1 - t.remaining / (p.duration * 60)) * 100)}%` }} />
+        </div>
+      )}
       <TimerReadout />
       <div className="mt-6 flex flex-wrap items-center gap-3">
-        <ClickSpark sparkColor={glowColor} sparkCount={10} sparkRadius={26} sparkSize={9} style={{ width: "auto", height: "auto", display: "inline-block" }}>
-          <Button size="lg" onClick={p.startOrPause}>{t.mode === 'running' ? 'Pause' : t.mode === 'paused' ? 'Resume' : 'Start focus'}</Button>
-        </ClickSpark>
+        <Button size="lg" onClick={p.startOrPause}>{t.mode === 'running' ? 'Pause' : t.mode === 'paused' ? 'Resume' : 'Start focus'}</Button>
         {locked && <Button size="lg" variant="secondary" onClick={p.resetTimer}>Reset</Button>}
         <Button variant="ghost" onClick={() => useDropComposer.getState().show({ minutes: p.duration })}><Icon name="pin" className="size-4" /> Tell friends where</Button>
       </div>

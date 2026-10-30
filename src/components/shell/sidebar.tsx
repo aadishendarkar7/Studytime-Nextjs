@@ -5,7 +5,6 @@ import { usePathname } from 'next/navigation';
 import { Avatar } from '@/components/ui/avatar';
 import { Icon, Logo } from '@/components/ui/icons';
 import { useUnreadDms } from '@/features/chat/live';
-import { useDropComposer } from '@/features/drop/composer';
 import { useDrops } from '@/features/drop/live';
 import { SoundDock } from '@/features/sounds/sound-dock';
 import { useProfile } from '@/lib/stores/profile';
@@ -157,11 +156,6 @@ export function Topbar() {
         <span className="truncate text-[14px] font-medium text-ink max-lg:hidden">{title}</span>
         <TimerChip hidden={pathname === '/'} />
         <div className="ml-auto flex items-center gap-1">
-          {pathname !== '/drop' && (
-            <button type="button" onClick={() => useDropComposer.getState().show()} className="mr-1 inline-flex h-8 items-center gap-1.5 rounded-lg border border-line bg-surface px-2.5 text-[13px] font-medium text-ink shadow-sm hover:bg-surface-2 max-sm:hidden">
-              <Icon name="pin" className="size-4 text-accent-ink" /> Drop a spot
-            </button>
-          )}
           <AppearanceButtons />
           {!signedIn && <Link href={signInHref('signin')} className="ml-1 inline-flex h-8 items-center rounded-lg bg-accent-fill px-3 text-[13px] font-semibold text-white hover:opacity-90 lg:hidden">Sign in</Link>}
           <button

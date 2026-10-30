@@ -46,7 +46,7 @@ export interface ProfileData {
 
 export const defaultProfile = (): ProfileData => ({
   name: 'Student', dailyGoal: 60, weeklyGoal: 300, points: 0, sessions: [], bonusDays: [], duration: 30, subject: '', location: '',
-  theme: 'night', accent: '#2f6b4f', glow: '#f4b553', backdrop: 'plain', wash: 'soft', font: 'sans', corners: 'soft', look: 4, reminders: [], major: '', school: '', year: '', courses: [], prompts: [], studyStyle: '', leaderboard: null, circle: null,
+  theme: 'light', accent: '#2f6b4f', glow: '#f4b553', backdrop: 'plain', wash: 'none', font: 'sans', corners: 'soft', look: 5, reminders: [], major: '', school: '', year: '', courses: [], prompts: [], studyStyle: '', leaderboard: null, circle: null,
   nextPlanAt: null, nextPlanNotified: false, reflections: [], timer: { mode: 'ready', remaining: 30 * 60, deadline: null },
 });
 
@@ -145,9 +145,9 @@ export function sanitizeProfile<T extends ProfileData>(p: T): T {
   const base = defaultProfile();
   const out = { ...p };
   for (const key of ['sessions', 'bonusDays', 'reminders', 'courses', 'reflections', 'prompts'] as const) if (!Array.isArray(out[key])) (out as ProfileData)[key] = base[key] as never;
-  if (!['night', 'light', 'dark', 'system'].includes(out.theme)) out.theme = 'night';
+  if (!['light', 'dark', 'system'].includes(out.theme)) out.theme = 'light';
   // Looks saved before the current design reset once to its defaults (theme is kept).
-  // The night look arrived with look 4: everyone moves to it once, and can switch back in Appearance.
+  // Look 5 retired the night theme: everyone starts on light once, and can pick dark in Appearance.
   if (out.look !== base.look) Object.assign(out, { theme: base.theme, accent: base.accent, glow: base.glow, backdrop: base.backdrop, wash: base.wash, font: base.font, corners: base.corners, look: base.look });
   if (out.font !== 'serif') out.font = 'sans';
   if (!['crisp', 'soft', 'round'].includes(out.corners)) out.corners = 'soft';

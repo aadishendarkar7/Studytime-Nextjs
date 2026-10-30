@@ -6,7 +6,7 @@ import Counter from '@/components/bits/Counter';
 import { cn } from '@/lib/utils';
 import { awardFor } from './logic';
 
-const STATUS = { ready: 'Ready', running: 'Running', paused: 'Paused' } as const;
+const STATUS = { ready: 'Ready', running: 'Focusing', paused: 'Paused' } as const;
 
 /** The timer as an instrument readout: tabular digits over a 60-tick ruler. Real timer state only. */
 export function TimerReadout({ className }: { className?: string }) {
@@ -17,7 +17,10 @@ export function TimerReadout({ className }: { className?: string }) {
   return (
     <div className={className}>
       <div className="flex items-center justify-between gap-4">
-        <Eyebrow className={cn(timer.mode === 'running' && 'text-accent')}>{STATUS[timer.mode]}</Eyebrow>
+        <Eyebrow className={cn('flex items-center gap-2', timer.mode === 'running' && 'text-accent-ink')}>
+          {timer.mode !== 'ready' && <span className={cn('size-2 rounded-full', timer.mode === 'running' ? 'animate-pulse bg-accent' : 'bg-muted')} aria-hidden="true" />}
+          {STATUS[timer.mode]}
+        </Eyebrow>
         <Eyebrow className="tnum">{duration} min session, +{awardFor(duration)} pts</Eyebrow>
       </div>
       {/* Digits roll like a flip clock. Screen readers get the plain time. */}

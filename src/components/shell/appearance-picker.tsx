@@ -26,7 +26,7 @@ export function AppearanceOptions() {
   const active = PALETTES.find((x) => x.accent === p.accent && x.glow === p.glow);
   return (
     <div className="grid gap-3.5">
-      <Segmented className="[&>button]:flex-1" wrap={false} label="Theme" value={p.theme} onChange={(theme) => changeLook({ theme })} options={[{ value: 'night', label: 'Night' }, { value: 'light', label: 'Light' }, { value: 'dark', label: 'Dark' }, { value: 'system', label: 'Auto' }]} />
+      <Segmented className="[&>button]:flex-1" wrap={false} label="Theme" value={p.theme} onChange={(theme) => changeLook({ theme })} options={[{ value: 'light', label: 'Light' }, { value: 'dark', label: 'Dark' }, { value: 'system', label: 'Auto' }]} />
       <div>
         <p className="mb-2 text-[12px] text-muted">Color{active ? <span className="text-ink"> · {active.name}</span> : <span className="text-ink"> · Your own</span>}</p>
         <div role="radiogroup" aria-label="Color" className="flex flex-wrap items-center gap-2">
@@ -70,10 +70,10 @@ export function AppearanceButtons() {
     document.addEventListener('keydown', onKey);
     return () => (document.removeEventListener('mousedown', onDown), document.removeEventListener('keydown', onKey));
   }, [open]);
-  const isDark = theme === 'night' || theme === 'dark' || (theme === 'system' && typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+  const isDark = theme === 'dark' || (theme === 'system' && typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches);
   return (
     <div ref={box} className="relative flex items-center gap-1.5">
-      <button type="button" onClick={(e) => changeLook({ theme: isDark ? 'light' : 'night' }, e)} aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'} title={theme === 'system' ? 'Following your device' : undefined} className="grid size-9 place-items-center rounded-lg text-muted hover:bg-surface-3 hover:text-ink">
+      <button type="button" onClick={(e) => changeLook({ theme: isDark ? 'light' : 'dark' }, e)} aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'} title={theme === 'system' ? 'Following your device' : undefined} className="grid size-9 place-items-center rounded-lg text-muted hover:bg-surface-3 hover:text-ink">
         <Icon name={isDark ? 'sun' : 'moon'} className="size-[18px]" />
       </button>
       <button type="button" onClick={() => setOpen(!open)} aria-expanded={open} aria-label="Appearance" className={cn("grid size-9 place-items-center rounded-lg text-muted hover:bg-surface-3 hover:text-ink", open && "bg-surface-3 text-ink")}>

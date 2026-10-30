@@ -1,7 +1,7 @@
 import { forwardRef, type ButtonHTMLAttributes } from 'react';
 import { cn } from '@/lib/utils';
 
-type Variant = 'primary' | 'secondary' | 'ghost' | 'danger' | 'link';
+type Variant = 'primary' | 'secondary' | 'ghost' | 'danger' | 'destructive' | 'link';
 type Size = 'sm' | 'md' | 'lg' | 'icon';
 
 const variants: Record<Variant, string> = {
@@ -9,6 +9,7 @@ const variants: Record<Variant, string> = {
   secondary: 'border border-line bg-surface text-ink shadow-sm hover:border-line-strong/60 hover:bg-surface-2',
   ghost: 'border border-transparent text-ink-2 hover:bg-surface-3 hover:text-ink',
   danger: 'border border-line bg-surface text-danger hover:border-danger/40 hover:bg-danger-soft',
+  destructive: 'border border-transparent bg-[#c0262d] text-white shadow-sm hover:bg-[#a51f25]',
   link: 'border border-transparent text-accent-ink underline decoration-1 underline-offset-4 px-0! h-auto! min-h-0! shadow-none!',
 };
 const sizes: Record<Size, string> = {

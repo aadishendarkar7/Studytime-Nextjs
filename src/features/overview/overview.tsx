@@ -1,7 +1,6 @@
 'use client';
 import { DailyLadder } from '@/features/rewards/daily-ladder';
 import Link from 'next/link';
-import BlurText from '@/components/bits/BlurText';
 import { Avatar } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Icon } from '@/components/ui/icons';
@@ -17,9 +16,6 @@ import { useNow } from '@/lib/use-now';
 import { cn, dateKey, fmtMinutes, plural, todayKey } from '@/lib/utils';
 import { FocusPanel } from '@/features/focus/focus-page';
 
-function greeting(h: number) {
-  return h < 5 ? 'Up late' : h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening';
-}
 /** Who is out studying right now, top three, with one tap to join or drop your own spot. */
 function OutNow() {
   const drops = useDrops((s) => s.drops);
@@ -30,13 +26,16 @@ function OutNow() {
   const show = useDropComposer.getState().show;
   const list = [...live, ...drops.filter((d) => d.startsAt > now)].slice(0, 3);
   return (
-    <section className="flex flex-col panel p-5 max-sm:p-4">
+    <section className="flex flex-col p-5 max-sm:p-4">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <h2 className="font-sans text-[15px] leading-6 font-semibold">Out studying now</h2>
           <p className="truncate text-[12px] text-muted">{live.length ? <><span className="mr-1 inline-block size-1.5 rounded-full bg-ok align-middle" />{plural(people, 'person', 'people')} at {plural(live.length, 'spot')}{hot && hot.people > 1 ? ` · busiest: ${hot.name}` : ''}</> : 'No one is out yet. Be the first.'}</p>
         </div>
-        <Link href="/drop"><Button size="sm" variant="ghost">Map</Button></Link>
+        <span className="flex shrink-0 gap-1">
+          <Link href="/drop"><Button size="sm" variant="ghost">Map</Button></Link>
+          <Button size="sm" variant="secondary" onClick={() => show()}><Icon name="pin" className="size-4" /> Drop</Button>
+        </span>
       </div>
       {list.length ? (
         <ul className="mt-2 flex-1 divide-y divide-line">
@@ -52,9 +51,8 @@ function OutNow() {
           ))}
         </ul>
       ) : (
-        <p className="flex-1 py-4 text-[13px] leading-5 text-muted">Drop where you are studying and classmates can pull up a chair.</p>
+        <p className="flex-1 pt-2 text-[13px] leading-5 text-muted">Drop where you are studying and classmates can pull up a chair.</p>
       )}
-      <Button className="mt-3" block onClick={() => show()}><Icon name="pin" className="size-4" /> Drop a spot</Button>
     </section>
   );
 }
@@ -73,7 +71,7 @@ function WeekStrip() {
   const max = Math.max(30, ...days.map((x) => x.min));
   const todayK = todayKey();
   return (
-    <section className="panel p-5 max-sm:p-4">
+    <section className="p-5 max-sm:p-4">
       <div className="flex items-baseline justify-between">
         <h2 className="font-sans text-[15px] leading-6 font-semibold">This week</h2>
         <span className="tnum text-[13px] text-muted">{fmtMinutes(weekMinutes(sessions, d))}</span>
@@ -82,7 +80,7 @@ function WeekStrip() {
         {days.map((x) => (
           <div key={x.key} className="flex flex-1 flex-col items-center gap-1">
             <span className="well relative flex h-14 w-full items-end overflow-hidden p-[3px]" title={fmtMinutes(x.min)}>
-              <span className={cn('w-full rounded-[6px] transition-[height] duration-700 ease-out', x.min ? 'bg-gradient-to-t from-accent-fill to-[color-mix(in_oklab,var(--accent-fill)_70%,white)]' : '', x.key === todayK && x.min && 'shadow-[0_0_14px_-2px_var(--accent-fill)]')} style={{ height: x.min ? `${Math.max(10, (x.min / max) * 100)}%` : 0 }} />
+              <span className={cn('w-full rounded-[5px] transition-[height] duration-700 ease-out', x.key === todayK ? 'bg-accent-fill' : 'bg-accent/50')} style={{ height: x.min ? `${Math.max(10, (x.min / max) * 100)}%` : 0 }} />
             </span>
             <span className={cn('text-[11px]', x.key === todayK ? 'font-semibold text-ink' : 'text-muted')}>{x.label}</span>
           </div>
@@ -101,7 +99,7 @@ function WeekStrip() {
 function CheckInCard() {
   const checkedIn = useExtras((s) => s.checkins.some((c) => c.day === todayKey()));
   return (
-    <section className="panel p-5 max-sm:p-4">
+    <section className="p-5 max-sm:p-4">
       <div className="mb-3 flex items-center justify-between gap-3">
         <h2 className="font-sans text-[15px] leading-6 font-semibold">{checkedIn ? 'Checked in today' : 'How are you today?'}</h2>
         {!checkedIn && <Link href="/you"><Button size="sm">Check in</Button></Link>}
@@ -112,21 +110,25 @@ function CheckInCard() {
 }
 
 export function Overview() {
-  const name = useProfile((s) => s.name);
+  const sessions = useProfile((s) => s.sessions);
   const now = useNow(60_000);
-  const first = name && name !== 'Student' ? `, ${name.split(' ')[0]}` : '';
+  const d = new Date(now);
+  const today = minutesOn(sessions, todayKey());
+  const week = weekMinutes(sessions, d);
+  // The header states facts about today instead of a greeting.
+  const line = today ? `${fmtMinutes(today)} focused today · ${fmtMinutes(week)} this week` : week ? `Nothing yet today · ${fmtMinutes(week)} this week` : 'No sessions yet this week';
   return (
     <>
-      <header className="mt-4 mb-6 flex flex-wrap items-end justify-between gap-4 max-sm:mt-2">
+      <header className="mt-4 mb-5 flex flex-wrap items-end justify-between gap-4 max-sm:mt-2">
         <div>
-          <h1 className="text-[28px] leading-9 max-sm:text-[22px]"><BlurText key={greeting(new Date(now).getHours())} text={`${greeting(new Date(now).getHours())}${first}`} trigger="load" delay={90} blur={8} distance={10} /></h1>
-          <p className="text-[13px] text-muted">{new Date(now).toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}</p>
+          <h1 className="text-[26px] leading-8 max-sm:text-[22px]">{d.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}</h1>
+          <p className="tnum mt-0.5 text-[14px] text-muted">{line}</p>
         </div>
         <PetCompanion className="max-sm:hidden" />
       </header>
       <div className="grid gap-4 lg:grid-cols-12 [&>*]:min-w-0">
         <FocusPanel className="lg:col-span-7 xl:col-span-8" />
-        <div className="grid content-start gap-4 lg:col-span-5 xl:col-span-4">
+        <div className="panel content-start divide-y divide-line self-start overflow-hidden lg:col-span-5 xl:col-span-4">
           <CheckInCard />
           <WeekStrip />
           <OutNow />
