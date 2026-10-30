@@ -304,7 +304,7 @@ export function SignInPage() {
     <div className="st-night relative min-h-dvh overflow-hidden bg-[#0d1226] text-[#f6ecd2]">
       <style>{`
         .st-night { background: radial-gradient(120% 70% at 30% 0%, #1c2550 0%, #0d1226 60%); }
-        .st-display { font-family: 'Unbounded Variable', var(--font-sans); font-weight: 700; letter-spacing: -0.03em; }
+        .st-display { font-family: var(--font-sans); font-weight: 700; letter-spacing: -0.035em; }
         .st-hand { font-family: 'Caveat', cursive; }
         @keyframes st-twinkle { 0%, 100% { opacity: .25 } 50% { opacity: 1 } }
         .st-star { animation: st-twinkle 3.2s ease-in-out infinite; }

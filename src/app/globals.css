@@ -66,9 +66,10 @@ h1 { font-weight: 600; letter-spacing: -0.025em; }
 html[data-font='serif'] { --heading: 'Fraunces Variable', Georgia, 'Times New Roman', serif; }
 
 @theme inline {
-  --font-sans: 'Lexend Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  /* The device's own font: San Francisco on Apple, Segoe UI on Windows, Roboto on Android. */
+  --font-sans: -apple-system, BlinkMacSystemFont, system-ui, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   --font-mono: ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
-  --font-display: var(--heading, 'Lexend Variable', ui-sans-serif, system-ui, sans-serif);
+  --font-display: var(--heading, var(--font-sans));
 
   --color-bg: var(--bg);
   --color-surface: var(--surface);

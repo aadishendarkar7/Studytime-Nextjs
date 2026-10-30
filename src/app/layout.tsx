@@ -1,7 +1,5 @@
 import type { Metadata, Viewport } from 'next';
 import '@fontsource-variable/fraunces/full.css';
-import '@fontsource-variable/lexend';
-import '@fontsource-variable/unbounded';
 import 'katex/dist/katex.min.css';
 import './globals.css';
 import { APPEARANCE_SCRIPT } from '@/lib/appearance';
