@@ -165,7 +165,7 @@ function Skyline() {
     return out;
   }, [blocks]);
   return (
-    <svg viewBox="0 0 1600 600" preserveAspectRatio="xMidYMax slice" className="pointer-events-none absolute inset-x-0 bottom-0 h-[42vh] w-full" aria-hidden="true">
+    <svg viewBox="0 0 1600 600" preserveAspectRatio="xMidYMax slice" className="pointer-events-none absolute inset-x-0 bottom-0 h-[30vh] w-full opacity-80" aria-hidden="true">
       <defs>
         <linearGradient id="st-fog" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#0d1226" stopOpacity="0" /><stop offset="1" stopColor="#0d1226" stopOpacity=".85" /></linearGradient>
       </defs>
@@ -406,8 +406,8 @@ export function SignInPage() {
             </>
           )}
 
-          <Link href="/" className="mt-6 flex h-11 items-center justify-center rounded-[6px] border-2 border-[#2c3759] text-[15px] font-medium text-[#e9e3d2] transition-colors hover:border-[#ffd98a] hover:text-white">Look around first, no account needed</Link>
-          <p className="mt-4 text-center text-[13px] text-[#9a9584]">By continuing you agree to the <Link href="/terms" className="underline underline-offset-4 hover:text-[#f6ecd2]">Terms</Link> and <Link href="/privacy" className="underline underline-offset-4 hover:text-[#f6ecd2]">Privacy policy</Link>.</p>
+          <Link href="/" className="mt-6 flex h-11 items-center justify-center rounded-[6px] border-2 border-[#2c3759] bg-[#0f1530] text-[15px] font-medium text-[#e9e3d2] transition-colors hover:border-[#ffd98a] hover:text-white">Look around first, no account needed</Link>
+          <p className="mt-4 text-center text-[13px] text-[#b5ae9b] [text-shadow:0_0_6px_#0d1226,0_0_14px_#0d1226]">By continuing you agree to the <Link href="/terms" className="underline underline-offset-4 hover:text-[#f6ecd2]">Terms</Link> and <Link href="/privacy" className="underline underline-offset-4 hover:text-[#f6ecd2]">Privacy policy</Link>.</p>
         </section>
       </div>
     </div>
