@@ -17,8 +17,8 @@ import { GROUP_LABEL, isActive, MOBILE_TABS, NAV, type NavItem } from './nav';
 
 function Wordmark({ className }: { className?: string }) {
   return (
-    <Link href="/" className={cn('flex items-center gap-2.5 text-[19px] font-semibold tracking-tight text-ink', className)}>
-      <Logo className="size-9" /> Studytime
+    <Link href="/" className={cn('flex items-center gap-3 text-[23px] font-semibold tracking-tight text-ink', className)}>
+      <Logo className="size-11" /> Studytime
     </Link>
   );
 }
@@ -52,14 +52,15 @@ function Badge({ item, badges }: { item: NavItem; badges: ReturnType<typeof useB
   );
 }
 
-function NavLinks({ pathname, large }: { pathname: string; large?: boolean }) {
+function NavLinks({ pathname, large, mini }: { pathname: string; large?: boolean; mini?: boolean }) {
   const badges = useBadges();
   const groups = (['main', 'study', 'together', 'me'] as const).map((g) => ({ g, items: NAV.filter((n) => n.group === g && (large || n.href !== '/settings')) }));
   return (
     <div className="grid gap-4">
       {groups.map(({ g, items }) => (
         <div key={g} className="grid gap-px">
-          {GROUP_LABEL[g] && <p className="mb-1 px-2.5 text-[12px] font-medium text-muted">{GROUP_LABEL[g]}</p>}
+          {GROUP_LABEL[g] && !mini && <p className="mb-1 px-2.5 text-[12px] font-medium text-muted">{GROUP_LABEL[g]}</p>}
+          {mini && g !== 'main' && <span className="mx-2.5 mb-1 h-px bg-line" />}
           {items.map((item) => {
             const active = isActive(pathname, item.href);
             return (
@@ -67,14 +68,16 @@ function NavLinks({ pathname, large }: { pathname: string; large?: boolean }) {
                 key={item.href}
                 href={item.href}
                 aria-current={active ? 'page' : undefined}
-                className={cn('flex items-center gap-2.5 rounded-lg px-2.5 transition-colors', large ? 'min-h-12 text-[16px]' : 'h-8 text-[14px]', active ? 'bg-accent-soft font-medium text-accent-ink' : 'text-ink-2 hover:bg-surface-3/70 hover:text-ink')}
+                title={mini ? item.label : undefined}
+                aria-label={mini ? item.label : undefined}
+                className={cn('flex items-center gap-2.5 rounded-lg px-2.5 transition-colors', large ? 'min-h-12 text-[16px]' : mini ? 'h-9 justify-center px-0' : 'h-8 text-[14px]', active ? 'bg-accent-soft font-medium text-accent-ink' : 'text-ink-2 hover:bg-surface-3/70 hover:text-ink')}
               >
                 <Icon name={item.icon} className={cn('size-[17px] shrink-0', active || item.href === '/drop' ? 'text-accent-ink' : 'text-muted')} />
-                <span className="min-w-0 flex-1 truncate">
+                {!mini && <span className="min-w-0 flex-1 truncate">
                   {item.label}
                   {large && item.hint && <small className="block text-[13px] font-normal text-muted">{item.hint}</small>}
-                </span>
-                <Badge item={item} badges={badges} />
+                </span>}
+                {!mini && <Badge item={item} badges={badges} />}
               </Link>
             );
           })}
@@ -84,38 +87,76 @@ function NavLinks({ pathname, large }: { pathname: string; large?: boolean }) {
   );
 }
 
+const MINI_KEY = 'studytime:sidebar-mini';
+
 export function Sidebar() {
   const pathname = usePathname();
   const name = useProfile((s) => s.name.trim() || 'Student');
   const school = useProfile((s) => s.school);
   const signedIn = useAccount((s) => Boolean(s.user));
+  // Collapsed to icons or not. Remembered in this browser only.
+  const [mini, setMini] = useState(false);
+  useEffect(() => {
+    const t = setTimeout(() => {
+      try { setMini(localStorage.getItem(MINI_KEY) === '1'); } catch {}
+    }, 0);
+    return () => clearTimeout(t);
+  }, []);
+  const toggle = () => {
+    setMini(!mini);
+    try { localStorage.setItem(MINI_KEY, mini ? '0' : '1'); } catch {}
+  };
+  const collapse = (
+    <button type="button" onClick={toggle} aria-label={mini ? 'Expand sidebar' : 'Collapse sidebar'} title={mini ? 'Expand sidebar' : 'Collapse sidebar'} className="grid size-8 shrink-0 place-items-center rounded-lg text-muted hover:bg-surface-3 hover:text-ink">
+      <Icon name="panel" className="size-[17px]" />
+    </button>
+  );
   return (
-    <aside className="sticky top-0 hidden h-dvh w-60 shrink-0 flex-col border-r border-line bg-[var(--sidebar)] px-3 pt-4 pb-3 lg:flex">
-      <Wordmark className="mx-2 mb-6 h-10" />
-      <nav aria-label="Main navigation" className="min-h-0 flex-1 overflow-y-auto">
-        <NavLinks pathname={pathname} />
-      </nav>
-      <div className="mt-3 grid gap-2 border-t border-line pt-3">
-        <SoundDock />
-        <div className="flex items-center gap-1">
-          {signedIn ? (
-          <Link href="/you?tab=profile" className="flex min-w-0 flex-1 items-center gap-2.5 rounded-lg px-2 py-1.5 hover:bg-surface-3">
-              <Avatar name={name} size={28} />
-              <span className="min-w-0">
-                <strong className="block truncate text-[13px] font-medium">{name}</strong>
-                <small className="block truncate text-[12px] text-muted">{school || 'Add your school'}</small>
-              </span>
-            </Link>
-          ) : (
-            <Link href={signInHref('signup')} className="flex min-w-0 flex-1 items-center gap-2.5 rounded-lg bg-accent-fill px-3 py-2 text-white hover:opacity-90">
-              <Icon name="user" className="size-4" />
-              <span className="min-w-0"><strong className="block truncate text-[13px] font-semibold">Create account</strong><small className="block truncate text-[12px] text-white/80">Free. Saves your progress</small></span>
-            </Link>
-          )}
-          <Link href="/settings" aria-label="Settings" title="Settings" className={cn('grid size-8 shrink-0 place-items-center rounded-lg hover:bg-surface-3 hover:text-ink', isActive(pathname, '/settings') ? 'bg-surface-3 text-ink' : 'text-muted')}><Icon name="settings" className="size-[17px]" /></Link>
+    <aside className={cn('sticky top-0 hidden h-dvh shrink-0 flex-col border-r border-line bg-[var(--sidebar)] pt-4 pb-3 transition-[width] duration-200 lg:flex', mini ? 'w-[68px] px-2.5' : 'w-60 px-3')}>
+      {mini ? (
+        <div className="mb-5 grid justify-items-center gap-2">
+          <Link href="/" aria-label="Studytime home"><Logo className="size-10" /></Link>
+          {collapse}
         </div>
-        <FooterLinks className="px-2" />
-      </div>
+      ) : (
+        <div className="mb-6 flex items-center justify-between gap-2 pr-0.5">
+          <Wordmark className="mx-1.5 h-12" />
+          {collapse}
+        </div>
+      )}
+      <nav aria-label="Main navigation" className="min-h-0 flex-1 overflow-y-auto">
+        <NavLinks pathname={pathname} mini={mini} />
+      </nav>
+      {mini ? (
+        <div className="mt-3 grid justify-items-center gap-2 border-t border-line pt-3">
+          <Link href={signedIn ? '/you?tab=profile' : signInHref('signup')} aria-label={signedIn ? name : 'Create account'} title={signedIn ? name : 'Create account'}>
+            {signedIn ? <Avatar name={name} size={28} /> : <span className="grid size-8 place-items-center rounded-lg bg-accent-fill text-white"><Icon name="user" className="size-4" /></span>}
+          </Link>
+          <Link href="/settings" aria-label="Settings" title="Settings" className={cn('grid size-8 place-items-center rounded-lg hover:bg-surface-3 hover:text-ink', isActive(pathname, '/settings') ? 'bg-surface-3 text-ink' : 'text-muted')}><Icon name="settings" className="size-[17px]" /></Link>
+        </div>
+      ) : (
+        <div className="mt-3 grid gap-2 border-t border-line pt-3">
+          <SoundDock />
+          <div className="flex items-center gap-1">
+            {signedIn ? (
+              <Link href="/you?tab=profile" className="flex min-w-0 flex-1 items-center gap-2.5 rounded-lg px-2 py-1.5 hover:bg-surface-3">
+                <Avatar name={name} size={28} />
+                <span className="min-w-0">
+                  <strong className="block truncate text-[13px] font-medium">{name}</strong>
+                  <small className="block truncate text-[12px] text-muted">{school || 'Add your school'}</small>
+                </span>
+              </Link>
+            ) : (
+              <Link href={signInHref('signup')} className="flex min-w-0 flex-1 items-center gap-2.5 rounded-lg bg-accent-fill px-3 py-2 text-white hover:opacity-90">
+                <Icon name="user" className="size-4" />
+                <span className="min-w-0"><strong className="block truncate text-[13px] font-semibold">Create account</strong><small className="block truncate text-[12px] text-white/80">Free. Saves your progress</small></span>
+              </Link>
+            )}
+            <Link href="/settings" aria-label="Settings" title="Settings" className={cn('grid size-8 shrink-0 place-items-center rounded-lg hover:bg-surface-3 hover:text-ink', isActive(pathname, '/settings') ? 'bg-surface-3 text-ink' : 'text-muted')}><Icon name="settings" className="size-[17px]" /></Link>
+          </div>
+          <FooterLinks className="px-2" />
+        </div>
+      )}
     </aside>
   );
 }

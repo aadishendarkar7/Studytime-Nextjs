@@ -1,12 +1,17 @@
 'use client';
 import '@fontsource/caveat/600.css';
+import dynamic from 'next/dynamic';
 import Link from 'next/link';
+import { AnimatePresence, motion, MotionConfig } from 'motion/react';
 import { useEffect, useMemo, useState } from 'react';
 import { Logo } from '@/components/ui/icons';
 import { api, ApiError } from '@/lib/api';
 import { cn } from '@/lib/utils';
 
 /* Campus at night: windows light up as people sit down to study. The form is a study pass. */
+
+// The moving sky is WebGL, so it loads in the browser only.
+const Galaxy = dynamic(() => import('@/components/bits/Galaxy'), { ssr: false });
 
 const COLS = 7;
 const ROWS = 5;
@@ -129,6 +134,108 @@ function Stars() {
   );
 }
 
+/** The sky: a live star field that drifts toward you and scatters from the pointer. Click to warp. Plain stars if WebGL or motion is off. */
+function Sky() {
+  const [live, setLive] = useState(false);
+  useEffect(() => {
+    const t = setTimeout(() => setLive(!window.matchMedia('(prefers-reduced-motion: reduce)').matches && !!document.createElement('canvas').getContext('webgl')), 0);
+    return () => clearTimeout(t);
+  }, []);
+  return (
+    <>
+      {!live && <Stars />}
+      {live && (
+        <div className="pointer-events-none absolute inset-0" aria-hidden="true">
+          <Galaxy starColors={['#f6ecd2', '#ffd98a', '#ffffff']} saturation={0} density={1.2} glowIntensity={0.35} twinkleIntensity={0.6} rotationSpeed={0.04} starSpeed={0.4} speed={0.8} repulsionStrength={2.5} flareIntensity={0.8} dpr={1.25} />
+        </div>
+      )}
+      {/* Shooting stars, every few seconds, at different spots. */}
+      <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
+        {[{ top: '8%', left: '62%', d: '0s' }, { top: '18%', left: '88%', d: '4.5s' }, { top: '4%', left: '38%', d: '9s' }].map((m, i) => (
+          <span key={i} className="st-shoot absolute h-px w-36" style={{ top: m.top, left: m.left, animationDelay: m.d }} />
+        ))}
+      </div>
+    </>
+  );
+}
+
+/** Other campus buildings along the bottom. Their windows flick on and off: more people sitting down to study. */
+function Skyline() {
+  const blocks = useMemo(() => [
+    { x: 0, w: 120, h: 150 }, { x: 128, w: 70, h: 220 }, { x: 205, w: 150, h: 120 }, { x: 362, w: 90, h: 260 }, { x: 460, w: 130, h: 170 },
+    { x: 598, w: 80, h: 300 }, { x: 686, w: 160, h: 140 }, { x: 854, w: 100, h: 240 }, { x: 962, w: 140, h: 180 }, { x: 1110, w: 90, h: 280 },
+    { x: 1208, w: 150, h: 130 }, { x: 1366, w: 110, h: 210 }, { x: 1484, w: 116, h: 160 },
+  ], []);
+  const wins = useMemo(() => {
+    const out: { x: number; y: number; d: number; t: number }[] = [];
+    blocks.forEach((b, bi) => {
+      for (let y = 600 - b.h + 18; y < 588; y += 22) for (let x = b.x + 12; x < b.x + b.w - 14; x += 18) {
+        // A small hash so lit windows scatter instead of lining up in columns.
+        const k = Math.abs(Math.sin(bi * 12.9898 + x * 78.233 + y * 37.719) * 43758.5453) % 1;
+        if (k < 0.32) out.push({ x, y, d: Math.round(k * 400) / 10, t: 4 + Math.round(k * 30) / 5 });
+      }
+    });
+    return out;
+  }, [blocks]);
+  return (
+    <svg viewBox="0 0 1600 600" preserveAspectRatio="xMidYMax slice" className="pointer-events-none absolute inset-x-0 bottom-0 h-[42vh] w-full" aria-hidden="true">
+      <defs>
+        <linearGradient id="st-fog" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#0d1226" stopOpacity="0" /><stop offset="1" stopColor="#0d1226" stopOpacity=".85" /></linearGradient>
+      </defs>
+      {blocks.map((b, i) => (
+        <g key={i}>
+          <rect x={b.x} y={600 - b.h} width={b.w} height={b.h} fill="#141b3a" />
+          <rect x={b.x} y={600 - b.h} width={b.w} height="3" fill="#232c52" />
+          {i % 3 === 1 && <rect x={b.x + b.w / 2 - 1} y={600 - b.h - 26} width="2" height="26" fill="#232c52" />}
+          {i % 3 === 1 && <circle className="st-blink" cx={b.x + b.w / 2} cy={600 - b.h - 27} r="2.5" fill="#f08a7a" />}
+        </g>
+      ))}
+      {wins.map((w, i) => <rect key={i} className="st-far" x={w.x} y={w.y} width="8" height="11" fill="#ffd98a" style={{ animationDelay: `${w.d}s`, animationDuration: `${w.t}s` }} />)}
+      <rect x="0" y="0" width="1600" height="600" fill="url(#st-fog)" />
+    </svg>
+  );
+}
+
+/** The headline changes every 7 to 10 seconds. Each one: a first line, a highlighted second line, and a short line under it. */
+const LINES: [string, string, string][] = [
+  ['Join the', 'night shift.', 'Every light out there is a student locking in right now. Grab the empty window.'],
+  ['Your phone', 'can wait.', 'Your midterm can\u2019t. Put it face down and start a session.'],
+  ['Someone is', 'outworking you.', 'Right now, in one of those windows. Go take the lead back.'],
+  ['Study with', 'everyone.', 'Drop where you are and classmates pull up a chair.'],
+  ['One more', 'session.', 'Twenty-five minutes. Then you can scroll, guilt free.'],
+  ['The library', 'never closes.', 'It\u2019s 2 a.m. somewhere on campus and the lights are still on.'],
+  ['Don\u2019t be the', 'first to log off.', 'Streaks, trophies and a leaderboard full of people you know.'],
+];
+
+function Headline() {
+  const [i, setI] = useState(0);
+  useEffect(() => {
+    let t: ReturnType<typeof setTimeout>;
+    const next = () => {
+      t = setTimeout(() => {
+        // Wait while the tab is hidden, so people come back to the line they left on.
+        if (!document.hidden) setI((n) => (n + 1) % LINES.length);
+        next();
+      }, 7000 + Math.random() * 3000);
+    };
+    next();
+    return () => clearTimeout(t);
+  }, []);
+  const [a, b, c] = LINES[i];
+  return (
+    <div className="mt-8 min-h-[176px] sm:min-h-[212px] lg:min-h-[232px]">
+      <MotionConfig reducedMotion="user">
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.div key={i} initial={{ opacity: 0, y: 18, filter: 'blur(8px)' }} animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }} exit={{ opacity: 0, y: -14, filter: 'blur(8px)' }} transition={{ duration: 0.55, ease: [0.2, 0.8, 0.2, 1] }}>
+            <h1 className="st-display max-w-[15ch] text-[48px] leading-[0.98] font-semibold sm:text-[62px] lg:text-[70px]">{a}<br /><span className="text-[#ffd98a]">{b}</span></h1>
+            <p className="mt-4 max-w-[40ch] text-[16px] leading-7 text-[#c8c3b4] sm:text-[17px]">{c}</p>
+          </motion.div>
+        </AnimatePresence>
+      </MotionConfig>
+    </div>
+  );
+}
+
 /** First letters of a name, for the photo spot on the pass. */
 const initials = (n: string) => n.trim().split(/[\s._-]+/).filter(Boolean).slice(0, 2).map((w) => w[0]!.toUpperCase()).join('');
 
@@ -222,16 +329,22 @@ export function SignInPage() {
         .st-card { animation: st-in .7s cubic-bezier(.2,.8,.2,1) both .15s; }
         @keyframes st-pop { from { opacity: .4; transform: scale(.92) } to { opacity: 1; transform: scale(1) } }
         .st-pop { animation: st-pop .25s ease-out; }
-        @media (prefers-reduced-motion: reduce) { .st-star, .st-mine, .st-card, .st-stampin { animation: none } .st-stampin { opacity: .9; transform: rotate(-12deg) } }
+        @keyframes st-shoot { 0% { opacity: 0; transform: rotate(-24deg) translateX(0) } 4% { opacity: 1 } 14% { opacity: 0; transform: rotate(-24deg) translateX(-420px) } 100% { opacity: 0; transform: rotate(-24deg) translateX(-420px) } }
+        .st-shoot { opacity: 0; background: linear-gradient(90deg, #fff, rgba(255,217,138,.5) 30%, transparent); animation: st-shoot 13.5s linear infinite; }
+        @keyframes st-far { 0%, 100% { opacity: .06 } 45%, 75% { opacity: .85 } }
+        .st-far { opacity: .06; animation: st-far 6s ease-in-out infinite; }
+        @keyframes st-blink { 0%, 60%, 100% { opacity: .15 } 70%, 90% { opacity: 1 } }
+        .st-blink { animation: st-blink 2.4s steps(1) infinite; }
+        @media (prefers-reduced-motion: reduce) { .st-shoot, .st-far, .st-blink { animation: none } .st-star, .st-mine, .st-card, .st-stampin { animation: none } .st-stampin { opacity: .9; transform: rotate(-12deg) } }
       `}</style>
-      <Stars />
+      <Sky />
+      <Skyline />
 
       <div className="relative mx-auto grid min-h-dvh max-w-[1280px] items-center gap-10 px-5 py-8 lg:grid-cols-[1.15fr_1fr] lg:gap-16 lg:px-10">
         {/* The scene */}
         <section className="flex flex-col">
           <Link href="/" className="flex items-center gap-2.5 text-[17px] font-semibold tracking-tight text-[#f6ecd2]"><Logo className="size-9" /> Studytime</Link>
-          <h1 className="st-display mt-8 max-w-[14ch] text-[48px] leading-[0.98] font-semibold sm:text-[62px] lg:mt-8 lg:text-[70px]">Lights on.<br />Phones down.</h1>
-          <p className="mt-4 max-w-[40ch] text-[16px] leading-7 text-[#c8c3b4] sm:text-[17px]">Every lit window is someone locked in right now. Yours is the empty one at the bottom.</p>
+          <Headline />
           <div className="mt-8 lg:mt-10"><Library seat={seat} /></div>
         </section>
 
