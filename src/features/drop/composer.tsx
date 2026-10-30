@@ -22,9 +22,8 @@ export type DropPreset = { lat: number; lng: number } | { minutes: number } | { 
 type Audience = 'circle' | 'school' | 'everyone' | 'solo';
 
 const AUDIENCE: { value: Audience; label: string; note: string }[] = [
-  { value: 'circle', label: 'Friends', note: 'Your friend circle gets a notification.' },
-  { value: 'school', label: 'My school', note: 'Students at your school can see it and join.' },
-  { value: 'everyone', label: 'Everyone', note: 'Anyone on Studytime can see it.' },
+  { value: 'school', label: 'My school', note: 'Students at your school can see it, and people who follow you get an alert.' },
+  { value: 'everyone', label: 'Everyone', note: 'Anyone on Studytime can see it, and people who follow you get an alert.' },
   { value: 'solo', label: 'Just me', note: 'Nobody is notified. Good for heads-down days.' },
 ];
 
@@ -46,7 +45,7 @@ export function DropComposer({ open, onClose, preset }: { open: boolean; onClose
     when: 'now' as 'now' | 'later',
     minutes: preset && 'minutes' in preset ? Math.max(60, preset.minutes) : 120,
     laterAt: '',
-    audience: (preset && 'solo' in preset ? 'solo' : x.dropAudience === 'circle' && !p.circle ? 'school' : x.dropAudience) as Audience,
+    audience: (preset && 'solo' in preset ? 'solo' : x.dropAudience === 'circle' ? 'school' : x.dropAudience) as Audience,
     startTimer: true,
     saveSpot: false,
   }));
@@ -78,7 +77,7 @@ export function DropComposer({ open, onClose, preset }: { open: boolean; onClose
       if (startNow && p.timer.mode === 'ready') {
         p.setDuration(Math.min(240, form.minutes));
         p.startOrPause();
-        router.push('/focus');
+        router.push('/');
       }
     };
     if (form.audience === 'solo') {
@@ -94,7 +93,7 @@ export function DropComposer({ open, onClose, preset }: { open: boolean; onClose
       x.update({ myDrops: [...st.myDrops, { id: r.id, token: r.token, endsAt }], dropLog: [...st.dropLog, logEntry(r.id, 'host')].slice(-200) });
       useProfile.getState().update({ points: useProfile.getState().points + 10 });
       await refreshDrops(false);
-      toast(form.audience === 'circle' ? 'Dropped. Your friends were notified.' : form.audience === 'school' ? 'Dropped. Students at your school can see it.' : 'Dropped. Anyone can see it.');
+      toast(form.audience === 'school' ? 'Dropped. Students at your school can see it.' : 'Dropped. Anyone can see it.');
       goStudy();
       onClose();
     } catch (e) {
@@ -152,7 +151,7 @@ export function DropComposer({ open, onClose, preset }: { open: boolean; onClose
       {form.when === 'later' && <Field label="Starting" htmlFor="dpLater"><Input id="dpLater" type="datetime-local" value={form.laterAt} onChange={(e) => set({ laterAt: e.target.value })} /></Field>}
       <Field label="Who can see it">
         <Segmented className="[&>button]:flex-1" label="Who can see it" value={form.audience} onChange={(audience) => set({ audience })} options={AUDIENCE.map((a) => ({ value: a.value, label: a.label }))} />
-        <p className="mt-1.5 text-[13px] text-muted">{form.audience === 'circle' && !p.circle ? <>You have no friend circle yet. <Link href="/drop?tab=friends&view=circle" className="underline" onClick={onClose}>Create one</Link>.</> : form.audience === 'school' && !p.school ? <>Add your school on <Link href="/you?tab=profile" className="underline" onClick={onClose}>your profile</Link> first.</> : audienceNote}</p>
+        <p className="mt-1.5 text-[13px] text-muted">{form.audience === 'school' && !p.school ? <>Add your school on <Link href="/you?tab=profile" className="underline" onClick={onClose}>your profile</Link> first.</> : audienceNote}</p>
       </Field>
       <Field label="Note" hint="optional" htmlFor="dpNote"><Input id="dpNote" maxLength={200} placeholder="Window table, bring snacks" value={form.note} onChange={(e) => set({ note: e.target.value })} /></Field>
       {form.when === 'now' && <Checkbox label="Start my focus timer now" checked={form.startTimer} onChange={(e) => set({ startTimer: e.target.checked })} />}

@@ -1,5 +1,4 @@
 'use client';
-import { FriendsWeek } from './friends-week';
 import { useCallback, useEffect, useState } from 'react';
 import { Avatar } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -15,8 +14,7 @@ import { api, ApiError } from '@/lib/api';
 import { toast } from '@/lib/stores/ui';
 import type { FeedPost, PersonView } from '@/lib/types';
 import { cn, fmtMinutes } from '@/lib/utils';
-import { InviteCard, inviteLink } from '@/features/auth/invite-card';
-import { YourClasses } from '@/features/classes/your-classes';
+import { inviteLink } from '@/features/auth/invite-card';
 import { useDropComposer } from '@/features/drop/composer';
 import { useDrops } from '@/features/drop/live';
 import { ShareForm, VISIBILITY } from './share-form';
@@ -293,7 +291,7 @@ export function HighlightCard({ post, onChange, onOpenPerson }: { post: FeedPost
   );
 }
 
-function FollowButton({ person, onChange }: { person: PersonView; onChange: (p: PersonView) => void }) {
+export function FollowButton({ person, onChange }: { person: PersonView; onChange: (p: PersonView) => void }) {
   const [busy, setBusy] = useState(false);
   return (
     <Button size="sm" variant={person.following ? 'secondary' : 'primary'} loading={busy} onClick={async () => {
@@ -310,7 +308,7 @@ function FollowButton({ person, onChange }: { person: PersonView; onChange: (p: 
   );
 }
 
-function PersonSheet({ id, onClose }: { id: string | null; onClose: () => void }) {
+export function PersonSheet({ id, onClose }: { id: string | null; onClose: () => void }) {
   const [data, setData] = useState<{ person: PersonView; posts: FeedPost[] } | null>(null);
   useEffect(() => {
     if (!id) return;
@@ -333,11 +331,11 @@ function PersonSheet({ id, onClose }: { id: string | null; onClose: () => void }
           </div>
           <dl className="mt-4 grid grid-cols-3 gap-2 text-center">
             <div className="rounded-lg bg-surface-2 py-2"><dt className="text-[11px] text-muted">This week</dt><dd className="tnum text-[15px] font-semibold">{fmtMinutes(shown.person.weekMinutes)}</dd></div>
-            <div className="rounded-lg bg-surface-2 py-2"><dt className="text-[11px] text-muted">Highlights</dt><dd className="tnum text-[15px] font-semibold">{shown.person.posts}</dd></div>
+            <div className="rounded-lg bg-surface-2 py-2"><dt className="text-[11px] text-muted">Posts</dt><dd className="tnum text-[15px] font-semibold">{shown.person.posts}</dd></div>
             <div className="rounded-lg bg-surface-2 py-2"><dt className="text-[11px] text-muted">Followers</dt><dd className="tnum text-[15px] font-semibold">{shown.person.followers}</dd></div>
           </dl>
           <div className="mt-5 grid gap-3">
-            {shown.posts.length ? shown.posts.map((p) => <HighlightCard key={p.id} post={p} onChange={(np) => setData({ ...shown, posts: np ? shown.posts.map((x) => (x.id === np.id ? np : x)) : shown.posts.filter((x) => x.id !== p.id) })} />) : <p className="text-[13px] text-muted">{shown.person.following ? 'No highlights to show yet.' : 'Follow to see their highlights.'}</p>}
+            {shown.posts.length ? shown.posts.map((p) => <HighlightCard key={p.id} post={p} onChange={(np) => setData({ ...shown, posts: np ? shown.posts.map((x) => (x.id === np.id ? np : x)) : shown.posts.filter((x) => x.id !== p.id) })} />) : <p className="text-[13px] text-muted">{shown.person.following ? 'No posts yet.' : 'Follow to see their posts.'}</p>}
           </div>
         </>
       ) : <p className="text-[13px] text-muted">Loading</p>}
@@ -345,7 +343,7 @@ function PersonSheet({ id, onClose }: { id: string | null; onClose: () => void }
   );
 }
 
-function FindPeople({ onOpen }: { onOpen: (id: string) => void }) {
+export function FindPeople({ onOpen }: { onOpen: (id: string) => void }) {
   const [q, setQ] = useState('');
   const [people, setPeople] = useState<PersonView[] | null>(null);
   useEffect(() => {
@@ -388,10 +386,10 @@ export function HighlightsTab() {
   const replace = (id: string, p: FeedPost | null) => setPosts((l) => (l ? (p ? l.map((x) => (x.id === id ? p : x)) : l.filter((x) => x.id !== id)) : l));
 
   return (
-    <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_320px] [&>*]:min-w-0">
+    <div className="mx-auto w-full max-w-[640px]">
       <div>
         <div className="mb-3 flex flex-wrap items-center gap-2">
-          <Segmented wrap={false} label="Whose highlights" value={scope} onChange={setScope} options={[{ value: 'foryou', label: 'For you' }, { value: 'following', label: 'Friends' }, { value: 'mine', label: 'Mine' }]} />
+          <Segmented wrap={false} label="Whose posts" value={scope} onChange={setScope} options={[{ value: 'foryou', label: 'For you' }, { value: 'following', label: 'Following' }, { value: 'mine', label: 'Mine' }]} />
           <span className="flex-1" />
           <Button onClick={() => setWriting(true)}><Icon name="plus" className="size-4" /> Post</Button>
         </div>
@@ -406,12 +404,6 @@ export function HighlightsTab() {
           </div>
         )}
       </div>
-      <aside className="grid content-start gap-4">
-        <FriendsWeek onOpen={setPerson} />
-        <FindPeople onOpen={setPerson} />
-        <YourClasses />
-        <InviteCard />
-      </aside>
       <Dialog open={writing} onClose={() => setWriting(false)} title="Post a study session">
         {writing && <ShareForm onDone={(p) => { setWriting(false); if (p) setPosts((l) => [p, ...(l ?? [])]); }} />}
       </Dialog>

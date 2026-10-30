@@ -5,14 +5,7 @@ import { Empty } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Checkbox, Select } from '@/components/ui/field';
 import { Icon } from '@/components/ui/icons';
-import { Tabs } from '@/components/ui/segmented';
 import type { MapPin } from '@/features/spots/spot-map';
-import { PartnersPage } from '@/features/partners/partners-page';
-import { RoomsPage } from '@/features/rooms/rooms-page';
-import { ChatPage } from '@/features/chat/chat-page';
-import { useUnreadDms } from '@/features/chat/live';
-import { FriendsPage } from '@/features/social/friends-page';
-import { PactCard } from '@/features/pact/pact-card';
 import { Segmented } from '@/components/ui/segmented';
 import { api } from '@/lib/api';
 import { useExtras } from '@/lib/stores/extras';
@@ -22,7 +15,6 @@ import { CATEGORIES, type DropView, type DropVibe } from '@/lib/types';
 import { useNow } from '@/lib/use-now';
 import { cn, fmtMinutes, plural } from '@/lib/utils';
 import { useDropComposer } from './composer';
-import { EventsTab } from './events-tab';
 import { DropSheet, Initial, PrimaryAction, seatsLeft } from './drop-sheet';
 import { refreshDrops, useDrops, whenLabel } from './live';
 import { distanceKm, dropStats, fmtDistance, hotSpots, recentPlaces, VIBES, vibeLabel } from './logic';
@@ -32,14 +24,6 @@ const SpotMap = dynamic(() => import('@/features/spots/spot-map').then((m) => m.
   loading: () => <div className="grid h-full place-items-center bg-surface-3 text-[14px] text-muted">Loading map</div>,
 });
 
-type Tab = 'live' | 'friends' | 'events';
-const TABS: { value: Tab; label: string }[] = [
-  { value: 'live', label: 'Map' },
-  { value: 'friends', label: 'Friends' },
-  { value: 'events', label: 'Events' },
-];
-/** Sections that moved inside another tab. Old links still land in the right place. */
-const MOVED: Record<string, Tab> = { yours: 'live', rooms: 'friends', partners: 'friends' };
 const initialParam = (k: string) => (typeof location !== 'undefined' ? new URLSearchParams(location.search).get(k) : null);
 type Point = { lat: number; lng: number };
 const useMiles = () => typeof navigator !== 'undefined' && /-(US|LR|MM)$/i.test(navigator.language);
@@ -369,41 +353,18 @@ function YoursTab() {
 }
 
 /** Friends: chat with classmates and see who is online, or manage your circle and classes. */
-type FriendsView = 'chat' | 'rooms' | 'partners' | 'pact' | 'circle';
-function FriendsTab() {
-  const [view, setView] = useState<FriendsView>(() => {
-    if (typeof location === 'undefined') return 'chat';
-    const t = initialParam('tab');
-    if (t === 'rooms' || t === 'partners') return t;
-    return /[?&](view=pact|pact=)/.test(location.search) ? 'pact' : /[?&](view=circle|circle=|class=)/.test(location.search) ? 'circle' : 'chat';
-  });
-  const unread = useUnreadDms();
-  const toggle = <Segmented wrap={false} label="Friends view" value={view} onChange={setView} options={[{ value: 'chat', label: unread ? `Messages · ${unread}` : 'Messages' }, { value: 'rooms', label: 'Study rooms' }, { value: 'partners', label: 'Partners' }, { value: 'pact', label: 'Pact' }, { value: 'circle', label: 'Circle' }]} />;
-  if (view === 'chat') return <ChatPage toolbar={toggle} />;
-  return (
-    <>
-      <div className="mb-3">{toggle}</div>
-      {view === 'pact' ? <PactCard className="max-w-2xl" /> : view === 'rooms' ? <RoomsPage embedded /> : view === 'partners' ? <PartnersPage embedded /> : <FriendsPage embedded />}
-    </>
-  );
-}
-
 export function DropPage() {
-  const unreadDms = useUnreadDms();
   const drops = useDrops((s) => s.drops);
   const now = useNow(60_000);
-  const [tab, setTab] = useState<Tab>(() => {
-    const t = initialParam('tab');
-    return TABS.some((x) => x.value === t) ? (t as Tab) : (t && MOVED[t]) || 'live';
-  });
   const [openId, setOpenId] = useState<string | null>(() => (typeof location !== 'undefined' ? new URLSearchParams(location.search).get('d') : null));
   // A drop opened from an invite link may not be in your list (another school, say).
   const [linked, setLinked] = useState<DropView | null>(null);
-  const go = (t: Tab) => (setTab(t), history.replaceState(null, '', t === 'live' ? '/drop' : `/drop?tab=${t}`));
 
-  // Highlights moved to the Feed page.
+  // Sections that moved: highlights to Feed; friends, rooms and partners to Friends.
   useEffect(() => {
-    if (initialParam('tab') === 'highlights') location.replace('/feed');
+    const t = initialParam('tab');
+    if (t === 'highlights') location.replace('/feed');
+    else if (t === 'friends' || t === 'rooms' || t === 'partners') location.replace('/friends');
   }, []);
   useEffect(() => {
     void refreshDrops();
@@ -434,7 +395,7 @@ export function DropPage() {
   const close = () => {
     setOpenId(null);
     setLinked(null);
-    if (location.search.includes('d=')) history.replaceState(null, '', tab === 'live' ? '/drop' : `/drop?tab=${tab}`);
+    if (location.search.includes('d=')) history.replaceState(null, '', '/drop');
   };
   const live = drops.filter((d) => d.startsAt <= now);
   const people = live.reduce((n, d) => n + 1 + d.joiners.length, 0);
@@ -455,12 +416,7 @@ export function DropPage() {
         </div>
       </header>
       <YourDropBar onOpen={setOpenId} />
-      <Tabs className="mb-5" label="Drop a Spot sections" value={tab} onChange={go} options={TABS.map((t) => (t.value === 'friends' ? { ...t, count: unreadDms } : t))} />
-      {tab === 'live' && <LiveTab openId={openId} setOpenId={setOpenId} />}
-      {tab === 'events' && <EventsTab />}
-      {tab === 'friends' && (
-        <FriendsTab />
-      )}
+      <LiveTab openId={openId} setOpenId={setOpenId} />
       <DropSheet d={current} onClose={close} />
     </>
   );

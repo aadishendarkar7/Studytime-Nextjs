@@ -3,8 +3,6 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { Logo } from '@/components/ui/icons';
 import { Toaster } from '@/components/ui/toaster';
 import { DropComposerHost } from '@/features/drop/composer';
-import { WaterPrompt } from '@/features/wellbeing/water-prompt';
-import { PopQuiz } from '@/features/games/pop-quiz';
 import { startAccount, useAccount } from '@/features/auth/account';
 import { Welcome } from '@/features/auth/welcome';
 import { GlobalEffects } from './global-effects';
@@ -27,7 +25,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     return (
       <div className="grid min-h-dvh place-items-center" aria-busy="true">
         <div className="flex items-center gap-2 text-[15px] font-semibold tracking-tight text-ink">
-          <Logo className="size-6" /> Studytime
+          <Logo className="size-9" /> Studytime
         </div>
       </div>
     );
@@ -44,8 +42,6 @@ export function AppShell({ children }: { children: ReactNode }) {
       <ReflectionDialog />
       <PrintPortal />
       <DropComposerHost />
-      <WaterPrompt />
-      <PopQuiz />
       <BottomTabs />
       <Toaster />
     </div>

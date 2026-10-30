@@ -13,9 +13,11 @@ export function Dialog({ open, onClose, title, children }: { open: boolean; onCl
   return (
     <dialog
       ref={ref}
-      onClose={onClose}
+      onClose={() => open && onClose()}
+      // Escape goes through onClose too, so a page can say no (for example while recording).
+      onCancel={(e) => (e.preventDefault(), onClose())}
       onClick={(e) => e.target === ref.current && onClose()}
-      className="m-auto w-[min(520px,calc(100vw-32px))] rounded-2xl border border-line bg-surface p-0 text-ink shadow-lg"
+      className="m-auto w-[min(520px,calc(100vw-32px))] rounded-2xl border border-line bg-surface p-0 text-ink shadow-lg backdrop:bg-black/60"
     >
       {open && (
         <div className="p-5 max-sm:p-4">

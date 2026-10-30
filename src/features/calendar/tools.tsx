@@ -151,7 +151,7 @@ export function PlanCard() {
         </FieldRow>
       )}
       <h3 className="mt-6 mb-1 text-[18px]">Coming up</h3>
-      {upcoming.length ? upcoming.map((b) => <BlockRow key={b.id} b={b} />) : <Empty>No study blocks yet. Press Suggest blocks, or plan from your weekly reset.</Empty>}
+      {upcoming.length ? upcoming.map((b) => <BlockRow key={b.id} b={b} />) : <Empty>No study blocks yet. Press Suggest blocks to fill your week.</Empty>}
       {x.windDown && <Note>Blocks stop at your wind-down time ({x.windDown}).</Note>}
     </Card>
   );

@@ -180,7 +180,7 @@ export function Recorder({ onSaved }: { onSaved: () => void }) {
   };
 
   return (
-    <div className="rounded-xl border border-line-strong/50 bg-surface">
+    <div data-recorder={state} className="rounded-xl border border-line-strong/50 bg-surface">
       <div className="flex flex-wrap items-center gap-2 border-b border-line px-3 py-2">
         <input aria-label="Lecture title" maxLength={80} value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Lecture title" className="h-8 min-w-0 flex-1 bg-transparent px-1 text-[15px] font-semibold outline-none placeholder:font-normal placeholder:text-muted" />
         <Input aria-label="Course" list="lecCourses" className="h-8 w-36 text-[13px]" value={course} onChange={(e) => setCourse(e.target.value)} placeholder="Course" />

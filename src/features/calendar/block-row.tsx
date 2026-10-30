@@ -26,7 +26,7 @@ export function useStartBlock() {
     if (p.timer.mode !== 'ready') return toast('Finish or reset the current session first.', 'error');
     p.update({ subject: b.subject.slice(0, 60) });
     p.setDuration(lengthFor((b.end - b.start) / 60_000));
-    router.push('/focus');
+    router.push('/');
   };
 }
 

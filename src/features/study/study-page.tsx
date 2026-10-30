@@ -10,7 +10,6 @@ import { ChatTool } from '@/features/ai/chat';
 import { NotesTool } from '@/features/ai/notes';
 import { CoursesTool } from '@/features/courses/courses-tool';
 import { GamesPage } from '@/features/games/games-page';
-import { ReviewTool } from './review-tool';
 import { isDue } from '@/features/games/srs';
 import { ConnectionPill } from '@/features/settings/ai-settings';
 import { useConnection } from '@/lib/ai/client';
@@ -21,18 +20,17 @@ import { useLearning } from '@/lib/stores/learning';
 import { useProfile } from '@/lib/stores/profile';
 import { cn } from '@/lib/utils';
 
-export type Tool = 'chat' | 'practice' | 'courses' | 'notes' | 'review';
+export type Tool = 'chat' | 'practice' | 'notes' | 'courses';
 
 const TOOLS: { id: Tool; label: string; icon: IconName; blurb: string }[] = [
-  { id: 'chat', label: 'Tutor', icon: 'ai', blurb: 'Ask, solve, summarize, make cheat sheets from your files' },
-  { id: 'practice', label: 'Flashcards', icon: 'games', blurb: 'Your sets, quizzes, matching, speed rounds' },
-  { id: 'courses', label: 'Courses', icon: 'layers', blurb: 'Short courses on any topic, made for you' },
+  { id: 'chat', label: 'Tutor', icon: 'ai', blurb: 'Ask, solve, summarize, practice tests' },
+  { id: 'practice', label: 'Flashcards', icon: 'games', blurb: 'Your sets: review, quiz, match' },
   { id: 'notes', label: 'Notes', icon: 'file', blurb: 'Notes and lecture recordings' },
-  { id: 'review', label: 'Review', icon: 'reset', blurb: 'Mistakes to fix and concepts you have met' },
+  { id: 'courses', label: 'Courses', icon: 'layers', blurb: 'Short courses on any topic, made for you' },
 ];
 
 /** Older links that now open inside another tool. */
-const MOVED: Record<string, Tool> = { lectures: 'notes', mistakes: 'review', concepts: 'review' };
+const MOVED: Record<string, Tool> = { lectures: 'notes', mistakes: 'practice', concepts: 'chat', review: 'practice' };
 const isTool = (v: string | null): v is Tool => TOOLS.some((t) => t.id === v);
 
 const OTHER = '__other';
@@ -97,10 +95,8 @@ function TutorSettings() {
 function Rail({ tool, go }: { tool: Tool; go: (t: Tool) => void }) {
   const sets = useLearning((s) => s.sets);
   const due = sets.reduce((n, s) => n + s.cards.filter((c) => isDue(c)).length, 0);
-  const mistakes = useLearning((s) => s.mistakes.length);
   const courses = useExtras((s) => s.courses.length);
   const counts: Partial<Record<Tool, string>> = {
-    review: mistakes ? String(mistakes) : '',
     practice: due ? `${due} due` : '',
     courses: courses ? String(courses) : '',
   };
@@ -124,7 +120,6 @@ function Center({ tool, action, from }: { tool: Tool; action: string; from: stri
     case 'notes': return <NotesTool startRecording={from === 'lectures'} />;
     case 'practice': return <GamesPage embedded />;
     case 'courses': return <CoursesTool />;
-    case 'review': return <ReviewTool start={from === 'concepts' ? 'concepts' : 'mistakes'} />;
   }
 }
 

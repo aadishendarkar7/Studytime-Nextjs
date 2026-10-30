@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useMemo, useState } from 'react';
 import { Badge, PageHeader } from '@/components/ui/card';
+import { Dialog } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input, Select, Textarea } from '@/components/ui/field';
 import { Icon, type IconName } from '@/components/ui/icons';
@@ -14,7 +15,7 @@ import { toast } from '@/lib/stores/ui';
 import type { Deck, StudySet } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { parseBulkCards, STARTER_DECKS } from './decks';
-import { GameStage, MODES, type Mode } from './modes';
+import { GameStage, type Mode } from './modes';
 import { isDue } from './srs';
 
 function DeckLibrary({ onAdded }: { onAdded?: () => void }) {
@@ -35,7 +36,7 @@ function DeckLibrary({ onAdded }: { onAdded?: () => void }) {
         <Segmented value={tab} onChange={setTab} options={[{ value: 'starter', label: 'Starter' }, { value: 'shared', label: 'From students' }]} />
         <Input className="h-9 min-w-40 flex-1" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search decks" aria-label="Search decks" />
       </div>
-      <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mt-4 grid max-h-[60vh] gap-3 overflow-y-auto sm:grid-cols-2">
         {tab === 'shared' && shared === null ? <p className="text-sm text-muted">Loading…</p> : decks.length ? decks.map((d) => {
           const added = l.sets.some((s) => s.sourceDeck === d.id);
           return (
@@ -57,15 +58,6 @@ function DeckLibrary({ onAdded }: { onAdded?: () => void }) {
     </div>
   );
 }
-
-const MODE_INFO: Record<Mode, { icon: IconName; short: string }> = {
-  review: { icon: 'reset', short: 'Review' },
-  flashcards: { icon: 'games', short: 'Flip' },
-  quiz: { icon: 'check', short: 'Quiz' },
-  matching: { icon: 'layers', short: 'Match' },
-  blank: { icon: 'pen', short: 'Type' },
-  speed: { icon: 'clock', short: 'Speed' },
-};
 
 const dueIn = (set: StudySet) => set.cards.filter((c) => isDue(c)).length;
 
@@ -98,7 +90,7 @@ function NewSet({ onDone }: { onDone: (id: string) => void }) {
     onDone(l.addSet(name, cards, DEFAULT_FOLDER).id);
   };
   return (
-    <div className="rounded-xl border border-line bg-surface p-4">
+    <div>
       <Segmented label="How to make it" value={how} onChange={setHow} options={[{ value: 'ai', label: 'From a topic' }, { value: 'paste', label: 'Type my own' }]} />
       {how === 'ai' ? (
         <form className="mt-3 flex flex-wrap gap-2" onSubmit={(e) => (e.preventDefault(), void generate())}>
@@ -181,33 +173,48 @@ function EditCards({ set }: { set: StudySet }) {
 }
 
 /** One open set: pick how to study it, or edit its cards. */
+type Play = 'cards' | 'quiz' | 'matching';
+const PLAY: { id: Play; label: string; icon: IconName }[] = [
+  { id: 'cards', label: 'Flip cards', icon: 'games' },
+  { id: 'quiz', label: 'Quiz', icon: 'check' },
+  { id: 'matching', label: 'Match', icon: 'layers' },
+];
+
+/** One open set: three ways to study it, and an Edit button. */
 function SetView({ set, onBack }: { set: StudySet; onBack: () => void }) {
   const due = dueIn(set);
-  const [mode, setMode] = useState<Mode | 'edit'>(set.cards.length ? (due ? 'review' : 'flashcards') : 'edit');
+  const [play, setPlay] = useState<Play>('cards');
+  const [editing, setEditing] = useState(!set.cards.length);
+  // Flip cards uses spaced review when cards are due, otherwise flips through the whole set.
+  const mode: Mode = play === 'cards' ? (due ? 'review' : 'flashcards') : play;
   return (
     <div className="grid gap-4">
       <div className="flex items-center gap-3">
         <Button size="sm" variant="ghost" aria-label="All sets" onClick={onBack}><Icon name="chevron" className="size-4 rotate-180" /></Button>
         <div className="min-w-0 flex-1">
           <h2 className="truncate text-[20px] leading-7">{set.name}</h2>
-          <p className="tnum text-[13px] text-muted">{set.cards.length} cards{due ? ` · ${due} due` : ''}</p>
+          <p className="tnum text-[13px] text-muted">{set.cards.length} cards{due ? ` · ${due} to review` : ''}</p>
         </div>
+        <Button variant="secondary" onClick={() => setEditing(true)}><Icon name="pen" className="size-4" /> Edit cards</Button>
       </div>
-      <div role="tablist" aria-label="Study mode" className="grid grid-cols-4 gap-1.5 sm:grid-cols-7">
-        {MODES.map((m) => (
-          <button key={m.id} type="button" role="tab" title={m.label} aria-selected={mode === m.id} disabled={!set.cards.length} onClick={() => setMode(m.id)} className={cn('relative flex flex-col items-center gap-1 rounded-xl border py-2.5 text-[12px] font-medium transition-colors disabled:opacity-40', mode === m.id ? 'border-accent bg-accent-soft text-accent-ink' : 'border-line bg-surface text-ink-2 hover:border-ink/30')}>
-            <Icon name={MODE_INFO[m.id].icon} className="size-5" />
-            {MODE_INFO[m.id].short}
-            {m.id === 'review' && due > 0 && <span className="tnum absolute top-1 right-1 rounded-md bg-accent-fill px-1 text-[10px] leading-4 text-white">{due}</span>}
+      <div role="tablist" aria-label="How to study" className="grid grid-cols-3 gap-2">
+        {PLAY.map((m) => (
+          <button key={m.id} type="button" role="tab" aria-selected={play === m.id} disabled={!set.cards.length || (m.id !== 'cards' && set.cards.length < 4)} onClick={() => setPlay(m.id)} className={cn('flex items-center justify-center gap-2 rounded-xl border py-3 text-[14px] font-semibold transition-colors disabled:opacity-40', play === m.id ? 'border-accent bg-accent-soft text-accent-ink' : 'border-line bg-surface text-ink-2 hover:border-ink/30')}>
+            <Icon name={m.icon} className="size-[18px]" /> {m.label}
           </button>
         ))}
-        <button type="button" role="tab" aria-selected={mode === 'edit'} onClick={() => setMode('edit')} className={cn('flex flex-col items-center gap-1 rounded-xl border py-2.5 text-[12px] font-medium transition-colors', mode === 'edit' ? 'border-accent bg-accent-soft text-accent-ink' : 'border-dashed border-line bg-surface text-ink-2 hover:border-ink/30')}>
-          <Icon name="pen" className="size-5" /> Edit
-        </button>
       </div>
       <div className="min-h-72 rounded-xl border border-line bg-surface p-5 max-sm:p-4">
-        {mode === 'edit' ? <EditCards set={set} /> : <GameStage key={`${set.id}-${mode}`} set={set} mode={mode} />}
+        {set.cards.length ? <GameStage key={`${set.id}-${mode}`} set={set} mode={mode} /> : (
+          <div className="grid place-items-center py-10 text-center">
+            <p className="text-[15px] font-semibold">No cards yet</p>
+            <Button className="mt-3" onClick={() => setEditing(true)}><Icon name="plus" className="size-4" /> Add cards</Button>
+          </div>
+        )}
       </div>
+      <Dialog open={editing} onClose={() => setEditing(false)} title={`Edit ${set.name}`}>
+        {editing && <EditCards set={set} />}
+      </Dialog>
     </div>
   );
 }
@@ -234,8 +241,8 @@ export function GamesPage({ embedded = false }: { embedded?: boolean } = {}) {
       {open ? <SetView key={open.id} set={open} onBack={() => setOpenId(null)} /> : (
         <div className="grid gap-4">
           <div className="flex flex-wrap items-center gap-2">
-            <Button onClick={() => setPanel(panel === 'new' ? null : 'new')} variant={panel === 'new' ? 'secondary' : 'primary'}><Icon name={panel === 'new' ? 'close' : 'plus'} className="size-4" /> New set</Button>
-            <Button variant="secondary" onClick={() => setPanel(panel === 'decks' ? null : 'decks')}><Icon name="book" className="size-4" /> Browse decks</Button>
+            <Button onClick={() => setPanel('new')}><Icon name="plus" className="size-4" /> New set</Button>
+            <Button variant="secondary" onClick={() => setPanel('decks')}><Icon name="book" className="size-4" /> Browse decks</Button>
             {totalDue > 0 && <span className="tnum ml-auto text-[13px] text-muted"><strong className="text-ink">{totalDue}</strong> due today</span>}
             {folders.length > 1 && (
               <Select aria-label="Folder" className={cn('h-9 w-auto text-[13px]', totalDue === 0 && 'ml-auto')} value={folder} onChange={(e) => setFolder(e.target.value)}>
@@ -244,19 +251,23 @@ export function GamesPage({ embedded = false }: { embedded?: boolean } = {}) {
               </Select>
             )}
           </div>
-          {panel === 'new' && <NewSet onDone={go} />}
-          {panel === 'decks' && <div className="rounded-xl border border-line bg-surface p-4"><DeckLibrary onAdded={() => setPanel(null)} /></div>}
+          <Dialog open={panel === 'new'} onClose={() => setPanel(null)} title="New flashcard set">
+            {panel === 'new' && <NewSet onDone={go} />}
+          </Dialog>
+          <Dialog open={panel === 'decks'} onClose={() => setPanel(null)} title="Ready-made decks">
+            {panel === 'decks' && <DeckLibrary onAdded={() => setPanel(null)} />}
+          </Dialog>
           <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {shown.map((s) => {
               const due = dueIn(s);
               return (
                 <li key={s.id} className="flex flex-col rounded-xl border border-line bg-surface p-4 transition-colors hover:border-ink/25">
-                  <button type="button" onClick={() => go(s.id)} className="min-w-0 text-left">
+                  <button type="button" onClick={() => go(s.id)} className="grid min-w-0 text-left">
                     <span className="text-[12px] text-muted">{s.folder}</span>
-                    <strong className="mt-0.5 line-clamp-2 block text-[16px] leading-6 font-semibold">{s.name}</strong>
-                    <span className="mt-1 line-clamp-1 block text-[13px] text-muted">{s.cards.slice(0, 3).map((c) => c.front).join(' · ') || 'No cards yet'}</span>
+                    <strong className="mt-0.5 line-clamp-2 text-[16px] leading-6 font-semibold">{s.name}</strong>
+                    <span className="mt-1 line-clamp-1 text-[13px] text-muted">{s.cards.slice(0, 3).map((c) => c.front).join(' · ') || 'No cards yet'}</span>
                   </button>
-                  <div className="mt-4 flex items-center gap-2">
+                  <div className="mt-auto flex flex-wrap items-center gap-2 pt-4">
                     <span className="tnum flex-1 text-[13px] whitespace-nowrap text-muted">{s.cards.length} cards</span>
                     {due > 0 && <Badge tone="accent">{due} due</Badge>}
                     <Button size="sm" onClick={() => go(s.id)}><Icon name="play" className="size-3.5" /> Study</Button>
@@ -265,7 +276,6 @@ export function GamesPage({ embedded = false }: { embedded?: boolean } = {}) {
               );
             })}
           </ul>
-          {!embedded && <p className="text-[13px] text-muted"><button type="button" className="font-medium text-ink underline underline-offset-4" onClick={() => window.dispatchEvent(new Event('studytime:popquiz'))}>Pop quiz</button></p>}
         </div>
       )}
     </>

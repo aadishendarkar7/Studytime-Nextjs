@@ -1,11 +1,6 @@
-import type { Metadata } from 'next';
-import { FocusPage } from '@/features/focus/focus-page';
+import { redirect } from 'next/navigation';
 
-// The app shell renders pages after browser data loads, so they opt out of instant-navigation checks.
-export const instant = false;
-
-export const metadata: Metadata = { title: 'Focus timer' };
-
+/** The focus timer lives on Home now. */
 export default function Page() {
-  return <FocusPage />;
+  redirect('/');
 }

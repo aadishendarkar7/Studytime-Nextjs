@@ -3,17 +3,13 @@ import { useState } from 'react';
 import { Tabs } from '@/components/ui/segmented';
 import { Activity } from '@/features/planner/planner-page';
 import { ProfilePage, StatsCard } from '@/features/profile/profile-page';
-import { ResetPage } from '@/features/reset/reset-page';
 import { WellbeingPage } from '@/features/wellbeing/wellbeing-page';
-import { WrappedPage } from '@/features/wrapped/wrapped-page';
 import { useProfile } from '@/lib/stores/profile';
 
-type Tab = 'checkin' | 'progress' | 'wrapped' | 'reset' | 'profile';
+type Tab = 'checkin' | 'progress' | 'profile';
 const TABS: { value: Tab; label: string }[] = [
   { value: 'checkin', label: 'Check-in' },
   { value: 'progress', label: 'Progress' },
-  { value: 'wrapped', label: 'Wrapped' },
-  { value: 'reset', label: 'Weekly reset' },
   { value: 'profile', label: 'Profile' },
 ];
 
@@ -38,8 +34,6 @@ export function YouPage() {
           <div className="lg:col-span-12"><Activity /></div>
         </div>
       )}
-      {tab === 'wrapped' && <WrappedPage />}
-      {tab === 'reset' && <ResetPage embedded />}
       {tab === 'profile' && <ProfilePage embedded />}
     </>
   );

@@ -3,11 +3,11 @@ import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useAttachments } from '@/components/ui/attachments';
 import { Button } from '@/components/ui/button';
+import { Dialog } from '@/components/ui/dialog';
 import { Input, Select } from '@/components/ui/field';
 import { Icon, type IconName } from '@/components/ui/icons';
 import { Markdown } from '@/components/ui/markdown';
 import { Thinking } from '@/components/ui/progress';
-import { Segmented } from '@/components/ui/segmented';
 import { toParts } from '@/lib/ai/files';
 import { NOTE_PROMPTS, tutorSystem } from '@/lib/ai/prompts';
 import type { Lecture } from '@/lib/media-db';
@@ -210,7 +210,7 @@ type Item = { type: 'note'; at: number; note: Note } | { type: 'rec'; at: number
 /** Notes and lecture recordings in one place. Every note has Ask, Summarize, Flashcards and Quiz me. */
 export function NotesTool({ startRecording = false }: { startRecording?: boolean }) {
   const ai = useAi();
-  const [input, setInput] = useState<'write' | 'record'>(startRecording ? 'record' : 'write');
+  const [adding, setAdding] = useState<'write' | 'record' | null>(startRecording ? 'record' : null);
   const [viewId, setViewId] = useState<string | null>(() => (typeof location !== 'undefined' ? new URLSearchParams(location.search).get('note') : null));
   const [folder, setFolder] = useState('all');
   const [recs, setRecs] = useState<Lecture[]>([]);
@@ -220,7 +220,13 @@ export function NotesTool({ startRecording = false }: { startRecording?: boolean
     return () => clearTimeout(t);
   }, [reload]);
   const viewing = ai.notes.find((n) => n.id === viewId) ?? null;
-  const open = (id: string) => (setViewId(id), window.scrollTo({ top: 0, behavior: 'smooth' }));
+  const open = (id: string) => (setAdding(null), setViewId(id), window.scrollTo({ top: 0, behavior: 'smooth' }));
+  const closeAdding = () => {
+    // Closing the recorder mid-lecture would throw the audio away, so check first.
+    const live = document.querySelector('[data-recorder="recording"], [data-recorder="paused"]');
+    if (live && !confirm('Stop and throw away this recording?')) return;
+    setAdding(null);
+  };
 
   if (viewing) return <NoteView key={viewing.id} note={viewing} onOpen={open} onBack={() => setViewId(null)} />;
 
@@ -232,10 +238,16 @@ export function NotesTool({ startRecording = false }: { startRecording?: boolean
 
   return (
     <div className="grid gap-6">
-      <div className="grid gap-3">
-        <Segmented label="Add notes" value={input} onChange={setInput} options={[{ value: 'write', label: 'Paste or upload' }, { value: 'record', label: 'Record a lecture' }]} />
-        {input === 'write' ? <Writer onOpen={open} /> : <Recorder onSaved={reload} />}
+      <div className="flex flex-wrap gap-2">
+        <Button onClick={() => setAdding('write')}><Icon name="plus" className="size-4" /> New note</Button>
+        <Button variant="secondary" onClick={() => setAdding('record')}><Icon name="mic" className="size-4" /> Record a lecture</Button>
       </div>
+      <Dialog open={adding === 'write'} onClose={closeAdding} title="New note">
+        {adding === 'write' && <Writer onOpen={open} />}
+      </Dialog>
+      <Dialog open={adding === 'record'} onClose={closeAdding} title="Record a lecture">
+        {adding === 'record' && <Recorder onSaved={() => (void reload(), setAdding(null))} />}
+      </Dialog>
 
       <section>
         <div className="mb-1 flex items-center justify-between gap-3">

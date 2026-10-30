@@ -7,7 +7,7 @@ import { Field, FieldRow, Input, Note, Select } from '@/components/ui/field';
 import { Icon } from '@/components/ui/icons';
 import { streaks } from '@/features/focus/logic';
 import { MAJORS, YEARS } from '@/lib/constants';
-import { PromptsCard, StyleQuizCard } from './style-cards';
+import { PromptsCard } from './style-cards';
 import { useExtras } from '@/lib/stores/extras';
 import { useProfile } from '@/lib/stores/profile';
 import { toast } from '@/lib/stores/ui';
@@ -124,7 +124,7 @@ export function StatsCard() {
           ))}
         </ul>
       ) : (
-        <Empty action={<Link href="/focus"><Button variant="secondary" size="sm">Open focus timer</Button></Link>}>Pick a subject when you start a focus session and your time is broken down here.</Empty>
+        <Empty action={<Link href="/"><Button variant="secondary" size="sm">Open focus timer</Button></Link>}>Pick a subject when you start a focus session and your time is broken down here.</Empty>
       )}
     </Card>
   );
@@ -141,8 +141,7 @@ export function ProfilePage({ embedded = false }: { embedded?: boolean } = {}) {
         {!embedded && <StatsCard />}
         <AboutCard />
         <CoursesCard />
-        <StyleQuizCard className="lg:col-span-6" />
-        <PromptsCard className="lg:col-span-6" />
+        <PromptsCard className="lg:col-span-12" />
       </div>
     </>
   );

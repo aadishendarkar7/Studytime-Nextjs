@@ -64,7 +64,7 @@ function ClassPageBody() {
         </div>
         <div className="flex flex-wrap gap-2">
           {!onProfile && <Button variant="secondary" onClick={() => (p.update({ courses: [...p.courses, key].slice(0, 12) }), toast(`${key} added to your classes.`))}><Icon name="plus" className="size-4" /> Add to my classes</Button>}
-          <Link href={`/drop?tab=friends&channel=${encodeURIComponent(courseChannel(p.school, key))}`}><Button variant="secondary"><Icon name="chat" className="size-4" /> Class chat</Button></Link>
+          <Link href={`/friends?tab=messages&channel=${encodeURIComponent(courseChannel(p.school, key))}`}><Button variant="secondary"><Icon name="chat" className="size-4" /> Class chat</Button></Link>
           <Button onClick={() => useDropComposer.getState().show({ subject: key })}><Icon name="pin" className="size-4" /> Drop a spot for {key}</Button>
         </div>
       </header>

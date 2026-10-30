@@ -17,8 +17,8 @@ import { generateCards } from './tasks';
 import { useAiRun } from './use-ai-run';
 import { AiErrorBox } from './ui';
 
-/** The actions shown before "More". */
-const PRIMARY = ['', 'answer', 'solve', 'cheatsheet', 'summary', 'guide', 'practice'];
+/** The four things the tutor offers. Other actions stay reachable from links elsewhere. */
+const PRIMARY = ['', 'solve', 'summary', 'practice'];
 
 const STARTERS = {
   tutor: ['Explain this like I’m new to it: ', 'Quiz me on ', 'Make me a study plan for my midterm on ', 'What’s the difference between '],
@@ -61,7 +61,6 @@ export function ChatTool({ compact = false, initialAction = '' }: { compact?: bo
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [action, setAction] = useState(initialAction);
   const [custom, setCustom] = useState('');
-  const [more, setMore] = useState(false);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const scroller = useRef<HTMLDivElement>(null);
@@ -147,10 +146,9 @@ export function ChatTool({ compact = false, initialAction = '' }: { compact?: bo
       {mode === 'tutor' && (
         <div className="mb-2">
           <div className="flex flex-wrap gap-1.5" role="radiogroup" aria-label="What should the tutor do">
-            {[{ id: '', label: 'Ask' }, ...ACTIONS, { id: 'custom', label: 'Custom' }].filter((a) => more || PRIMARY.includes(a.id) || a.id === action).map((a) => (
+            {[{ id: '', label: 'Ask' }, ...ACTIONS].filter((a) => PRIMARY.includes(a.id) || a.id === action).map((a) => (
               <button key={a.id} type="button" role="radio" aria-checked={action === a.id} onClick={() => (setAction(a.id), inputRef.current?.focus())} className={cn('shrink-0 rounded-lg border px-2.5 py-1 text-[12px] font-medium whitespace-nowrap transition-colors', action === a.id ? 'border-accent bg-accent-soft text-accent-ink' : 'border-line bg-surface text-ink-2 hover:border-line-strong hover:text-ink')}>{a.label}</button>
             ))}
-            <button type="button" onClick={() => setMore(!more)} aria-expanded={more} className="shrink-0 rounded-lg px-2 py-1 text-[12px] font-medium text-muted hover:text-ink">{more ? 'Fewer' : `More (${ACTIONS.length + 2 - PRIMARY.length})`}</button>
           </div>
           {action === 'custom' && <input value={custom} onChange={(e) => setCustom(e.target.value)} maxLength={300} aria-label="What to make" placeholder="What should it make? e.g. a formula sheet for chapters 3 and 4 only" className="mt-1.5 h-9 w-full rounded-lg border border-line-strong/60 bg-surface px-3 text-[13px] outline-none focus:border-accent" />}
         </div>

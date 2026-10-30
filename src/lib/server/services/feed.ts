@@ -330,3 +330,31 @@ export async function friendsWeek(viewer: Account, now = Date.now()) {
   }));
   return people.filter((p): p is { id: string; name: string; minutes: number } => Boolean(p)).sort((a, b) => b.minutes - a.minutes);
 }
+
+/** The leaderboard for "People you follow": you plus everyone you follow, by focus time over the last 7 days. */
+export async function followingBoard(viewer: Account, now = Date.now()) {
+  const w = await walls(viewer);
+  const ids = (await following(viewer.id)).filter((id) => !w.mine.has(id)).slice(0, 100);
+  const people = await Promise.all(ids.map(async (id) => {
+    const a = await getAccount(id);
+    return a ? { id, name: a.name, minutes: await weekMinutesOf(id, now), me: false } : null;
+  }));
+  const list = people.filter((p): p is { id: string; name: string; minutes: number; me: boolean } => Boolean(p));
+  list.push({ id: viewer.id, name: viewer.name, minutes: await weekMinutesOf(viewer.id, now), me: true });
+  return list.sort((a, b) => b.minutes - a.minutes);
+}
+
+/** The people you follow, and the people who follow you, with this week's posted minutes. */
+export async function myPeople(viewer: Account) {
+  const s = getStorage();
+  const w = await walls(viewer);
+  const followingIds = (await following(viewer.id)).filter((id) => !w.mine.has(id));
+  const followerIds = Object.keys(await s.hgetall<number>(FOLLOWERS(viewer.id))).filter((id) => !w.mine.has(id) && !followingIds.includes(id));
+  const follows = new Set(followingIds);
+  const posts = await allPosts();
+  const load = async (ids: string[]) => (await Promise.all(ids.slice(0, 200).map(async (id) => {
+    const a = await getAccount(id);
+    return a ? personView(viewer, a, follows, posts) : null;
+  }))).filter((p): p is PersonView => Boolean(p)).sort((a, b) => a.name.localeCompare(b.name));
+  return { following: await load(followingIds), followers: await load(followerIds) };
+}

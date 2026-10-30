@@ -6,9 +6,11 @@ import { Button } from '@/components/ui/button';
 import { Dialog } from '@/components/ui/dialog';
 import { Field, FieldRow, Input, Select } from '@/components/ui/field';
 import { Segmented, Tabs } from '@/components/ui/segmented';
+import { useAccount } from '@/features/auth/account';
+import { signInHref } from '@/features/auth/sign-in-gate';
 import { toneFor } from '@/features/chat/live';
 import { AWARD, DAILY_GOAL_BONUS, STREAK_BONUS, weekMinutes } from '@/features/focus/logic';
-import { syncCircle, syncLeaderboardProfile, weekDrops } from '@/features/social/sync';
+import { syncLeaderboardProfile, weekDrops } from '@/features/social/sync';
 import { usePolling } from '@/features/social/use-polling';
 import { api } from '@/lib/api';
 import { MAJORS, YEARS } from '@/lib/constants';
@@ -70,9 +72,11 @@ function Leaderboard() {
   const refresh = async () => {
     try {
       if (scope === 'friends') {
-        if (!p.circle) return setRows({ scope, list: [], label: 'Friends', message: 'friends' });
-        const members = (await syncCircle()) ?? [];
-        return setRows({ scope, label: 'Friends', message: '', list: members.map((m) => ({ id: m.id, name: m.name, minutes: m.minutes, drops: m.id === p.circle?.publicId ? myDrops : 0, me: m.id === p.circle?.publicId })) });
+        if (!useAccount.getState().user) return setRows({ scope, list: [], label: 'People you follow', message: 'friends' });
+        const r = await api.people.board();
+        // Your own row uses this device's minutes, which are always the freshest.
+        const list = r.people.map((m) => ({ id: m.id, name: m.me ? p.name || m.name : m.name, minutes: m.me ? myMinutes : m.minutes, drops: m.me ? myDrops : 0, me: m.me }));
+        return setRows({ scope, label: 'People you follow', message: list.length > 1 ? '' : 'nobody', list });
       }
       const lb = await syncLeaderboardProfile();
       if (scope === 'class') {
@@ -101,7 +105,7 @@ function Leaderboard() {
     { value: 'school' as const, label: 'School' },
     { value: 'major' as const, label: 'Major' },
     { value: 'year' as const, label: 'Year' },
-    { value: 'friends' as const, label: 'Friends' },
+    { value: 'friends' as const, label: 'Following' },
     { value: 'class' as const, label: 'Class' },
   ];
 
@@ -134,15 +138,21 @@ function Leaderboard() {
           <p className="px-4 py-10 text-center text-[13px] text-muted">Loading rankings</p>
         ) : current.message === 'friends' ? (
           <div className="px-4 py-10 text-center">
-            <p className="text-[14px] font-semibold">No friend circle yet</p>
-            <p className="mt-1 text-[13px] text-muted">Create a circle and share its code to compare with friends.</p>
-            <Link href="/drop?tab=friends&view=circle"><Button size="sm" className="mt-3">Set up a circle</Button></Link>
+            <p className="text-[14px] font-semibold">Sign in to rank with friends</p>
+            <p className="mt-1 text-[13px] text-muted">Everyone you follow shows up here with you.</p>
+            <Link href={signInHref('signup')}><Button size="sm" className="mt-3">Create account</Button></Link>
+          </div>
+        ) : current.message === 'nobody' ? (
+          <div className="px-4 py-10 text-center">
+            <p className="text-[14px] font-semibold">You are not following anyone yet</p>
+            <p className="mt-1 text-[13px] text-muted">Follow classmates and they show up here with you.</p>
+            <Link href="/friends?tab=find"><Button size="sm" className="mt-3">Find classmates</Button></Link>
           </div>
         ) : current.message === 'class' ? (
           <div className="px-4 py-10 text-center">
             <p className="text-[14px] font-semibold">Not in a class</p>
             <p className="mt-1 text-[13px] text-muted">Join your class with the code from your instructor.</p>
-            <Link href="/drop?tab=friends&view=circle"><Button size="sm" className="mt-3">Join a class</Button></Link>
+            <Link href="/friends"><Button size="sm" className="mt-3">Join a class</Button></Link>
           </div>
         ) : current.message ? (
           <div className="px-4 py-10 text-center">

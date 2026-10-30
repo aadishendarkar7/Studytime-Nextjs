@@ -30,7 +30,7 @@ export async function recapFor(a: Account, posts: FeedPost[], site: string, now 
     topics.length ? `Topics you covered: ${topics.join(', ')}.` : '',
     w.weekday ? `Your best day was ${w.weekday}.` : '',
   ].filter(Boolean);
-  const url = `${site}/you?tab=wrapped`;
+  const url = `${site}/you?tab=progress`;
   return {
     subject: `Your week: ${fmtMinutes(w.minutes)} of studying`,
     html: emailHtml({ heading: `Nice week, ${a.name.split(' ')[0]}`, paragraphs: lines, button: { label: 'See your week', url }, footer: 'You get this on Sundays when you studied that week. Turn it off in Settings › Account.' }),

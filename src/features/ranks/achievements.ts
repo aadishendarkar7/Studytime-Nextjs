@@ -42,7 +42,6 @@ export function achievements(i: AchievementInput): Achievement[] {
     spots.set(k, (spots.get(k) ?? 0) + 1);
   }
   const regular = Math.max(0, ...spots.values());
-  const waterDays = Object.values(i.water).filter((n) => n >= i.waterGoal).length;
 
   const list: Omit<Achievement, 'done'>[] = [
     { id: 'first-session', group: 'Focus', title: 'First session', detail: 'Finish a focus session.', have: i.sessions.length, need: 1 },
@@ -56,8 +55,6 @@ export function achievements(i: AchievementInput): Achievement[] {
     { id: 'crew', group: 'Drop a Spot', title: 'Study crew', detail: 'Study with five different people.', have: people, need: 5 },
     { id: 'usual-spot', group: 'Drop a Spot', title: 'The usual spot', detail: 'Study at the same place five times.', have: regular, need: 5 },
     { id: 'checkins', group: 'Habits', title: 'Checked in', detail: 'Do seven daily check-ins.', have: i.checkins.length, need: 7 },
-    { id: 'water', group: 'Habits', title: 'Hydrated', detail: 'Reach your water goal on five days.', have: waterDays, need: 5 },
-    { id: 'reset', group: 'Habits', title: 'Fresh week', detail: 'Finish a weekly reset.', have: i.resets, need: 1 },
     { id: 'cards', group: 'Study tools', title: 'Card maker', detail: 'Make a flashcard set.', have: i.flashcardSets, need: 1 },
     { id: 'notes', group: 'Study tools', title: 'Note taker', detail: 'Turn class material into notes five times.', have: i.notes, need: 5 },
   ];
@@ -108,8 +105,6 @@ export function trophies(i: TrophyInput): Trophy[] {
     { id: 'regular', group: 'Drop a Spot', title: 'The usual spot', unit: 'visits to one spot', have: Math.max(0, ...spots.values()), tiers: [3, 5, 10] },
     { id: 'checkins', group: 'Habits', title: 'Checked in', unit: 'check-ins', have: i.checkins.length, tiers: [3, 7, 30] },
     { id: 'streak', group: 'Habits', title: 'On a roll', unit: 'check-in days in a row', have: i.bestRewardStreak, tiers: [3, 7, 14] },
-    { id: 'water', group: 'Habits', title: 'Hydrated', unit: 'days at your water goal', have: Object.values(i.water).filter((n) => n >= i.waterGoal).length, tiers: [1, 5, 20] },
-    { id: 'reset', group: 'Habits', title: 'Fresh week', unit: 'weekly resets', have: i.resets, tiers: [1, 4, 12] },
     { id: 'cards', group: 'Study tools', title: 'Card maker', unit: 'flashcard sets', have: i.flashcardSets, tiers: [1, 5, 15] },
     { id: 'notes', group: 'Study tools', title: 'Note taker', unit: 'notes made', have: i.notes, tiers: [1, 5, 20] },
     { id: 'lessons', group: 'Study tools', title: 'Scholar', unit: 'course lessons finished', have: i.lessonsDone, tiers: [1, 10, 30] },

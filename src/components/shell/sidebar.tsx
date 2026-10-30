@@ -18,8 +18,8 @@ import { GROUP_LABEL, isActive, MOBILE_TABS, NAV, type NavItem } from './nav';
 
 function Wordmark({ className }: { className?: string }) {
   return (
-    <Link href="/" className={cn('flex items-center gap-2 text-[15px] font-semibold tracking-tight text-ink', className)}>
-      <Logo className="size-6" /> Studytime
+    <Link href="/" className={cn('flex items-center gap-2.5 text-[19px] font-semibold tracking-tight text-ink', className)}>
+      <Logo className="size-9" /> Studytime
     </Link>
   );
 }
@@ -55,7 +55,7 @@ function Badge({ item, badges }: { item: NavItem; badges: ReturnType<typeof useB
 
 function NavLinks({ pathname, large }: { pathname: string; large?: boolean }) {
   const badges = useBadges();
-  const groups = (['main', 'together', 'study', 'me'] as const).map((g) => ({ g, items: NAV.filter((n) => n.group === g && (large || n.href !== '/settings')) }));
+  const groups = (['main', 'study', 'together', 'me'] as const).map((g) => ({ g, items: NAV.filter((n) => n.group === g && (large || n.href !== '/settings')) }));
   return (
     <div className="grid gap-4">
       {groups.map(({ g, items }) => (
@@ -92,7 +92,7 @@ export function Sidebar() {
   const signedIn = useAccount((s) => Boolean(s.user));
   return (
     <aside className="sticky top-0 hidden h-dvh w-60 shrink-0 flex-col border-r border-line bg-[var(--sidebar)] px-3 pt-4 pb-3 lg:flex">
-      <Wordmark className="mx-2.5 mb-6 h-8" />
+      <Wordmark className="mx-2 mb-6 h-10" />
       <nav aria-label="Main navigation" className="min-h-0 flex-1 overflow-y-auto">
         <NavLinks pathname={pathname} />
       </nav>

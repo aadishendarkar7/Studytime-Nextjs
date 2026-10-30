@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button';
 import { Input, Select } from '@/components/ui/field';
 import { Icon } from '@/components/ui/icons';
 import { minutesOn } from '@/features/focus/logic';
-import { logWater } from '@/features/wellbeing/water';
 import { Dialog } from '@/components/ui/dialog';
 import { useAccount } from '@/features/auth/account';
 import { DEFAULT_PET, useExtras, type PetBody } from '@/lib/stores/extras';
@@ -147,8 +146,6 @@ export function GardenPage() {
 
         <div className="flex flex-wrap items-center gap-2 border-t border-line px-4 py-3">
           <Button size="sm" variant="secondary" onClick={() => (say(g.stage === 'egg' ? undefined : `Thanks. Your turn: ${['shoulders down', 'unclench your jaw', 'sit up a bit', 'look away from the screen for 20 seconds'][Math.floor(Math.random() * 4)]}.`), love())}><Icon name="heart" className="size-4" /> Pet</Button>
-          <Button size="sm" variant="secondary" onClick={() => { logWater(1); say(`Cheers. Glass ${(useExtras.getState().water[todayKey()] ?? 0)} for you today.`); }}><Icon name="drop" className="size-4" /> Drink water together</Button>
-          <Button size="sm" variant="secondary" onClick={() => { say('Quiz time. No peeking.'); setTimeout(() => window.dispatchEvent(new Event('studytime:popquiz')), 500); }}><Icon name="sparkle" className="size-4" /> Quiz me</Button>
           <Button size="sm" variant="secondary" onClick={() => setDesigning(true)}><Icon name="palette" className="size-4" /> Customize</Button>
           <span className="flex-1" />
           <label className="flex items-center gap-2 text-[13px]">

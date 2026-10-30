@@ -54,6 +54,8 @@ export const api = {
     block: (id: string, on: boolean) => request<{ ok: true }>(`/api/people/${enc(id)}/block`, { method: on ? 'POST' : 'DELETE' }),
     blocked: () => request<{ people: { id: string; name: string; school: string }[] }>('/api/people/blocked'),
     week: () => request<{ friends: { id: string; name: string; minutes: number }[] }>('/api/people/week'),
+    board: () => request<{ people: { id: string; name: string; minutes: number; me: boolean }[] }>('/api/people/board'),
+    mine: () => request<{ following: PersonView[]; followers: PersonView[] }>('/api/people/mine'),
   },
   auth: {
     me: () => request<{ user: AccountView | null; google: boolean; email: boolean; domains: string[] }>('/api/auth/me'),
