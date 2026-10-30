@@ -1,6 +1,6 @@
 export type Backdrop = 'contours' | 'waves' | 'grid' | 'dots' | 'diagonal' | 'plain';
 export type Wash = 'none' | 'soft' | 'medium' | 'strong';
-export type ThemeMode = 'light' | 'dark' | 'system';
+export type ThemeMode = 'night' | 'light' | 'dark' | 'system';
 export type FontStyle = 'serif' | 'sans';
 export type Corners = 'crisp' | 'soft' | 'round';
 
@@ -22,6 +22,7 @@ export const WASHES: { value: Wash; label: string }[] = [
 
 /** Named color pairs: the accent, then the second color of the background wash. */
 export const PALETTES: { name: string; mood: string; accent: string; glow: string }[] = [
+  { name: 'Lamplight', mood: 'Late night, desk lamp on', accent: '#2f6b4f', glow: '#f4b553' },
   { name: 'Cobalt', mood: 'Calm focus', accent: '#2f5bd3', glow: '#9db4f0' },
   { name: 'Graphite', mood: 'Quiet and serious', accent: '#3f3f46', glow: '#c4c4cc' },
   { name: 'Clay', mood: 'Warm desk lamp', accent: '#b4532a', glow: '#e7b76a' },
@@ -64,15 +65,17 @@ export function applyAppearance(o: AppearanceInput) {
   const valid = function (v: string) { return /^#[0-9a-f]{6}$/i.test(v); };
   const accent = valid(o.accent) ? o.accent : '#2f5bd3';
   const glow = valid(o.glow) ? o.glow : '#9db4f0';
-  const dark = o.theme === 'dark' || (o.theme !== 'light' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+  const night = o.theme === 'night' || !o.theme;
+  const dark = night || o.theme === 'dark' || (o.theme === 'system' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
   const c = rgb(accent);
 
   let darker = c;
   for (let k = 0; k < 24 && ratio(lum(darker), lum([255, 255, 255])) < 4.6; k++) darker = darker.map(function (x) { return x * 0.92; });
   let lighter = c;
-  for (let k = 0; k < 24 && ratio(lum(lighter), lum([20, 20, 23])) < 4.8; k++) lighter = lighter.map(function (x) { return x + (255 - x) * 0.12; });
+  const base = night ? [20, 27, 54] : [20, 20, 23];
+  for (let k = 0; k < 24 && ratio(lum(lighter), lum(base)) < 4.8; k++) lighter = lighter.map(function (x) { return x + (255 - x) * 0.12; });
 
-  root.dataset.theme = dark ? 'dark' : 'light';
+  root.dataset.theme = night ? 'night' : dark ? 'dark' : 'light';
   root.style.setProperty('--accent', accent);
   root.style.setProperty('--accent-ink', hex(dark ? lighter : darker));
   root.style.setProperty('--accent-fill', ratio(lum(c), 1) >= 4.5 ? accent : hex(darker));
@@ -82,8 +85,8 @@ export function applyAppearance(o: AppearanceInput) {
   root.dataset.font = o.font === 'serif' ? 'serif' : 'sans';
   root.dataset.corners = ['crisp', 'soft', 'round'].indexOf(o.corners) >= 0 ? o.corners : 'soft';
   const meta = document.querySelector('meta[name="theme-color"]');
-  if (meta) meta.setAttribute('content', dark ? '#09090b' : '#ffffff');
+  if (meta) meta.setAttribute('content', night ? '#0d1226' : dark ? '#09090b' : '#ffffff');
 }
 
 /** Inline script for layout.tsx: reads the saved profile and applies it before paint. */
-export const APPEARANCE_SCRIPT = `try{var s=(JSON.parse(localStorage.getItem('studytime:profile')||'null')||{}).state||{};if(s.look===2&&s.wash==='none')s.wash='soft';if(s.look!==2&&s.look!==3)s={theme:s.theme,wash:'soft'};(${applyAppearance.toString()})({accent:s.accent||'',glow:s.glow||'',backdrop:s.backdrop||'',wash:s.wash||'',theme:s.theme||'system',font:s.font||'',corners:s.corners||''})}catch(e){}`;
+export const APPEARANCE_SCRIPT = `try{var s=(JSON.parse(localStorage.getItem('studytime:profile')||'null')||{}).state||{};if(s.look!==4)s={theme:'night',accent:'#2f6b4f',glow:'#f4b553',wash:'soft'};(${applyAppearance.toString()})({accent:s.accent||'#2f6b4f',glow:s.glow||'#f4b553',backdrop:s.backdrop||'',wash:s.wash||'',theme:s.theme||'night',font:s.font||'',corners:s.corners||''})}catch(e){}`;

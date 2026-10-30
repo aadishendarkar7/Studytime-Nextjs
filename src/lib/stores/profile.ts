@@ -46,7 +46,7 @@ export interface ProfileData {
 
 export const defaultProfile = (): ProfileData => ({
   name: 'Student', dailyGoal: 60, weeklyGoal: 300, points: 0, sessions: [], bonusDays: [], duration: 30, subject: '', location: '',
-  theme: 'system', accent: '#2f5bd3', glow: '#9db4f0', backdrop: 'plain', wash: 'soft', font: 'sans', corners: 'soft', look: 3, reminders: [], major: '', school: '', year: '', courses: [], prompts: [], studyStyle: '', leaderboard: null, circle: null,
+  theme: 'night', accent: '#2f6b4f', glow: '#f4b553', backdrop: 'plain', wash: 'soft', font: 'sans', corners: 'soft', look: 4, reminders: [], major: '', school: '', year: '', courses: [], prompts: [], studyStyle: '', leaderboard: null, circle: null,
   nextPlanAt: null, nextPlanNotified: false, reflections: [], timer: { mode: 'ready', remaining: 30 * 60, deadline: null },
 });
 
@@ -145,10 +145,10 @@ export function sanitizeProfile<T extends ProfileData>(p: T): T {
   const base = defaultProfile();
   const out = { ...p };
   for (const key of ['sessions', 'bonusDays', 'reminders', 'courses', 'reflections', 'prompts'] as const) if (!Array.isArray(out[key])) (out as ProfileData)[key] = base[key] as never;
-  if (!['light', 'dark', 'system'].includes(out.theme)) out.theme = 'system';
+  if (!['night', 'light', 'dark', 'system'].includes(out.theme)) out.theme = 'night';
   // Looks saved before the current design reset once to its defaults (theme is kept).
-  if (out.look === 2) Object.assign(out, { wash: out.wash === 'none' ? base.wash : out.wash, look: base.look });
-  else if (out.look !== base.look) Object.assign(out, { accent: base.accent, glow: base.glow, backdrop: base.backdrop, wash: base.wash, font: base.font, corners: base.corners, look: base.look });
+  // The night look arrived with look 4: everyone moves to it once, and can switch back in Appearance.
+  if (out.look !== base.look) Object.assign(out, { theme: base.theme, accent: base.accent, glow: base.glow, backdrop: base.backdrop, wash: base.wash, font: base.font, corners: base.corners, look: base.look });
   if (out.font !== 'serif') out.font = 'sans';
   if (!['crisp', 'soft', 'round'].includes(out.corners)) out.corners = 'soft';
   if (!isHex(out.accent)) out.accent = base.accent;

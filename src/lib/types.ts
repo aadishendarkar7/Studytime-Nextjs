@@ -1,6 +1,6 @@
 // Shared domain types used by the client stores, API routes, and UI.
 
-export type ThemeName = 'light' | 'dark' | 'system';
+export type ThemeName = 'night' | 'light' | 'dark' | 'system';
 export type ReminderType = 'homework' | 'exam' | 'assignment';
 
 export interface Session {

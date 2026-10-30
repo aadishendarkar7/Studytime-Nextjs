@@ -47,7 +47,7 @@ function Shelf({ title, items, selected, onPick }: { title: string; items: Troph
         {items.map((t) => (
           <button key={t.id} type="button" onClick={() => onPick(t.id)} aria-pressed={selected === t.id} aria-label={`${t.title}: ${TIER_NAME[t.tier]}`} className={cn('group relative flex flex-col items-center rounded-lg pt-2 pb-1 transition-colors', selected === t.id ? 'bg-white/[0.06]' : 'hover:bg-white/[0.03]')}>
             {t.tier === 3 && <span className="pointer-events-none absolute top-1 left-1/2 size-14 -translate-x-1/2 rounded-full bg-[#ffd76a] opacity-20 blur-xl" />}
-            <span className="relative transition-transform duration-200 group-hover:-translate-y-0.5"><Cup tier={t.tier} id={t.id} /></span>
+            <span className="relative"><Cup tier={t.tier} id={t.id} /></span>
             <span className={cn('mt-1 line-clamp-1 text-[12px] font-medium', t.tier ? 'text-[#e8e6e1]' : 'text-[#6c727a]')}>{t.title}</span>
           </button>
         ))}

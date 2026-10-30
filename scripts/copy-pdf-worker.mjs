@@ -10,3 +10,4 @@ try {
 } catch (error) {
   console.warn('Could not copy the PDF.js worker:', error.message);
 }
+

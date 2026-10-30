@@ -47,7 +47,39 @@ html[data-theme='dark'] {
   color-scheme: dark;
 }
 
-:root, html[data-theme='dark'] {
+/* Night: the sign-in page's colors. Navy sky, warm paper text, lamplight glow, serif headings. */
+html[data-theme='night'] {
+  --bg: #0d1226;
+  --ink: #f6ecd2;
+  --ink-2: #d9d2bf;
+  --muted: #9d9886;
+  --line: #252e51;
+  --line-strong: #3d4975;
+  --surface: #131a35;
+  --surface-2: #10162e;
+  --shadow-color: 0 0 0;
+  --ok: #7fd39a;
+  --warn: #f4b553;
+  --danger: #f08a7a;
+  --pattern-strength: 0.55;
+  color-scheme: dark;
+}
+html[data-theme='night'] body::before {
+  background:
+    radial-gradient(1px 1px at 12% 18%, rgba(246,236,210,.7), transparent 60%),
+    radial-gradient(1px 1px at 34% 8%, rgba(246,236,210,.5), transparent 60%),
+    radial-gradient(1.5px 1.5px at 58% 22%, rgba(246,236,210,.6), transparent 60%),
+    radial-gradient(1px 1px at 76% 12%, rgba(246,236,210,.5), transparent 60%),
+    radial-gradient(1.5px 1.5px at 91% 30%, rgba(246,236,210,.55), transparent 60%),
+    radial-gradient(1px 1px at 22% 44%, rgba(246,236,210,.35), transparent 60%),
+    radial-gradient(1px 1px at 67% 52%, rgba(246,236,210,.3), transparent 60%),
+    radial-gradient(70vw 40vh at 100% -8%, color-mix(in oklab, var(--glow) calc(var(--wash) * 0.8), transparent), transparent 72%),
+    radial-gradient(120% 70% at 30% 0%, #1c2550 0%, #0d1226 60%);
+}
+/* Page titles get the display face; everything else stays in Lexend. */
+h1 { font-family: 'Unbounded Variable', var(--font-display); font-weight: 600; letter-spacing: -0.02em; }
+
+:root, html[data-theme='dark'], html[data-theme='night'] {
   --surface-3: color-mix(in oklab, var(--ink) 5%, var(--surface));
   /* Your color: primary buttons, the open page, selections and data. Surfaces stay neutral. */
   --brand: var(--accent-fill);
@@ -63,9 +95,9 @@ html[data-theme='dark'] {
 html[data-font='serif'] { --heading: 'Fraunces Variable', Georgia, 'Times New Roman', serif; }
 
 @theme inline {
-  --font-sans: 'Inter Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-sans: 'Lexend Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
   --font-mono: ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
-  --font-display: var(--heading, 'Inter Variable', ui-sans-serif, system-ui, sans-serif);
+  --font-display: var(--heading, 'Lexend Variable', ui-sans-serif, system-ui, sans-serif);
 
   --color-bg: var(--bg);
   --color-surface: var(--surface);
@@ -145,9 +177,9 @@ body::after {
 }
 
 /* Map tiles follow dark mode. */
-html[data-theme='dark'] .leaflet-tile-pane { filter: invert(1) hue-rotate(180deg) brightness(0.85) contrast(0.9) saturate(0.6); }
-html[data-theme='dark'] .leaflet-control-zoom a, html[data-theme='dark'] .leaflet-control-attribution { background: var(--surface) !important; color: var(--ink) !important; }
-html[data-theme='dark'] .leaflet-popup-content-wrapper, html[data-theme='dark'] .leaflet-popup-tip { background: var(--surface); }
+html[data-theme='dark'] .leaflet-tile-pane, html[data-theme='night'] .leaflet-tile-pane { filter: invert(1) hue-rotate(180deg) brightness(0.85) contrast(0.9) saturate(0.6); }
+html[data-theme='dark'] .leaflet-control-zoom a, html[data-theme='dark'] .leaflet-control-attribution, html[data-theme='night'] .leaflet-control-zoom a, html[data-theme='night'] .leaflet-control-attribution { background: var(--surface) !important; color: var(--ink) !important; }
+html[data-theme='dark'] .leaflet-popup-content-wrapper, html[data-theme='dark'] .leaflet-popup-tip, html[data-theme='night'] .leaflet-popup-content-wrapper, html[data-theme='night'] .leaflet-popup-tip { background: var(--surface); }
 
 /* Inside the Study workspace, tools drop their own card chrome so the page reads as one surface. */
 .ws-flat section.rounded-2xl { border-color: transparent; box-shadow: none; background: transparent; padding-left: 0; padding-right: 0; padding-top: 0.5rem; }
@@ -160,7 +192,6 @@ html[data-theme='dark'] .leaflet-popup-content-wrapper, html[data-theme='dark'] 
     font-family: var(--font-sans);
     font-size: 14px;
     line-height: 22px;
-    font-feature-settings: 'cv11', 'ss01';
     -webkit-font-smoothing: antialiased;
   }
   h1, h2, h3, h4 {

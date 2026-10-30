@@ -45,7 +45,7 @@ async function highlightImage(p: FeedPost) {
   c.height = 1350;
   const g = c.getContext('2d')!;
   const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#2f5bd3';
-  const font = (size: number, weight = 600) => `${weight} ${size}px "Inter Variable", system-ui, sans-serif`;
+  const font = (size: number, weight = 600) => `${weight} ${size}px "Lexend Variable", system-ui, sans-serif`;
   const fit = (t: string, n: number) => (t.length > n ? `${t.slice(0, n - 1)}…` : t);
   g.fillStyle = '#09090b';
   g.fillRect(0, 0, 1080, 1350);

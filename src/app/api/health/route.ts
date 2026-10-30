@@ -23,5 +23,7 @@ export async function GET() {
   // Names only, so a key saved under the wrong name is easy to spot.
   const settingsSeen = Object.keys(process.env).filter((k) => /GEMINI|GOOGLE|GROQ|OPENROUTER|ANTHROPIC|REDIS|KV_|UPSTASH|AUTH_SECRET|RESEND|STORAGE/i.test(k)).sort();
   const ready = !Object.values(checks).some((v) => v.startsWith('MISSING'));
-  return json({ ready, ...checks, settingsSeen });
+  // Which commit is live, so it is easy to tell whether the latest push has deployed.
+  const version = process.env.VERCEL_GIT_COMMIT_MESSAGE ? `${process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7)} ${process.env.VERCEL_GIT_COMMIT_MESSAGE.split('\n')[0]}` : 'local';
+  return json({ ready, version, ...checks, settingsSeen });
 }

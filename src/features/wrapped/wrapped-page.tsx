@@ -35,7 +35,7 @@ async function shareImage(w: Wrapped, period: Period, name: string, style: strin
   g.fillRect(0, 0, 1080, 1350);
   g.fillStyle = accent;
   g.fillRect(80, 120, 72, 8);
-  const font = (size: number, weight = 600) => `${weight} ${size}px "Inter Variable", system-ui, sans-serif`;
+  const font = (size: number, weight = 600) => `${weight} ${size}px "Lexend Variable", system-ui, sans-serif`;
   g.fillStyle = '#a1a1aa';
   g.font = font(34, 500);
   g.fillText(`Studytime Wrapped · ${PERIOD_LABEL[period]}`, 80, 200);

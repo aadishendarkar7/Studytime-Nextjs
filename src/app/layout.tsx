@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import '@fontsource-variable/fraunces/full.css';
-import '@fontsource-variable/inter';
+import '@fontsource-variable/lexend';
+import '@fontsource-variable/unbounded';
 import 'katex/dist/katex.min.css';
 import './globals.css';
 import { APPEARANCE_SCRIPT } from '@/lib/appearance';
@@ -12,13 +13,13 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: '#ffffff',
+  themeColor: '#0d1226',
   colorScheme: 'light dark',
 };
 
 export default function RootLayout({ children }: LayoutProps<'/'>) {
   return (
-    <html lang="en" data-backdrop="plain" data-wash="soft" data-theme="light" data-font="sans" data-corners="soft" suppressHydrationWarning>
+    <html lang="en" data-backdrop="plain" data-wash="soft" data-theme="night" data-font="sans" data-corners="soft" suppressHydrationWarning>
       <head>
         {/* Applies the saved colors and backdrop before the first paint. */}
         <script dangerouslySetInnerHTML={{ __html: APPEARANCE_SCRIPT }} />

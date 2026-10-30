@@ -17,7 +17,7 @@ const PREVIEW: Record<Backdrop, string> = {
   plain: 'none',
 };
 
-const SHOWN = ['Cobalt', 'Ocean', 'Harbor', 'Sage', 'Forest', 'Moss', 'Ember', 'Rose', 'Plum', 'Graphite'];
+const SHOWN = ['Lamplight', 'Cobalt', 'Ocean', 'Harbor', 'Sage', 'Forest', 'Moss', 'Ember', 'Rose', 'Plum', 'Graphite'];
 
 /** Every appearance option, compact: theme, a row of colors, and the background. */
 export function AppearanceOptions() {
@@ -26,12 +26,12 @@ export function AppearanceOptions() {
   const active = PALETTES.find((x) => x.accent === p.accent && x.glow === p.glow);
   return (
     <div className="grid gap-3.5">
-      <Segmented className="[&>button]:flex-1" wrap={false} label="Theme" value={p.theme} onChange={(theme) => changeLook({ theme })} options={[{ value: 'light', label: 'Light' }, { value: 'dark', label: 'Dark' }, { value: 'system', label: 'Auto' }]} />
+      <Segmented className="[&>button]:flex-1" wrap={false} label="Theme" value={p.theme} onChange={(theme) => changeLook({ theme })} options={[{ value: 'night', label: 'Night' }, { value: 'light', label: 'Light' }, { value: 'dark', label: 'Dark' }, { value: 'system', label: 'Auto' }]} />
       <div>
         <p className="mb-2 text-[12px] text-muted">Color{active ? <span className="text-ink"> · {active.name}</span> : <span className="text-ink"> · Your own</span>}</p>
         <div role="radiogroup" aria-label="Color" className="flex flex-wrap items-center gap-2">
           {palettes.map((x) => (
-            <button key={x.name} type="button" role="radio" aria-checked={active?.name === x.name} aria-label={x.name} title={x.name} onClick={(e) => changeLook({ accent: x.accent, glow: x.glow }, e)} className={cn('size-7 rounded-full transition-transform hover:scale-110', active?.name === x.name && 'ring-2 ring-offset-2 ring-offset-surface')} style={{ background: `linear-gradient(135deg, ${x.accent} 50%, ${x.glow} 50%)`, ['--tw-ring-color' as string]: x.accent }} />
+            <button key={x.name} type="button" role="radio" aria-checked={active?.name === x.name} aria-label={x.name} title={x.name} onClick={(e) => changeLook({ accent: x.accent, glow: x.glow }, e)} className={cn('size-7 rounded-full', active?.name === x.name && 'ring-2 ring-offset-2 ring-offset-surface')} style={{ background: `linear-gradient(135deg, ${x.accent} 50%, ${x.glow} 50%)`, ['--tw-ring-color' as string]: x.accent }} />
           ))}
           <label title="Pick your own" className={cn('relative grid size-7 cursor-pointer place-items-center rounded-full border border-dashed border-line-strong text-muted hover:text-ink', !active && 'ring-2 ring-accent ring-offset-2 ring-offset-surface')}>
             <Icon name="plus" className="size-3.5" />
@@ -70,10 +70,10 @@ export function AppearanceButtons() {
     document.addEventListener('keydown', onKey);
     return () => (document.removeEventListener('mousedown', onDown), document.removeEventListener('keydown', onKey));
   }, [open]);
-  const isDark = theme === 'dark' || (theme === 'system' && typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+  const isDark = theme === 'night' || theme === 'dark' || (theme === 'system' && typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches);
   return (
     <div ref={box} className="relative flex items-center gap-1.5">
-      <button type="button" onClick={(e) => changeLook({ theme: isDark ? 'light' : 'dark' }, e)} aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'} title={theme === 'system' ? 'Following your device' : undefined} className="grid size-9 place-items-center rounded-lg text-muted hover:bg-surface-3 hover:text-ink">
+      <button type="button" onClick={(e) => changeLook({ theme: isDark ? 'light' : 'night' }, e)} aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'} title={theme === 'system' ? 'Following your device' : undefined} className="grid size-9 place-items-center rounded-lg text-muted hover:bg-surface-3 hover:text-ink">
         <Icon name={isDark ? 'sun' : 'moon'} className="size-[18px]" />
       </button>
       <button type="button" onClick={() => setOpen(!open)} aria-expanded={open} aria-label="Appearance" className={cn("grid size-9 place-items-center rounded-lg text-muted hover:bg-surface-3 hover:text-ink", open && "bg-surface-3 text-ink")}>
