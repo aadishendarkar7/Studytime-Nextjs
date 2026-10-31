@@ -3,7 +3,7 @@ import dynamic from 'next/dynamic';
 import { useEffect, useMemo, useState } from 'react';
 import { Empty } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Checkbox, Select } from '@/components/ui/field';
+import { Checkbox } from '@/components/ui/field';
 import { Icon } from '@/components/ui/icons';
 import type { MapPin } from '@/features/spots/spot-map';
 import { Segmented } from '@/components/ui/segmented';
@@ -11,10 +11,11 @@ import { api } from '@/lib/api';
 import { useExtras } from '@/lib/stores/extras';
 import { useProfile } from '@/lib/stores/profile';
 import { toast } from '@/lib/stores/ui';
-import { CATEGORIES, type DropView, type DropVibe } from '@/lib/types';
+import { CATEGORIES, categoryMark, type DropView, type DropVibe } from '@/lib/types';
 import { useNow } from '@/lib/use-now';
 import { cn, fmtMinutes, plural } from '@/lib/utils';
 import { useDropComposer } from './composer';
+import { EventsTab } from './events-tab';
 import { DropSheet, Initial, PrimaryAction, seatsLeft } from './drop-sheet';
 import { refreshDrops, useDrops, whenLabel } from './live';
 import { distanceKm, dropStats, fmtDistance, hotSpots, recentPlaces, VIBES, vibeLabel } from './logic';
@@ -56,7 +57,7 @@ function DropRow({ d, me, onOpen, selected }: { d: DropView; me: Point | null; o
             <span className="tnum">{whenLabel(d, now)}</span>
             {d.subject && <span>· {d.subject}</span>}
             <span>· {vibeLabel(d.vibe)}</span>
-            {d.category && d.category !== 'Anything goes' && <span>· {d.category}</span>}
+            {d.category && d.category !== 'Anything goes' && <span>· {categoryMark(d.category)} {d.category}</span>}
             {dist && <span className="tnum">· {dist}</span>}
           </span>
         </span>
@@ -203,10 +204,13 @@ function LiveTab({ openId, setOpenId }: { openId: string | null; setOpenId: (id:
           <Chip on={vibe === 'all'} onClick={() => setVibe('all')}>All</Chip>
           {VIBES.map((v) => <Chip key={v.value} on={vibe === v.value} onClick={() => setVibe(vibe === v.value ? 'all' : v.value)}>{v.label}</Chip>)}
           {courses.length > 0 && <Chip on={myCourses} onClick={() => setMyCourses(!myCourses)}>My courses</Chip>}
-          <Select aria-label="Category" className="h-8 w-auto shrink-0 text-[13px]" value={category} onChange={(e) => setCategory(e.target.value)}>
-            <option value="all">All categories</option>
-            {CATEGORIES.map((c) => <option key={c}>{c}</option>)}
-          </Select>
+        </div>
+        <div role="group" aria-label="Categories" className="-mx-1 -mt-2 flex gap-1.5 overflow-x-auto px-1 pb-1 [scrollbar-width:none]">
+          <Chip on={category === 'all'} onClick={() => setCategory('all')}>All subjects</Chip>
+          {CATEGORIES.filter((c) => c !== 'Anything goes').map((c) => {
+            const n = drops.filter((d) => d.category === c).length;
+            return <Chip key={c} on={category === c} onClick={() => setCategory(category === c ? 'all' : c)}><span aria-hidden="true">{categoryMark(c)}</span>{c}{n > 0 && <span className={cn('tnum text-[11px]', category === c ? 'text-white/80' : 'text-muted')}>{n}</span>}</Chip>;
+          })}
         </div>
 
         {hot.length > 0 && (
@@ -397,6 +401,11 @@ export function DropPage() {
     setLinked(null);
     if (location.search.includes('d=')) history.replaceState(null, '', '/drop');
   };
+  const [view, setView] = useState<'spots' | 'events'>(() => (initialParam('tab') === 'events' ? 'events' : 'spots'));
+  const switchView = (v: 'spots' | 'events') => {
+    setView(v);
+    history.replaceState(null, '', v === 'events' ? '/drop?tab=events' : '/drop');
+  };
   const live = drops.filter((d) => d.startsAt <= now);
   const people = live.reduce((n, d) => n + 1 + d.joiners.length, 0);
 
@@ -415,8 +424,11 @@ export function DropPage() {
           <Button onClick={() => useDropComposer.getState().show()}><Icon name="pin" className="size-4" /> Drop a spot</Button>
         </div>
       </header>
-      <YourDropBar onOpen={setOpenId} />
-      <LiveTab openId={openId} setOpenId={setOpenId} />
+      <Segmented label="Section" className="mb-5 w-fit" wrap={false} value={view} onChange={switchView} options={[{ value: 'spots', label: 'Spots' }, { value: 'events', label: 'Events' }]} />
+      {view === 'events' ? <EventsTab /> : <>
+        <YourDropBar onOpen={setOpenId} />
+        <LiveTab openId={openId} setOpenId={setOpenId} />
+      </>}
       <DropSheet d={current} onClose={close} />
     </>
   );

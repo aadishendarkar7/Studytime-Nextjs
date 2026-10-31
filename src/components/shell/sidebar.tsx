@@ -94,6 +94,7 @@ export function Sidebar() {
   const name = useProfile((s) => s.name.trim() || 'Student');
   const school = useProfile((s) => s.school);
   const signedIn = useAccount((s) => Boolean(s.user));
+  const myId = useAccount((s) => s.user?.id);
   // Collapsed to icons or not. Remembered in this browser only.
   const [mini, setMini] = useState(false);
   useEffect(() => {
@@ -128,7 +129,7 @@ export function Sidebar() {
       {mini ? (
         <div className="mt-3 grid justify-items-center gap-2 border-t border-line pt-3">
           <Link href={signedIn ? '/you?tab=profile' : signInHref('signup')} aria-label={signedIn ? name : 'Create account'} title={signedIn ? name : 'Create account'}>
-            {signedIn ? <Avatar name={name} size={28} /> : <span className="grid size-8 place-items-center rounded-lg bg-accent-fill text-white"><Icon name="user" className="size-4" /></span>}
+            {signedIn ? <Avatar name={name} size={28} userId={myId} /> : <span className="grid size-8 place-items-center rounded-lg bg-accent-fill text-white"><Icon name="user" className="size-4" /></span>}
           </Link>
           <Link href="/settings" aria-label="Settings" title="Settings" className={cn('grid size-8 place-items-center rounded-lg hover:bg-surface-3 hover:text-ink', isActive(pathname, '/settings') ? 'bg-surface-3 text-ink' : 'text-muted')}><Icon name="settings" className="size-[17px]" /></Link>
         </div>
@@ -138,7 +139,7 @@ export function Sidebar() {
           <div className="flex items-center gap-1">
             {signedIn ? (
               <Link href="/you?tab=profile" className="flex min-w-0 flex-1 items-center gap-2.5 rounded-lg px-2 py-1.5 hover:bg-surface-3">
-                <Avatar name={name} size={28} />
+                <Avatar name={name} size={28} userId={myId} />
                 <span className="min-w-0">
                   <strong className="block truncate text-[13px] font-medium">{name}</strong>
                   <small className="block truncate text-[12px] text-muted">{school || 'Add your school'}</small>

@@ -1,5 +1,5 @@
 'use client';
-import { callJSON } from '@/lib/ai/client';
+import { callAI, callJSON } from '@/lib/ai/client';
 import { toParts, type Attachment } from '@/lib/ai/files';
 import { conceptSystem, flashcardSystem, quizSystem, VERIFY_SYSTEM } from '@/lib/ai/prompts';
 import { useAi, type Concept } from '@/lib/stores/ai';
@@ -59,4 +59,16 @@ export async function describeConcept(name: string) {
     system: `Return only JSON {"name","subject","summary","example"} describing this academic concept for a ${s.level} student. summary is one plain sentence. Write in ${s.language}.`,
     messages: [{ role: 'user', content: name }],
   });
+}
+
+/** A short, specific title for a note, like "Krebs Cycle Steps and Yields". */
+export async function nameNote(content: string) {
+  const text = await callAI({
+    tier: 'fast',
+    maxTokens: 40,
+    system: 'You name study notes. Reply with only the title: 2 to 7 words, Title Case, specific to the topic, no quotes, no punctuation at the end, no words like "Notes" or "Summary".',
+    messages: [{ role: 'user', content: content.slice(0, 6000) }],
+  });
+  const title = text.split('\n').map((l) => l.replace(/^[#*"'\s]+|["'*\s.]+$/g, '').trim()).find(Boolean) ?? '';
+  return title.slice(0, 80);
 }

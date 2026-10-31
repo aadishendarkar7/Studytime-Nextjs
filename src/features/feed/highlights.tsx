@@ -246,7 +246,7 @@ export function HighlightCard({ post, onChange, onOpenPerson }: { post: FeedPost
   return (
     <article className="min-w-0 panel p-4">
       <header className="flex items-center gap-2.5">
-        <span className="flex -space-x-2">{people.slice(0, 4).map((p) => <span key={p.id} className="rounded-full ring-2 ring-surface"><Avatar name={p.full} color={toneFor(p.id)} size={32} /></span>)}</span>
+        <span className="flex -space-x-2">{people.slice(0, 4).map((p) => <span key={p.id} className="rounded-full ring-2 ring-surface"><Avatar name={p.full} color={toneFor(p.id)} size={32} userId={p.id} /></span>)}</span>
         <div className="min-w-0 flex-1">
           <button type="button" disabled={!onOpenPerson || mine} onClick={() => onOpenPerson?.(post.userId)} className="block truncate text-left text-[14px] font-semibold enabled:hover:underline">{names}</button>
           <p className="truncate text-[12px] text-muted">{when(post.at)}{post.school ? ` · ${post.school}` : ''}</p>
@@ -322,7 +322,7 @@ export function PersonSheet({ id, onClose }: { id: string | null; onClose: () =>
       {shown ? (
         <>
           <div className="flex items-center gap-3">
-            <Avatar name={shown.person.name} color={toneFor(shown.person.id)} size={48} />
+            <Avatar name={shown.person.name} color={toneFor(shown.person.id)} size={48} userId={shown.person.id} />
             <div className="min-w-0 flex-1">
               <p className="text-[15px] font-semibold">{shown.person.name}</p>
               <p className="truncate text-[13px] text-muted">{[shown.person.major, shown.person.school].filter(Boolean).join(' · ') || 'Studytime'}</p>
@@ -359,7 +359,7 @@ export function FindPeople({ onOpen }: { onOpen: (id: string) => void }) {
       <ul className="mt-2 divide-y divide-line">
         {(people ?? []).slice(0, 8).map((p) => (
           <li key={p.id} className="flex items-center gap-2.5 py-2">
-            <Avatar name={p.name} color={toneFor(p.id)} size={28} />
+            <Avatar name={p.name} color={toneFor(p.id)} size={28} userId={p.id} />
             <button type="button" onClick={() => onOpen(p.id)} className="min-w-0 flex-1 text-left">
               <span className="block truncate text-[13px] font-medium hover:underline">{p.name}</span>
               <span className="block truncate text-[11px] text-muted">{[p.major, p.school].filter(Boolean).join(' · ') || 'Studytime'}</span>

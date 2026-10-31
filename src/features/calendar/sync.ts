@@ -16,10 +16,17 @@ export function guessKind(url: string): CalendarFeed['kind'] {
   const u = url.toLowerCase();
   if (u.includes('google.com')) return 'google';
   if (u.includes('instructure.com')) return 'canvas';
+  if (u.includes('/calendar/export_execute.php')) return 'moodle';
+  if (u.includes('/d2l/le/calendar/feed')) return 'brightspace';
+  if (u.includes('blackboard.com') || u.includes('/webapps/calendar/calendarfeed')) return 'blackboard';
   if (u.includes('outlook')) return 'outlook';
   if (u.includes('icloud.com')) return 'apple';
   return 'other';
 }
+
+/** School systems (Canvas, Moodle and so on) only put due dates in their feeds. */
+export const isSchoolFeed = (kind: CalendarFeed['kind']) => kind === 'canvas' || kind === 'moodle' || kind === 'brightspace' || kind === 'blackboard';
+const SCHOOL_NAME: Partial<Record<CalendarFeed['kind'], string>> = { canvas: 'Canvas', moodle: 'Moodle', brightspace: 'Brightspace', blackboard: 'Blackboard' };
 
 const endOfDay = (ms: number) => {
   const d = new Date(ms);
@@ -37,7 +44,7 @@ function addDeadlines(feed: CalendarFeed) {
   let added = 0;
   for (const e of feed.events) {
     if (e.start < now) continue;
-    if (feed.kind !== 'canvas' && !(DEADLINE_WORDS.test(e.title) && (e.allDay || e.end - e.start <= 60_000))) continue;
+    if (!isSchoolFeed(feed.kind) && !(DEADLINE_WORDS.test(e.title) && (e.allDay || e.end - e.start <= 60_000))) continue;
     const type: ReminderType = EXAM_WORDS.test(e.title) ? 'exam' : /homework|hw|problem set|pset/i.test(e.title) ? 'homework' : 'assignment';
     const dueAt = e.allDay ? endOfDay(e.start) : e.start;
     if (p.reminders.some((r) => r.title === e.title && Math.abs(r.dueAt - dueAt) < 60_000)) continue;
@@ -67,7 +74,7 @@ export async function addFeed(url: string, name: string, addDeadlinesToPlanner: 
   const r = await api.calendar.import(url);
   const feed: CalendarFeed = {
     id: uid(),
-    name: name.trim() || r.name || (r.kind === 'canvas' ? 'Canvas' : 'Calendar'),
+    name: name.trim() || SCHOOL_NAME[r.kind] || r.name || 'Calendar',
     url: url.trim(),
     kind: r.kind,
     color: FEED_COLORS[x.calendarFeeds.length % FEED_COLORS.length],

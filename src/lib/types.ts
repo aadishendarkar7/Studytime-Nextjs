@@ -183,6 +183,12 @@ export interface PactView { code: string; goal: number; week: string; members: {
 
 // ---------- Campus study events ----------
 export const CATEGORIES = ['Math & stats', 'Sciences', 'Pre-med & health', 'Coding', 'Engineering', 'Business', 'Writing & humanities', 'Languages', 'Arts & design', 'Exam prep', 'Student athletes', 'Anything goes'] as const;
+/** A small marker for each category, used on chips and rows. */
+export const CATEGORY_MARK: Record<(typeof CATEGORIES)[number], string> = {
+  'Math & stats': '∑', Sciences: '🧪', 'Pre-med & health': '🩺', Coding: '</>', Engineering: '⚙️', Business: '📈',
+  'Writing & humanities': '✍️', Languages: '🗣️', 'Arts & design': '🎨', 'Exam prep': '📝', 'Student athletes': '🏅', 'Anything goes': '✨',
+};
+export const categoryMark = (c: string) => CATEGORY_MARK[c as (typeof CATEGORIES)[number]] ?? '';
 export interface EventInput { host: string; title: string; course: string; category: string; place: string; startsAt: number; endsAt: number; capacity: number | null; school: string; audience: 'school' | 'everyone'; note: string }
 export interface EventView extends EventInput { id: string; createdAt: number; going: { id: string; name: string }[] }
 

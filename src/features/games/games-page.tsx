@@ -14,13 +14,72 @@ import { useProfile } from '@/lib/stores/profile';
 import { toast } from '@/lib/stores/ui';
 import type { Deck, StudySet } from '@/lib/types';
 import { cn } from '@/lib/utils';
+import { activeCollections, COLLECTIONS, isActive, windowLabel, type Collection } from './collections';
 import { parseBulkCards, STARTER_DECKS } from './decks';
 import { GameStage, type Mode } from './modes';
 import { isDue } from './srs';
 
+/** Adds every deck in a collection you have not added yet. */
+function addCollection(c: Collection) {
+  const l = useLearning.getState();
+  const fresh = c.decks.filter((d) => !l.sets.some((s) => s.sourceDeck === d.id));
+  for (const d of fresh) l.addSet(d.name, d.cards, c.title, d.id);
+  toast(fresh.length ? `${c.mark} Added ${fresh.length} deck${fresh.length === 1 ? '' : 's'} from ${c.title}.` : 'You already have these decks.');
+  return fresh.length;
+}
+
+/** Special collections that are live right now, shown above your sets. */
+function CollectionBanner() {
+  const sets = useLearning((s) => s.sets);
+  const live = activeCollections();
+  if (!live.length) return null;
+  return (
+    <div className="grid gap-2">
+      {live.map((c) => {
+        const have = c.decks.every((d) => sets.some((s) => s.sourceDeck === d.id));
+        return (
+          <section key={c.id} className="flex flex-wrap items-center gap-3 rounded-2xl border border-accent/30 bg-accent-soft px-4 py-3">
+            <span className="text-[28px] leading-none" aria-hidden="true">{c.mark}</span>
+            <div className="min-w-0 flex-1">
+              <p className="text-[12px] font-semibold tracking-wide text-accent-ink uppercase">Special collection · until {windowLabel(c).split(' to ')[1]}</p>
+              <p className="text-[15px] font-semibold">{c.title}</p>
+              <p className="text-[13px] text-ink-2">{c.blurb} {c.decks.map((d) => d.name).join(', ')}.</p>
+            </div>
+            <Button size="sm" variant={have ? 'secondary' : 'primary'} disabled={have} onClick={() => addCollection(c)}>{have ? 'Added' : `Add ${c.decks.length} deck${c.decks.length === 1 ? '' : 's'}`}</Button>
+          </section>
+        );
+      })}
+    </div>
+  );
+}
+
+function CollectionsTab({ onAdded }: { onAdded?: () => void }) {
+  const sets = useLearning((s) => s.sets);
+  const list = [...COLLECTIONS].sort((a, b) => Number(isActive(b)) - Number(isActive(a)));
+  return (
+    <div className="mt-4 grid max-h-[60vh] gap-3 overflow-y-auto">
+      {list.map((c) => {
+        const live = isActive(c);
+        const have = c.decks.every((d) => sets.some((s) => s.sourceDeck === d.id));
+        return (
+          <article key={c.id} className={cn('flex items-start gap-3 rounded-xl border p-4', live ? 'border-accent/40 bg-accent-soft' : 'border-line')}>
+            <span className="text-[24px] leading-none" aria-hidden="true">{c.mark}</span>
+            <div className="min-w-0 flex-1">
+              <h3 className="font-semibold">{c.title}</h3>
+              <p className="text-[13px] text-muted">{live ? 'Available now' : `Comes back ${windowLabel(c)}`} · {c.decks.reduce((n, d) => n + d.cards.length, 0)} cards</p>
+              <p className="mt-1 text-[13px] text-ink-2">{c.blurb}</p>
+            </div>
+            <Button size="sm" variant="secondary" disabled={!live || have} onClick={() => addCollection(c) && onAdded?.()}>{have ? 'Added' : live ? 'Add' : 'Locked'}</Button>
+          </article>
+        );
+      })}
+    </div>
+  );
+}
+
 function DeckLibrary({ onAdded }: { onAdded?: () => void }) {
   const l = useLearning();
-  const [tab, setTab] = useState<'starter' | 'shared'>('starter');
+  const [tab, setTab] = useState<'starter' | 'shared' | 'special'>(() => (activeCollections().length ? 'special' : 'starter'));
   const [shared, setShared] = useState<Deck[] | null>(null);
   const [q, setQ] = useState('');
   useEffect(() => {
@@ -33,9 +92,10 @@ function DeckLibrary({ onAdded }: { onAdded?: () => void }) {
   return (
     <div>
       <div className="flex flex-wrap items-center gap-2">
-        <Segmented value={tab} onChange={setTab} options={[{ value: 'starter', label: 'Starter' }, { value: 'shared', label: 'From students' }]} />
-        <Input className="h-9 min-w-40 flex-1" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search decks" aria-label="Search decks" />
+        <Segmented value={tab} onChange={setTab} options={[{ value: 'special', label: 'Special collections' }, { value: 'starter', label: 'Starter' }, { value: 'shared', label: 'From students' }]} />
+        {tab !== 'special' && <Input className="h-9 min-w-40 flex-1" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search decks" aria-label="Search decks" />}
       </div>
+      {tab === 'special' ? <CollectionsTab onAdded={onAdded} /> : (
       <div className="mt-4 grid max-h-[60vh] gap-3 overflow-y-auto sm:grid-cols-2">
         {tab === 'shared' && shared === null ? <p className="text-sm text-muted">Loading…</p> : decks.length ? decks.map((d) => {
           const added = l.sets.some((s) => s.sourceDeck === d.id);
@@ -55,6 +115,7 @@ function DeckLibrary({ onAdded }: { onAdded?: () => void }) {
           );
         }) : <p className="text-sm text-muted sm:col-span-2">{tab === 'shared' ? 'No shared decks yet' : 'No matches'}</p>}
       </div>
+      )}
     </div>
   );
 }
@@ -173,11 +234,13 @@ function EditCards({ set }: { set: StudySet }) {
 }
 
 /** One open set: pick how to study it, or edit its cards. */
-type Play = 'cards' | 'quiz' | 'matching';
+type Play = 'cards' | 'quiz' | 'blank' | 'matching' | 'speed';
 const PLAY: { id: Play; label: string; icon: IconName }[] = [
   { id: 'cards', label: 'Flip cards', icon: 'games' },
   { id: 'quiz', label: 'Quiz', icon: 'check' },
+  { id: 'blank', label: 'Type it', icon: 'pen' },
   { id: 'matching', label: 'Match', icon: 'layers' },
+  { id: 'speed', label: 'Speed round', icon: 'flame' },
 ];
 
 /** One open set: three ways to study it, and an Edit button. */
@@ -197,7 +260,7 @@ function SetView({ set, onBack }: { set: StudySet; onBack: () => void }) {
         </div>
         <Button variant="secondary" onClick={() => setEditing(true)}><Icon name="pen" className="size-4" /> Edit cards</Button>
       </div>
-      <div role="tablist" aria-label="How to study" className="grid grid-cols-3 gap-2">
+      <div role="tablist" aria-label="How to study" className="grid grid-cols-3 gap-2 sm:grid-cols-5">
         {PLAY.map((m) => (
           <button key={m.id} type="button" role="tab" aria-selected={play === m.id} disabled={!set.cards.length || (m.id !== 'cards' && set.cards.length < 4)} onClick={() => setPlay(m.id)} className={cn('flex items-center justify-center gap-2 rounded-xl border py-3 text-[14px] font-semibold transition-colors disabled:opacity-40', play === m.id ? 'border-accent bg-accent-soft text-accent-ink' : 'border-line bg-surface text-ink-2 hover:border-ink/30')}>
             <Icon name={m.icon} className="size-[18px]" /> {m.label}
@@ -229,6 +292,16 @@ export function GamesPage({ embedded = false }: { embedded?: boolean } = {}) {
   });
   const [panel, setPanel] = useState<'new' | 'decks' | null>(null);
   const [folder, setFolder] = useState('all');
+  const [selecting, setSelecting] = useState(false);
+  const [picked, setPicked] = useState<string[]>([]);
+  const toggle = (id: string) => setPicked((p) => (p.includes(id) ? p.filter((x) => x !== id) : [...p, id]));
+  const removePicked = () => {
+    if (!picked.length || !confirm(`Delete ${picked.length} set${picked.length === 1 ? '' : 's'}? This cannot be undone.`)) return;
+    picked.forEach((id) => l.deleteSet(id));
+    toast(`Deleted ${picked.length} set${picked.length === 1 ? '' : 's'}.`);
+    setPicked([]);
+    setSelecting(false);
+  };
   const totalDue = useMemo(() => l.sets.reduce((n, s) => n + dueIn(s), 0), [l.sets]);
   const open = l.sets.find((s) => s.id === openId);
   const go = (id: string) => (l.update({ selectedId: id }), setOpenId(id), setPanel(null));
@@ -243,6 +316,9 @@ export function GamesPage({ embedded = false }: { embedded?: boolean } = {}) {
           <div className="flex flex-wrap items-center gap-2">
             <Button onClick={() => setPanel('new')}><Icon name="plus" className="size-4" /> New set</Button>
             <Button variant="secondary" onClick={() => setPanel('decks')}><Icon name="book" className="size-4" /> Browse decks</Button>
+            {l.sets.length > 0 && <Button variant="ghost" onClick={() => (setSelecting(!selecting), setPicked([]))}>{selecting ? 'Cancel' : 'Select'}</Button>}
+            {selecting && <Button variant="danger" disabled={!picked.length} onClick={removePicked}><Icon name="trash" className="size-4" /> Delete {picked.length || ''}</Button>}
+            {selecting && <Button variant="ghost" onClick={() => setPicked(picked.length === shown.length ? [] : shown.map((s) => s.id))}>{picked.length === shown.length ? 'Select none' : 'Select all'}</Button>}
             {totalDue > 0 && <span className="tnum ml-auto text-[13px] text-muted"><strong className="text-ink">{totalDue}</strong> due today</span>}
             {folders.length > 1 && (
               <Select aria-label="Folder" className={cn('h-9 w-auto text-[13px]', totalDue === 0 && 'ml-auto')} value={folder} onChange={(e) => setFolder(e.target.value)}>
@@ -251,6 +327,7 @@ export function GamesPage({ embedded = false }: { embedded?: boolean } = {}) {
               </Select>
             )}
           </div>
+          <CollectionBanner />
           <Dialog open={panel === 'new'} onClose={() => setPanel(null)} title="New flashcard set">
             {panel === 'new' && <NewSet onDone={go} />}
           </Dialog>
@@ -261,8 +338,13 @@ export function GamesPage({ embedded = false }: { embedded?: boolean } = {}) {
             {shown.map((s) => {
               const due = dueIn(s);
               return (
-                <li key={s.id} className="flex flex-col panel p-4 transition-colors hover:border-ink/25">
-                  <button type="button" onClick={() => go(s.id)} className="grid min-w-0 text-left">
+                <li key={s.id} className={cn('relative flex flex-col panel p-4 transition-colors hover:border-ink/25', selecting && picked.includes(s.id) && 'border-accent bg-accent-soft')}>
+                  {selecting ? (
+                    <input type="checkbox" aria-label={`Select ${s.name}`} checked={picked.includes(s.id)} onChange={() => toggle(s.id)} className="absolute top-3 right-3 size-5" />
+                  ) : (
+                    <button type="button" aria-label={`Delete ${s.name}`} title="Delete set" onClick={() => confirm(`Delete “${s.name}”?`) && (l.deleteSet(s.id), toast('Set deleted.'))} className="absolute top-2.5 right-2.5 grid size-8 place-items-center rounded-lg text-muted hover:bg-surface-3 hover:text-danger"><Icon name="trash" className="size-4" /></button>
+                  )}
+                  <button type="button" onClick={() => (selecting ? toggle(s.id) : go(s.id))} className="grid min-w-0 pr-8 text-left">
                     <span className="text-[12px] text-muted">{s.folder}</span>
                     <strong className="mt-0.5 line-clamp-2 text-[16px] leading-6 font-semibold">{s.name}</strong>
                     <span className="mt-1 line-clamp-1 text-[13px] text-muted">{s.cards.slice(0, 3).map((c) => c.front).join(' · ') || 'No cards yet'}</span>

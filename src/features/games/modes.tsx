@@ -111,15 +111,58 @@ export function FlashcardsMode({ set }: { set: StudySet }) {
   const order = useMemo(() => shuffle(set.cards.map((_, i) => i)), [set.cards]);
   const [index, setIndex] = useState(0);
   const [flipped, setFlipped] = useState(false);
-  const card = set.cards[order[index % order.length]];
+  // Answer first: show the back and recall the front, for definitions and vocab.
+  const [reverse, setReverse] = useState(false);
+  // Cards you marked "Still learning" come back at the end of the round.
+  const [learning, setLearning] = useState<number[]>([]);
+  const [known, setKnown] = useState(0);
+  const total = order.length;
+  const pos = index % total;
+  const card = set.cards[order[pos]];
+  const go = (n: number) => (setIndex(Math.max(0, n)), setFlipped(false));
+  const mark = (gotIt: boolean) => {
+    if (gotIt) setKnown((k) => k + 1);
+    else setLearning((l) => (l.includes(order[pos]) ? l : [...l, order[pos]]));
+    go(index + 1);
+  };
+  const onKey = useEffectEvent((e: KeyboardEvent) => {
+    if ((e.target as HTMLElement).closest('input, textarea, select, button, a, [contenteditable], dialog')) return;
+    if (e.key === ' ' || e.key === 'Enter') {
+      e.preventDefault();
+      setFlipped((f) => !f);
+    }
+    else if (e.key === 'ArrowRight') go(index + 1);
+    else if (e.key === 'ArrowLeft') go(index - 1);
+  });
+  useEffect(() => {
+    const h = (e: KeyboardEvent) => onKey(e);
+    window.addEventListener('keydown', h);
+    return () => window.removeEventListener('keydown', h);
+  }, []);
+  const roundDone = index > 0 && pos === 0;
   return (
     <>
-      <Progress>Card {(index % order.length) + 1} of {order.length}</Progress>
-      <FlipCard front={card.front} back={card.back} flipped={flipped} onFlip={() => setFlipped(!flipped)} hint="" />
-      <div className="mt-3 flex justify-between gap-2">
-        <Button variant="secondary" onClick={() => setFlipped(!flipped)}>{flipped ? 'Show question' : 'Show answer'}</Button>
-        <Button onClick={() => (setIndex(index + 1), setFlipped(false))}>Next card →</Button>
+      <div className="flex items-center justify-between gap-2">
+        <Progress>Card {pos + 1} of {total}{known || learning.length ? ` · ${known} known · ${learning.length} still learning` : ''}</Progress>
+        <label className="flex cursor-pointer items-center gap-1.5 text-[12px] text-muted"><input type="checkbox" checked={reverse} onChange={(e) => (setReverse(e.target.checked), setFlipped(false))} /> Answer first</label>
       </div>
+      {roundDone && learning.length > 0 && (
+        <p className="mb-2 rounded-lg bg-accent-soft px-3 py-2 text-[13px] text-accent-ink">Round done. {learning.length} card{learning.length === 1 ? '' : 's'} to practice: {learning.slice(0, 3).map((i) => set.cards[i]?.front).filter(Boolean).join(', ')}{learning.length > 3 ? '…' : ''}</p>
+      )}
+      <FlipCard front={reverse ? card.back : card.front} back={reverse ? card.front : card.back} flipped={flipped} onFlip={() => setFlipped(!flipped)} hint="" />
+      <div className="mt-3 flex flex-wrap justify-between gap-2">
+        <span className="flex gap-2">
+          <Button variant="ghost" aria-label="Previous card" disabled={index === 0} onClick={() => go(index - 1)}>←</Button>
+          <Button variant="secondary" onClick={() => setFlipped(!flipped)}>{flipped ? 'Show question' : 'Show answer'}</Button>
+        </span>
+        {flipped ? (
+          <span className="flex gap-2">
+            <Button variant="secondary" onClick={() => mark(false)}>Still learning</Button>
+            <Button onClick={() => mark(true)}>Got it →</Button>
+          </span>
+        ) : <Button onClick={() => go(index + 1)}>Next card →</Button>}
+      </div>
+      <p className="mt-2 text-[12px] text-muted max-sm:hidden">Space flips, arrows move.</p>
     </>
   );
 }

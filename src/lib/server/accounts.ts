@@ -154,6 +154,7 @@ export async function deleteAccount(a: Account, extra: (id: string) => Promise<v
   const s = getStorage();
   await extra(a.id);
   await s.del(DATA(a.id));
+  await s.del(`avatar:${a.id}`);
   await s.hdel(EMAILS, a.email);
   await s.hdel(USERS, a.id);
 }

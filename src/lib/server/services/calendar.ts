@@ -1,4 +1,6 @@
 import 'server-only';
+import { lookup } from 'node:dns/promises';
+import { isIP } from 'node:net';
 import ICAL from 'ical.js';
 import { getStorage } from '../storage';
 import { HttpError } from '../http';
@@ -11,9 +13,38 @@ import { secret } from '../ids';
  */
 const ALLOWED_HOSTS = ['calendar.google.com', 'instructure.com', 'outlook.office365.com', 'outlook.live.com', 'outlook.office.com', 'icloud.com'];
 
-export type FeedKind = 'google' | 'canvas' | 'outlook' | 'apple' | 'other';
+/**
+ * School learning systems run on each school's own domain, so they can't be
+ * allowlisted by host. They are recognised by their calendar export path
+ * instead, and the host must resolve to a public address (see publicHost).
+ */
+const LMS_PATHS: { kind: FeedKind; test: (u: URL) => boolean }[] = [
+  { kind: 'moodle', test: (u) => /\/calendar\/export_execute\.php$/i.test(u.pathname) },
+  { kind: 'brightspace', test: (u) => /\/d2l\/le\/calendar\/feed\//i.test(u.pathname) },
+  { kind: 'blackboard', test: (u) => /blackboard\.com$/i.test(u.hostname) || /\/webapps\/calendar\/calendarFeed\//i.test(u.pathname) },
+];
 
-export function checkFeedUrl(raw: string): { url: URL; kind: FeedKind } {
+export type FeedKind = 'google' | 'canvas' | 'moodle' | 'brightspace' | 'blackboard' | 'outlook' | 'apple' | 'other';
+
+const privateV4 = (ip: string) => {
+  const [a, b] = ip.split('.').map(Number);
+  return a === 10 || a === 127 || a === 0 || (a === 169 && b === 254) || (a === 172 && b >= 16 && b <= 31) || (a === 192 && b === 168) || (a === 100 && b >= 64 && b <= 127) || a >= 224;
+};
+const privateV6 = (ip: string) => {
+  const v = ip.toLowerCase();
+  if (v.startsWith('::ffff:')) return privateV4(v.slice(7));
+  return v === '::1' || v === '::' || v.startsWith('fc') || v.startsWith('fd') || v.startsWith('fe8') || v.startsWith('fe9') || v.startsWith('fea') || v.startsWith('feb');
+};
+
+/** Refuses hosts that point at private or local addresses, so a school link can't reach internal servers. */
+async function publicHost(url: URL) {
+  const host = url.hostname.replace(/^\[|\]$/g, '');
+  const addrs = isIP(host) ? [{ address: host, family: isIP(host) }] : await lookup(host, { all: true }).catch(() => []);
+  if (!addrs.length) throw new HttpError(400, 'Could not find that calendar server. Check the link.');
+  if (addrs.some((a) => (a.family === 6 ? privateV6(a.address) : privateV4(a.address)))) throw new HttpError(400, 'That calendar link points to a private address.');
+}
+
+export function checkFeedUrl(raw: string): { url: URL; kind: FeedKind; needsCheck: boolean } {
   let url: URL;
   try {
     url = new URL(raw.trim().replace(/^webcals?:\/\//i, 'https://'));
@@ -22,16 +53,19 @@ export function checkFeedUrl(raw: string): { url: URL; kind: FeedKind } {
   }
   if (url.protocol !== 'https:') throw new HttpError(400, 'Use the https link for your calendar.');
   const host = url.hostname.toLowerCase();
+  const lms = LMS_PATHS.find((l) => l.test(url));
+  if (lms && !host.endsWith('instructure.com')) return { url, kind: lms.kind, needsCheck: true };
   if (!ALLOWED_HOSTS.some((h) => host === h || host.endsWith(`.${h}`))) {
-    throw new HttpError(400, 'Studytime can import Google Calendar, Canvas, Outlook and iCloud calendar links.');
+    throw new HttpError(400, 'Studytime can import Google Calendar, Canvas, Moodle, Brightspace, Blackboard, Outlook and iCloud calendar links.');
   }
   const kind: FeedKind = host.endsWith('google.com') ? 'google' : host.endsWith('instructure.com') ? 'canvas' : host.includes('outlook') ? 'outlook' : host.endsWith('icloud.com') ? 'apple' : 'other';
-  return { url, kind };
+  return { url, kind, needsCheck: false };
 }
 
 async function download(start: URL): Promise<string> {
   let url = start;
   for (let hop = 0; hop < 4; hop++) {
+    if (checkFeedUrl(url.toString()).needsCheck) await publicHost(url);
     const res = await fetch(url, { redirect: 'manual', signal: AbortSignal.timeout(12_000), headers: { Accept: 'text/calendar, */*' } });
     if (res.status >= 300 && res.status < 400) {
       const next = res.headers.get('location');

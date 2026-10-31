@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { maskBadWords } from '@/lib/word-filter';
 import { clientIp, handle, json, readJson } from '@/lib/server/http';
 import { rateLimit } from '@/lib/server/rate-limit';
 import { postMessage } from '@/lib/server/services/drops';
@@ -8,7 +9,7 @@ type Ctx = RouteContext<'/api/drops/[id]/messages'>;
 const dropId = z.string().regex(/^[a-f0-9]{12}$/, 'Drop not found');
 const body = z.object({
   name: nameSchema,
-  text: z.string().transform((v) => v.replace(/\s+/g, ' ').trim().slice(0, 280)).refine((v) => v.length > 0, 'Write a message first'),
+  text: z.string().transform((v) => maskBadWords(v.replace(/\s+/g, ' ').trim().slice(0, 280))).refine((v) => v.length > 0, 'Write a message first'),
 });
 
 export const POST = handle(async (request: Request, ctx: Ctx) => {

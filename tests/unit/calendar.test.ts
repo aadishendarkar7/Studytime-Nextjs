@@ -25,6 +25,11 @@ describe('calendar import', () => {
     expect(() => checkFeedUrl('http://calendar.google.com/x')).toThrow('https');
     expect(() => checkFeedUrl('https://calendar.google.com.evil.io/x')).toThrow();
     expect(() => checkFeedUrl('not a url')).toThrow();
+    const moodle = checkFeedUrl('https://moodle.school.edu/calendar/export_execute.php?userid=1&authtoken=x&preset_what=all');
+    expect(moodle.kind).toBe('moodle');
+    expect(moodle.needsCheck).toBe(true);
+    expect(checkFeedUrl('https://school.brightspace.com/d2l/le/calendar/feed/user/feed.ics?token=x').kind).toBe('brightspace');
+    expect(() => checkFeedUrl('https://evil.example.com/calendar/export.php')).toThrow();
   });
 
   it('expands weekly classes in the right time zone, with exceptions and moved sessions', () => {
