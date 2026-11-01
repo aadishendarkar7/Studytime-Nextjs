@@ -1,4 +1,5 @@
 'use client';
+import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 import { Avatar } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -6,7 +7,6 @@ import { Dialog } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/field';
 import { Icon, type IconName } from '@/components/ui/icons';
 import { Segmented } from '@/components/ui/segmented';
-import { Sheet } from '@/components/ui/sheet';
 import { useAccount } from '@/features/auth/account';
 import { toneFor } from '@/features/chat/live';
 import { TAGLINE } from '@/features/wrapped/wrapped-page';
@@ -306,39 +306,15 @@ export function FollowButton({ person, onChange }: { person: PersonView; onChang
   );
 }
 
+/** Opening a person goes to their full profile page. Kept as a component so every caller stays the same. */
 export function PersonSheet({ id, onClose }: { id: string | null; onClose: () => void }) {
-  const [data, setData] = useState<{ person: PersonView; posts: FeedPost[] } | null>(null);
+  const router = useRouter();
   useEffect(() => {
     if (!id) return;
-    let stop = false;
-    api.people.get(id).then((r) => !stop && setData(r), (e) => toast((e as Error).message, 'error'));
-    return () => void (stop = true);
-  }, [id]);
-  const shown = data && data.person.id === id ? data : null;
-  return (
-    <Sheet open={Boolean(id)} onClose={onClose} title={shown?.person.name ?? ''}>
-      {shown ? (
-        <>
-          <div className="flex items-center gap-3">
-            <Avatar name={shown.person.name} color={toneFor(shown.person.id)} size={48} userId={shown.person.id} />
-            <div className="min-w-0 flex-1">
-              <p className="text-[15px] font-semibold">{shown.person.name}</p>
-              <p className="truncate text-[13px] text-muted">{[shown.person.major, shown.person.school].filter(Boolean).join(', ') || 'Studytime'}</p>
-            </div>
-            <FollowButton person={shown.person} onChange={(person) => setData({ ...shown, person })} />
-          </div>
-          <dl className="mt-4 grid grid-cols-3 gap-2 text-center">
-            <div className="rounded-lg bg-surface-2 py-2"><dt className="text-[11px] text-muted">This week</dt><dd className="tnum text-[15px] font-semibold">{fmtMinutes(shown.person.weekMinutes)}</dd></div>
-            <div className="rounded-lg bg-surface-2 py-2"><dt className="text-[11px] text-muted">Posts</dt><dd className="tnum text-[15px] font-semibold">{shown.person.posts}</dd></div>
-            <div className="rounded-lg bg-surface-2 py-2"><dt className="text-[11px] text-muted">Followers</dt><dd className="tnum text-[15px] font-semibold">{shown.person.followers}</dd></div>
-          </dl>
-          <div className="mt-5 grid gap-3">
-            {shown.posts.length ? shown.posts.map((p) => <HighlightCard key={p.id} post={p} onChange={(np) => setData({ ...shown, posts: np ? shown.posts.map((x) => (x.id === np.id ? np : x)) : shown.posts.filter((x) => x.id !== p.id) })} />) : <p className="text-[13px] text-muted">{shown.person.following ? 'No posts yet.' : 'Follow to see their posts.'}</p>}
-          </div>
-        </>
-      ) : <p className="text-[13px] text-muted">Loading</p>}
-    </Sheet>
-  );
+    router.push(`/u/${encodeURIComponent(id)}`);
+    onClose();
+  }, [id, router, onClose]);
+  return null;
 }
 
 export function FindPeople({ onOpen }: { onOpen: (id: string) => void }) {

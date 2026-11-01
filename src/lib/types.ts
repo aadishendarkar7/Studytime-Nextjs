@@ -215,4 +215,4 @@ export interface FeedPost {
   /** Has a photo, served from /api/feed/<id>/photo. */
   photo?: boolean;
 }
-export interface PersonView { id: string; name: string; school: string; major: string; year: string; following: boolean; followsYou: boolean; followers: number; weekMinutes: number; posts: number }
+export interface PersonView { id: string; name: string; school: string; major: string; year: string; following: boolean; followsYou: boolean; followers: number; weekMinutes: number; posts: number; /** How many people they follow. Only filled in on a full profile. */ followingCount?: number; courses?: string[] }

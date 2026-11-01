@@ -76,6 +76,9 @@ export function AppearanceButtons() {
       <button type="button" onClick={(e) => changeLook({ theme: isDark ? 'light' : 'dark' }, e)} aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'} title={theme === 'system' ? 'Following your device' : undefined} className="grid size-9 place-items-center rounded-lg text-muted hover:bg-surface-3 hover:text-ink">
         <Icon name={isDark ? 'sun' : 'moon'} className="size-[18px]" />
       </button>
+      <button type="button" onClick={() => setOpen(!open)} aria-expanded={open} aria-label="Customize" title="Customize" className={cn('grid size-9 place-items-center rounded-lg text-muted hover:bg-surface-3 hover:text-ink', open && 'bg-surface-3 text-ink')}>
+        <Icon name="palette" className="size-[18px]" />
+      </button>
       {open && (
         <div role="dialog" aria-label="Appearance" className="absolute top-11 right-0 z-50 w-[min(320px,calc(100vw-32px))] panel p-4 shadow-lg">
           <AppearanceOptions />

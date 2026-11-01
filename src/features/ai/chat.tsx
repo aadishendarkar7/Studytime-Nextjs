@@ -10,20 +10,81 @@ import { supportSystem, tutorSystem } from '@/lib/ai/prompts';
 import type { AiMessage } from '@/lib/ai/providers';
 import { useAi, type Chat } from '@/lib/stores/ai';
 import { useLearning } from '@/lib/stores/learning';
+import { useProfile } from '@/lib/stores/profile';
 import { toast, useUi } from '@/lib/stores/ui';
-import { cn, copyText, shortDate, uid } from '@/lib/utils';
+import { cn, copyText, parseJSONLoose, shortDate, uid } from '@/lib/utils';
 import { ACTIONS, actionById } from './actions';
 import { generateCards } from './tasks';
 import { useAiRun } from './use-ai-run';
 import { AiErrorBox } from './ui';
 
-/** The four things the tutor offers. Other actions stay reachable from links elsewhere. */
-const PRIMARY = ['', 'solve', 'summary', 'practice'];
+/** Study modes. Each one changes how the tutor works, not just the wording. */
+const MODES: { id: string; label: string; note: string; placeholder: string; starters: string[] }[] = [
+  { id: 'teach', label: 'Teach me', note: 'Guides you one step at a time with questions, so you work it out yourself.', placeholder: 'What topic or problem do you want to learn?', starters: ['How does a hypothesis test work?', 'Teach me integration by parts', 'Why does supply and demand set prices?'] },
+  { id: 'quiz', label: 'Quiz me', note: 'Five questions you answer right here, with a score at the end.', placeholder: 'What should the quiz cover? Or attach your notes or slides.', starters: ['Quiz me on the normal distribution', 'Quiz me on cell biology basics', 'Quiz me on derivatives'] },
+  { id: 'solve', label: 'Solve step by step', note: 'A full worked solution with the reason for every step.', placeholder: 'Paste the problem or attach a photo of it', starters: [] },
+  { id: 'check', label: 'Check my work', note: 'Paste or photograph your attempt. It finds the exact step that went wrong.', placeholder: 'Paste your work, or attach a photo of it', starters: [] },
+  { id: 'summary', label: 'Summarize', note: 'Turn slides, a reading or a lecture into the key points.', placeholder: 'Attach slides, a PDF or paste a reading', starters: [] },
+  { id: '', label: 'Ask anything', note: 'A normal question about your class.', placeholder: 'Ask a question about your class', starters: ['What’s the difference between mean and median?', 'Make me a study plan for my midterm'] },
+];
+const SUPPORT_STARTERS = ['I’m stressed about my exam', 'I keep procrastinating', 'I feel behind in my classes', 'I can’t focus today'];
 
-const STARTERS = {
-  tutor: ['Explain this like I’m new to it: ', 'Quiz me on ', 'Make me a study plan for my midterm on ', 'What’s the difference between '],
-  support: ['I’m stressed about my exam', 'I keep procrastinating', 'I feel behind in my classes', 'I can’t focus today'],
+/** A quiz the tutor wrote, stored in the chat as JSON after this marker and shown as a playable quiz. */
+const QUIZ_MARK = '@@QUIZ@@';
+type QuizQ = { q: string; options: string[]; answer: number; why?: string };
+const readQuiz = (content: string): QuizQ[] | null => {
+  if (!content.startsWith(QUIZ_MARK)) return null;
+  try {
+    return JSON.parse(content.slice(QUIZ_MARK.length)) as QuizQ[];
+  } catch {
+    return null;
+  }
 };
+
+/** Pick an answer for each question, see why, get a score, and keep the misses as flashcards. */
+function QuizBlock({ quiz, title, onAgain }: { quiz: QuizQ[]; title: string; onAgain: () => void }) {
+  const [picks, setPicks] = useState<(number | null)[]>(() => quiz.map(() => null));
+  const done = picks.every((p) => p !== null);
+  const score = quiz.reduce((n, q, i) => n + (picks[i] === q.answer ? 1 : 0), 0);
+  const misses = quiz.filter((q, i) => picks[i] !== null && picks[i] !== q.answer);
+  return (
+    <div className="rounded-lg border border-line">
+      <div className="flex items-center justify-between gap-3 border-b border-line px-4 py-2.5">
+        <p className="text-[14px] font-semibold">Quiz</p>
+        <p className="tnum text-[13px] text-muted">{picks.filter((p) => p !== null).length} of {quiz.length} answered{done ? `, ${score} right` : ''}</p>
+      </div>
+      <ol className="divide-y divide-line">
+        {quiz.map((q, qi) => {
+          const picked = picks[qi];
+          return (
+            <li key={qi} className="px-4 py-3.5">
+              <p className="text-[15px] font-medium">{qi + 1}. {q.q}</p>
+              <div className="mt-2 grid gap-1.5 sm:grid-cols-2">
+                {q.options.map((o, oi) => {
+                  const right = picked !== null && oi === q.answer;
+                  const wrong = picked === oi && oi !== q.answer;
+                  return (
+                    <button key={oi} type="button" disabled={picked !== null} onClick={() => setPicks(picks.map((p, i) => (i === qi ? oi : p)))} className={cn('rounded-md border px-3 py-2 text-left text-[14px] transition-colors', right ? 'border-ok bg-ok-soft text-ok' : wrong ? 'border-danger bg-danger-soft text-danger' : picked === null ? 'border-line hover:border-ink' : 'border-line text-muted')}>
+                      {o}
+                    </button>
+                  );
+                })}
+              </div>
+              {picked !== null && q.why && <p className="mt-2 text-[13px] text-muted">{picked === q.answer ? 'Right. ' : 'Not quite. '}{q.why}</p>}
+            </li>
+          );
+        })}
+      </ol>
+      {done && (
+        <div className="flex flex-wrap items-center gap-2 border-t border-line px-4 py-3">
+          <p className="mr-auto text-[14px] font-semibold">{score === quiz.length ? 'Perfect score.' : score >= quiz.length - 1 ? 'Nearly there.' : 'Worth another pass.'} {score}/{quiz.length}</p>
+          {misses.length > 0 && <Button size="sm" variant="secondary" onClick={() => { const set = useLearning.getState().addSet(`Missed: ${title}`.slice(0, 80), misses.map((q) => ({ front: q.q, back: q.options[q.answer] }))); toast(`${set.cards.length} missed ${set.cards.length === 1 ? 'question' : 'questions'} saved as flashcards.`); }}>Save misses as flashcards</Button>}
+          <Button size="sm" onClick={onAgain}>New quiz</Button>
+        </div>
+      )}
+    </div>
+  );
+}
 
 /** Save, download, copy, or turn a reply into flashcards. */
 function ResultBar({ content, title, kind }: { content: string; title: string; kind: string }) {
@@ -59,8 +120,17 @@ export function ChatTool({ compact = false, initialAction = '', onHide }: { comp
   const att = useAttachments(5);
   const [input, setInput] = useState('');
   const [pendingId, setPendingId] = useState<string | null>(null);
-  const [action, setAction] = useState(initialAction);
+  const [action, setAction] = useState(initialAction || 'teach');
   const [custom, setCustom] = useState('');
+  const courses = useProfile((s) => s.courses);
+  const reminders = useProfile((s) => s.reminders);
+  const [course, setCourse] = useState('');
+  const courseLine = course ? `The student is studying ${course}. Use examples and notation that fit that course.` : '';
+  const mode0 = MODES.find((m) => m.id === action) ?? MODES[MODES.length - 1];
+  // The next exam or assignment in the next two weeks, to offer a study plan or a quiz for it.
+  const [now] = useState(() => Date.now());
+  const soon = reminders.filter((r) => !r.done && r.dueAt > now && r.dueAt < now + 14 * 86_400_000).sort((a, b) => a.dueAt - b.dueAt)[0];
+  const soonDays = soon ? Math.max(1, Math.round((soon.dueAt - now) / 86_400_000)) : 0;
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const scroller = useRef<HTMLDivElement>(null);
@@ -76,13 +146,13 @@ export function ChatTool({ compact = false, initialAction = '', onHide }: { comp
     inputRef.current?.focus();
   }, [ai.activeChat]);
 
-  const send = async (textArg?: string) => {
+  const send = async (textArg?: string, forceAction?: string) => {
     if (run.running) return run.stop();
     const text = (textArg ?? input).trim();
     if (!text && !att.files.length) return;
     if (action === 'custom' && !custom.trim()) return toast('Say what you want it to make, like "a one-page formula sheet".', 'error');
     const files = att.files;
-    const act = textArg === undefined ? actionById(action) : undefined;
+    const act = forceAction !== undefined ? actionById(forceAction) : textArg === undefined ? actionById(action) : undefined;
     const customAsk = textArg === undefined && action === 'custom' ? custom.trim() : '';
     const tag = act?.id ?? (customAsk ? 'custom' : undefined);
     const label = act?.label ?? (customAsk ? customAsk.slice(0, 40) : '');
@@ -94,7 +164,6 @@ export function ChatTool({ compact = false, initialAction = '', onHide }: { comp
     ai.upsertChat(current);
     setInput('');
     att.clear();
-    setAction('');
     setCustom('');
     setPendingId(current.id);
     const history: AiMessage[] = current.messages.slice(-24).map((m, i, all) => ({ role: m.role, content: i === all.length - 1 && files.length ? [...toParts(files), { type: 'text', text: m.content }] : m.content }));
@@ -103,14 +172,25 @@ export function ChatTool({ compact = false, initialAction = '', onHide }: { comp
       tier: 'main',
       maxTokens: 3000,
       system: current.mode === 'support' ? supportSystem(st) : act || customAsk
-        ? tutorSystem(st, `${act ? act.prompt : `Make exactly what the student asks for from their material: ${customAsk}. Choose a clear structure for it.`} Work from the attached material and message when given; if something important is missing from it, say so briefly.`)
-        : tutorSystem(st, 'Ask a short check-for-understanding question at the end when it helps learning. If the student asks you to just do graded work for them, still help, but teach the method.'),
+        ? tutorSystem(st, `${courseLine} ${act ? act.prompt : `Make exactly what the student asks for from their material: ${customAsk}. Choose a clear structure for it.`} Work from the attached material and message when given; if something important is missing from it, say so briefly.`)
+        : tutorSystem(st, `${courseLine} Ask a short check-for-understanding question at the end when it helps learning. If the student asks you to just do graded work for them, still help, but teach the method.`),
       messages: history,
     });
     setPendingId(null);
     const latest = useAi.getState().chats.find((c) => c.id === current.id) ?? current;
     if (reply) {
-      useAi.getState().upsertChat({ ...latest, messages: [...latest.messages, { role: 'assistant', content: reply, action: tag }], updatedAt: Date.now() });
+      // A quiz comes back as JSON; keep it as a playable quiz when it parses.
+      let content = reply;
+      if (tag === 'quiz') {
+        try {
+          const list = (parseJSONLoose<QuizQ[] | { questions?: QuizQ[] }>(reply));
+          const qs = (Array.isArray(list) ? list : list.questions ?? []).filter((q) => q?.q && Array.isArray(q.options) && q.options.length >= 2).slice(0, 8).map((q) => ({ ...q, answer: Math.max(0, Math.min(q.options.length - 1, Number(q.answer) || 0)) }));
+          if (qs.length) content = QUIZ_MARK + JSON.stringify(qs);
+        } catch {
+          // shown as text instead
+        }
+      }
+      useAi.getState().upsertChat({ ...latest, messages: [...latest.messages, { role: 'assistant', content, action: tag }], updatedAt: Date.now() });
       run.reset();
     } else {
       // Failed or stopped before any text: remove the unanswered message and restore the input.
@@ -145,8 +225,8 @@ export function ChatTool({ compact = false, initialAction = '', onHide }: { comp
       <FileTray files={att.files} onRemove={att.remove} reading={att.reading} />
       {mode === 'tutor' && (
         <div className="mb-2">
-          <div className="flex flex-wrap gap-1.5" role="radiogroup" aria-label="What should the tutor do">
-            {[{ id: '', label: 'Ask' }, ...ACTIONS].filter((a) => PRIMARY.includes(a.id) || a.id === action).map((a) => (
+          <div className="flex gap-1.5 overflow-x-auto [scrollbar-width:none]" role="radiogroup" aria-label="Study mode">
+            {[...MODES, ...(MODES.some((m) => m.id === action) ? [] : ACTIONS.filter((a) => a.id === action).map((a) => ({ id: a.id, label: a.label })))].map((a) => (
               <button key={a.id} type="button" role="radio" aria-checked={action === a.id} onClick={() => (setAction(a.id), inputRef.current?.focus())} className={cn('shrink-0 rounded-md border px-2.5 py-1 text-[12px] font-medium whitespace-nowrap transition-colors', action === a.id ? 'border-ink bg-ink text-bg' : 'border-line bg-surface text-ink-2 hover:border-line-strong hover:text-ink')}>{a.label}</button>
             ))}
           </div>
@@ -176,7 +256,7 @@ export function ChatTool({ compact = false, initialAction = '', onHide }: { comp
             e.preventDefault();
             void att.add(images);
           }}
-          placeholder={mode === 'support' ? 'What is on your mind?' : action === '' ? 'Ask a question, paste a problem, or attach a PDF or photo' : `Attach or paste the material${action === 'custom' ? '' : ` for: ${actionById(action)?.label.toLowerCase()}`}. Add any instructions here.`}
+          placeholder={mode === 'support' ? 'What is on your mind?' : MODES.find((m) => m.id === action)?.placeholder ?? `Attach or paste the material for: ${actionById(action)?.label.toLowerCase()}`}
           aria-label="Message"
           className="block max-h-52 min-h-[52px] w-full resize-none bg-transparent px-4 pt-3 text-[15px] leading-6 outline-none placeholder:text-muted"
         />
@@ -212,7 +292,24 @@ export function ChatTool({ compact = false, initialAction = '', onHide }: { comp
               </div>
             </div>
           ) : (
-            <div key={i} className="min-w-0"><Markdown>{m.content}</Markdown>{mode === 'tutor' && (m.action || m.content.length > 600) && <ResultBar content={m.content} title={chat.title} kind={m.action ?? ''} />}</div>
+            <div key={i} className="min-w-0">
+              {readQuiz(m.content) ? (
+                <QuizBlock quiz={readQuiz(m.content)!} title={chat.title} onAgain={() => send(`Another quiz on the same topic: ${chat.title}. Different questions.`, 'quiz')} />
+              ) : (
+                <>
+                  <Markdown>{m.content}</Markdown>
+                  {mode === 'tutor' && <ResultBar content={m.content} title={chat.title} kind={m.action ?? ''} />}
+                  {/* Study follow-ups on the latest answer. */}
+                  {mode === 'tutor' && i === chat.messages.length - 1 && !pendingId && (
+                    <div className="mt-3 flex flex-wrap gap-1.5">
+                      <button type="button" onClick={() => send('Quiz me on what you just explained.', 'quiz')} className="rounded-md border border-line px-2.5 py-1 text-[12px] font-medium text-ink-2 hover:border-ink hover:text-ink">Quiz me on this</button>
+                      <button type="button" onClick={() => send('Explain that more simply, with an everyday example.')} className="rounded-md border border-line px-2.5 py-1 text-[12px] font-medium text-ink-2 hover:border-ink hover:text-ink">Explain simpler</button>
+                      <button type="button" onClick={() => send('Give me a harder practice problem on this. Do not show the answer until I try.')} className="rounded-md border border-line px-2.5 py-1 text-[12px] font-medium text-ink-2 hover:border-ink hover:text-ink">Harder problem</button>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
           )
         ))}
         {pendingId && pendingId === chat?.id && (
@@ -223,21 +320,45 @@ export function ChatTool({ compact = false, initialAction = '', onHide }: { comp
     </div>
   );
 
+  const starters = mode === 'support' ? SUPPORT_STARTERS : mode0.starters;
   const welcome = (
-    <div className={cn('flex min-h-0 flex-1 flex-col items-center justify-center overflow-y-auto', compact ? 'px-3 py-6' : 'px-5 py-10')}>
-      <h2 className={cn('text-center font-sans font-semibold tracking-tight', compact ? 'text-[17px]' : 'text-[24px] leading-8')}>{mode === 'support' ? 'How are you doing?' : 'What are you studying?'}</h2>
-      {!compact && <p className="mt-1 text-center text-[14px] text-muted">{mode === 'support' ? 'Talk through stress or motivation. This is not a replacement for a counselor.' : 'Ask anything, or attach lecture slides, a PDF or a photo and pick what to make from it.'}</p>}
+    <div className={cn('flex min-h-0 flex-1 flex-col overflow-y-auto', compact ? 'px-3 py-5' : 'px-5 py-8 sm:py-12')}>
+      <div className="mx-auto w-full max-w-[720px]">
+        <h2 className={cn('font-sans font-semibold tracking-tight', compact ? 'text-[18px]' : 'text-[28px] leading-9')}>
+          {mode === 'support' ? 'How are you doing?' : course ? `What are we studying in ${course}?` : 'What are we studying?'}
+        </h2>
+        {mode === 'support' ? (
+          <p className="mt-1 text-[14px] text-muted">Talk through stress or motivation. This is not a replacement for a counselor.</p>
+        ) : (
+          <>
+            {courses.length > 0 && (
+              <div className="mt-3 flex flex-wrap gap-1.5" role="radiogroup" aria-label="Course">
+                {['', ...courses].map((c) => (
+                  <button key={c || 'any'} type="button" role="radio" aria-checked={course === c} onClick={() => setCourse(c)} className={cn('rounded-md border px-2.5 py-1 text-[13px] font-medium transition-colors', course === c ? 'border-ink bg-ink text-bg' : 'border-line text-ink-2 hover:border-line-strong hover:text-ink')}>{c || 'Any class'}</button>
+                ))}
+              </div>
+            )}
+            {soon && (
+              <div className="mt-4 flex flex-wrap items-center gap-2 border-l-2 border-ink pl-3">
+                <p className="mr-auto text-[14px]"><strong className="font-semibold">{soon.title}</strong> <span className="text-muted">in {soonDays} {soonDays === 1 ? 'day' : 'days'}</span></p>
+                <Button size="sm" variant="secondary" onClick={() => send(`Make me a day-by-day study plan for ${soon.title}, which is due ${new Date(soon.dueAt).toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' })}.`)}>Plan for it</Button>
+                <Button size="sm" variant="secondary" onClick={() => send(`Quiz me on what is likely to be on ${soon.title}.`, 'quiz')}>Quiz me for it</Button>
+              </div>
+            )}
+          </>
+        )}
+      </div>
       <div className="mt-6 w-full">{composer}</div>
-      {/* Starters as a short plain list, not a grid of cards. */}
-      <ul className="mx-auto mt-4 w-full max-w-[720px] divide-y divide-line border-t border-line">
-        {STARTERS[mode].map((st) => (
-          <li key={st}>
-            <button type="button" onClick={() => (st.endsWith(' ') ? (setInput(st), inputRef.current?.focus()) : send(st))} className="w-full py-2.5 text-left text-[13px] text-ink-2 hover:text-ink">
-              {st.trim().replace(/:$/, '')}
-            </button>
-          </li>
-        ))}
-      </ul>
+      {mode === 'tutor' && <p className="mx-auto mt-3 w-full max-w-[720px] text-[13px] text-ink-2"><strong className="font-semibold">{mode0.label}.</strong> <span className="text-muted">{mode0.note}</span></p>}
+      {starters.length > 0 && (
+        <ul className="mx-auto mt-4 w-full max-w-[720px] divide-y divide-line border-t border-line">
+          {starters.map((st) => (
+            <li key={st}>
+              <button type="button" onClick={() => send(st, mode === 'tutor' ? action : undefined)} className="w-full py-2.5 text-left text-[13px] text-ink-2 hover:text-ink">{st}</button>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 

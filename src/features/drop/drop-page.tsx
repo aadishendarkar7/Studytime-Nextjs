@@ -11,14 +11,14 @@ import { api } from '@/lib/api';
 import { useExtras } from '@/lib/stores/extras';
 import { useProfile } from '@/lib/stores/profile';
 import { toast } from '@/lib/stores/ui';
-import { CATEGORIES, categoryMark, type DropView, type DropVibe } from '@/lib/types';
+import { type DropView, type DropVibe } from '@/lib/types';
 import { useNow } from '@/lib/use-now';
 import { cn, fmtMinutes, plural } from '@/lib/utils';
 import { useDropComposer } from './composer';
 import { EventsTab } from './events-tab';
 import { DropSheet, Initial, PrimaryAction, seatsLeft } from './drop-sheet';
 import { refreshDrops, useDrops, whenLabel } from './live';
-import { distanceKm, dropStats, fmtDistance, hotSpots, recentPlaces, VIBES, vibeLabel } from './logic';
+import { distanceKm, dropStats, fmtDistance, hotSpots, recentPlaces, vibeLabel } from './logic';
 
 const SpotMap = dynamic(() => import('@/features/spots/spot-map').then((m) => m.SpotMap), {
   ssr: false,
@@ -29,14 +29,6 @@ const initialParam = (k: string) => (typeof location !== 'undefined' ? new URLSe
 type Point = { lat: number; lng: number };
 const useMiles = () => typeof navigator !== 'undefined' && /-(US|LR|MM)$/i.test(navigator.language);
 const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, '');
-
-function Chip({ on, onClick, children }: { on: boolean; onClick: () => void; children: React.ReactNode }) {
-  return (
-    <button type="button" aria-pressed={on} onClick={onClick} className={cn('inline-flex h-8 shrink-0 items-center gap-1.5 rounded-md border px-2.5 text-[13px] font-medium transition-colors', on ? 'border-ink bg-ink text-bg' : 'border-line bg-surface text-ink-2 hover:border-line-strong hover:text-ink')}>
-      {children}
-    </button>
-  );
-}
 
 function DropRow({ d, me, onOpen, selected }: { d: DropView; me: Point | null; onOpen: () => void; selected: boolean }) {
   const now = useNow(30_000);
@@ -57,7 +49,7 @@ function DropRow({ d, me, onOpen, selected }: { d: DropView; me: Point | null; o
             <span className="tnum">{whenLabel(d, now)}</span>
             {d.subject && <span>· {d.subject}</span>}
             <span>· {vibeLabel(d.vibe)}</span>
-            {d.category && d.category !== 'Anything goes' && <span>· {categoryMark(d.category)} {d.category}</span>}
+            {d.category && d.category !== 'Anything goes' && <span>{d.category}</span>}
             {dist && <span className="tnum">· {dist}</span>}
           </span>
         </span>
@@ -198,18 +190,6 @@ function LiveTab({ openId, setOpenId }: { openId: string | null; setOpenId: (id:
         {error && <p className="rounded-xl bg-danger-soft px-4 py-3 text-[14px] text-danger">{error}</p>}
         <Segmented label="Show" value={side} onChange={setSide} options={[{ value: 'now', label: nowList.length ? `Happening now (${nowList.length})` : 'Happening now' }, { value: 'yours', label: 'Your drops' }]} />
         {side === 'yours' ? <YoursTab /> : <>
-        <div className="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1 [scrollbar-width:none]">
-          <Chip on={vibe === 'all'} onClick={() => setVibe('all')}>All</Chip>
-          {VIBES.map((v) => <Chip key={v.value} on={vibe === v.value} onClick={() => setVibe(vibe === v.value ? 'all' : v.value)}>{v.label}</Chip>)}
-          {courses.length > 0 && <Chip on={myCourses} onClick={() => setMyCourses(!myCourses)}>My courses</Chip>}
-        </div>
-        <div role="group" aria-label="Categories" className="-mx-1 -mt-2 flex gap-1.5 overflow-x-auto px-1 pb-1 [scrollbar-width:none]">
-          <Chip on={category === 'all'} onClick={() => setCategory('all')}>All subjects</Chip>
-          {CATEGORIES.filter((c) => c !== 'Anything goes').map((c) => {
-            const n = drops.filter((d) => d.category === c).length;
-            return <Chip key={c} on={category === c} onClick={() => setCategory(category === c ? 'all' : c)}><span aria-hidden="true">{categoryMark(c)}</span>{c}{n > 0 && <span className={cn('tnum text-[11px]', category === c ? 'text-white/80' : 'text-muted')}>{n}</span>}</Chip>;
-          })}
-        </div>
 
         {hot.length > 0 && (
           <section>
@@ -414,11 +394,18 @@ export function DropPage() {
           </p>
           <h1 className="mt-1 text-[26px] leading-8 max-sm:text-[22px]">Drop a Spot</h1>
         </div>
-        <div className="flex flex-wrap gap-2">
-          <Button variant="secondary" onClick={() => useDropComposer.getState().show({ solo: true })}>Study solo</Button>
-          <Button onClick={() => useDropComposer.getState().show()}>Drop a spot</Button>
-        </div>
       </header>
+      {/* The main thing this app does, so it gets the most weight on the page. */}
+      <section className="mb-5 flex flex-wrap items-center gap-4 rounded-[10px] bg-accent-fill px-5 py-4 text-white max-sm:px-4">
+        <div className="min-w-0 flex-1">
+          <p className="text-[18px] leading-6 font-semibold">Where are you studying right now?</p>
+          <p className="mt-0.5 text-[14px] text-white/80">Drop your spot and classmates can pull up a chair. Your followers get an alert.</p>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <button type="button" onClick={() => useDropComposer.getState().show({ solo: true })} className="h-10 rounded-md px-3 text-[14px] font-medium text-white/90 hover:bg-white/10">Study solo</button>
+          <button type="button" onClick={() => useDropComposer.getState().show()} className="h-10 rounded-md bg-white px-5 text-[15px] font-semibold text-[#14301f] hover:bg-white/90">Drop a spot</button>
+        </div>
+      </section>
       <Segmented label="Section" className="mb-5 w-fit" wrap={false} value={view} onChange={switchView} options={[{ value: 'spots', label: 'Spots' }, { value: 'events', label: 'Events' }]} />
       {view === 'events' ? <EventsTab /> : <>
         <YourDropBar onOpen={setOpenId} />

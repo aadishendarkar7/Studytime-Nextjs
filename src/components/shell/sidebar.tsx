@@ -70,9 +70,9 @@ function NavLinks({ pathname, large, mini }: { pathname: string; large?: boolean
                 aria-current={active ? 'page' : undefined}
                 title={mini ? item.label : undefined}
                 aria-label={mini ? item.label : undefined}
-                className={cn('flex items-center gap-2.5 rounded-lg px-2.5 transition-colors', large ? 'min-h-12 text-[16px]' : mini ? 'h-9 justify-center px-0' : 'h-8 text-[14px]', active ? 'bg-surface-3 font-medium text-ink' : 'text-ink-2 hover:bg-surface-3/70 hover:text-ink')}
+                className={cn('flex items-center gap-2.5 rounded-lg px-2.5 transition-colors', large ? 'min-h-12 text-[16px]' : mini ? 'h-9 justify-center px-0' : 'h-8 text-[14px]', active ? 'bg-surface-3 font-medium text-ink' : item.href === '/drop' ? 'font-medium text-accent-ink hover:bg-surface-3/70' : 'text-ink-2 hover:bg-surface-3/70 hover:text-ink')}
               >
-                <Icon name={item.icon} className={cn('size-[17px] shrink-0', active ? 'text-ink' : 'text-muted')} />
+                <Icon name={item.icon} className={cn('size-[17px] shrink-0', active ? 'text-ink' : item.href === '/drop' ? 'text-accent-ink' : 'text-muted')} />
                 {!mini && <span className="min-w-0 flex-1 truncate">
                   {item.label}
                   {large && item.hint && <small className="block text-[13px] font-normal text-muted">{item.hint}</small>}
@@ -188,7 +188,7 @@ export function Topbar() {
     return () => window.removeEventListener('keydown', onKey);
   }, [open]);
   const section = NAV.find((n) => n.href !== '/' && isActive(pathname, n.href));
-  const title = pathname === '/' ? 'Home' : section?.label ?? EXTRA_TITLES[pathname] ?? (pathname.startsWith('/class/') ? 'Classes' : '');
+  const title = pathname === '/' ? 'Home' : section?.label ?? EXTRA_TITLES[pathname] ?? (pathname.startsWith('/class/') ? 'Classes' : pathname.startsWith('/u/') ? 'Profile' : '');
   return (
     <>
       <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-line bg-bg px-4 sm:px-6 lg:px-8">
@@ -242,7 +242,7 @@ export function BottomTabs() {
               </Link>
             );
           return (
-            <Link key={item.href} href={item.href} aria-current={active ? 'page' : undefined} className={cn('flex min-h-14 flex-col items-center justify-center gap-0.5 text-[11px] font-medium', active ? 'text-ink' : 'text-muted')}>
+            <Link key={item.href} href={item.href} aria-current={active ? 'page' : undefined} className={cn('flex min-h-14 flex-col items-center justify-center gap-0.5 text-[11px] font-medium', active ? 'text-ink' : item.href === '/drop' ? 'text-accent-ink' : 'text-muted')}>
               <span className="grid h-8 w-12 place-items-center"><Icon name={item.icon} className="size-5" /></span>
               {item.label}
             </Link>

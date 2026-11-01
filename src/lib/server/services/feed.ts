@@ -257,7 +257,9 @@ export async function getPerson(viewer: Account, id: string) {
   if (!a || (id !== viewer.id && (await (await walls(viewer)).blocks(id)))) throw new HttpError(404, 'That person was not found.');
   const follows = new Set(await following(viewer.id));
   const posts = await allPosts();
-  return { person: await personView(viewer, a, follows, posts), posts: posts.filter((p) => p.userId === id && visible(p, viewer, follows)).sort((x, y) => y.at - x.at).slice(0, 20).map(strip) };
+  // A full profile also shows how many people they follow and their classes, like a profile page.
+  const person = { ...(await personView(viewer, a, follows, posts)), followingCount: (await following(id)).length, courses: a.profile.courses.slice(0, 12) };
+  return { person, posts: posts.filter((p) => p.userId === id && visible(p, viewer, follows)).sort((x, y) => y.at - x.at).slice(0, 20).map(strip) };
 }
 
 /** A new account made from someone's invite link: credit them, and follow each other. */

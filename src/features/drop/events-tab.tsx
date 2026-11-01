@@ -11,7 +11,7 @@ import { api } from '@/lib/api';
 import { useExtras } from '@/lib/stores/extras';
 import { useProfile } from '@/lib/stores/profile';
 import { toast } from '@/lib/stores/ui';
-import { CATEGORIES, categoryMark, type EventView } from '@/lib/types';
+import { CATEGORIES, type EventView } from '@/lib/types';
 import { useNow } from '@/lib/use-now';
 import { uid } from '@/lib/utils';
 
@@ -64,7 +64,7 @@ function CreateEvent({ onClose, onCreated }: { onClose: () => void; onCreated: (
       <Field label="Title" htmlFor="evTitle" className="mt-0"><Input id="evTitle" maxLength={80} value={f.title} onChange={(e) => set({ title: e.target.value })} placeholder="STAT400 midterm review" /></Field>
       <FieldRow>
         <Field label="Course" hint="optional" htmlFor="evCourse"><Input id="evCourse" list="evCourses" maxLength={60} value={f.course} onChange={(e) => set({ course: e.target.value })} /></Field>
-        <Field label="Category" htmlFor="evCat"><Select id="evCat" value={f.category} onChange={(e) => set({ category: e.target.value })}>{CATEGORIES.map((c) => <option key={c} value={c}>{categoryMark(c)} {c}</option>)}</Select></Field>
+        <Field label="Category" htmlFor="evCat"><Select id="evCat" value={f.category} onChange={(e) => set({ category: e.target.value })}>{CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}</Select></Field>
       </FieldRow>
       <datalist id="evCourses">{p.courses.map((c) => <option key={c} value={c} />)}</datalist>
       <Field label="Where" htmlFor="evPlace"><Input id="evPlace" maxLength={100} value={f.place} onChange={(e) => set({ place: e.target.value })} placeholder="McKeldin Library, room 6107" /></Field>
@@ -112,7 +112,7 @@ function EventRow({ e, reload }: { e: EventView; reload: () => void }) {
       </div>
       <div className="min-w-0 flex-1">
         <p className="flex flex-wrap items-center gap-2 text-[14px] font-semibold">{e.title}{live && <span className="inline-flex items-center gap-1 text-[12px] font-medium text-ok"><span className="size-1.5 rounded-full bg-ok" />Happening now</span>}</p>
-        <p className="text-[13px] text-muted">{[e.course, e.category && `${categoryMark(e.category)} ${e.category}`, e.place].filter(Boolean).join(', ')}</p>
+        <p className="text-[13px] text-muted">{[e.course, e.category && `${e.category}`, e.place].filter(Boolean).join(', ')}</p>
         <p className="mt-0.5 text-[12px] text-muted">Hosted by {mine ? 'you' : e.host}, {e.going.length}{e.capacity ? ` of ${e.capacity}` : ''} going{e.going.length ? `: ${e.going.slice(0, 4).map((g) => g.name).join(', ')}${e.going.length > 4 ? '…' : ''}` : ''}</p>
         {e.note && <p className="mt-1 text-[13px] text-ink-2">{e.note}</p>}
       </div>
@@ -163,7 +163,7 @@ export function EventsTab() {
       <div className="flex flex-wrap items-center gap-2">
         <Select aria-label="Category" className="h-8 w-auto text-[13px]" value={category} onChange={(e) => setCategory(e.target.value)}>
           <option value="all">All categories</option>
-          {CATEGORIES.map((c) => <option key={c} value={c}>{categoryMark(c)} {c}</option>)}
+          {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
         </Select>
         <Segmented wrap={false} label="Show" value={mineOnly ? 'mine' : 'all'} onChange={(v) => setMineOnly(v === 'mine')} options={[{ value: 'all', label: school ? `At ${school}` : 'All events' }, { value: 'mine', label: 'Going or hosting' }]} />
         <Button size="sm" className="ml-auto" onClick={() => !needAccount() && setCreating(true)}>New event</Button>

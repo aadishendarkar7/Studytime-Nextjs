@@ -8,6 +8,8 @@ export interface TutorAction { id: string; label: string; prompt: string; kind: 
  * "Ask" is a normal conversation; the rest give a ready-to-save result.
  */
 export const ACTIONS: TutorAction[] = [
+  { id: 'teach', label: 'Teach me', kind: 'notes', files: true, prompt: 'Teach like a good tutor, not an answer key. Do not give the final answer yet. Find out what the student already knows, then guide them one small step at a time: explain only the next idea, then end with ONE short question for them to try. If they answer, tell them if it is right and why, then take the next step. Give the full answer only after they have tried, or if they ask for it twice.' },
+  { id: 'quiz', label: 'Quiz me', kind: 'quiz', files: true, prompt: 'Write exactly 5 multiple-choice questions that test real understanding of the topic or the attached material, from easier to harder. Return ONLY a JSON array, no other text: [{"q":"question","options":["A","B","C","D"],"answer":0,"why":"one sentence on why that answer is right"}]. answer is the 0-based index of the correct option. Write math as plain text, not LaTeX.' },
   { id: 'answer', label: 'Answer the questions', kind: 'solution', files: true, prompt: 'Answer every question in the attached material or the message, in order. For each one use "### Question N", restate it in one line, show the working with a short reason for each step, and bold the final answer. If a question is unclear or cut off, say what you assumed.' },
   { id: 'solve', label: 'Solve step by step', kind: 'solution', prompt: SOLVE_PROMPTS.full },
   { id: 'hint', label: 'Hints only', kind: 'solution', prompt: SOLVE_PROMPTS.hint },
