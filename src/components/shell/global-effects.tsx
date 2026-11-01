@@ -13,6 +13,7 @@ import { applyAppearance } from '@/lib/appearance';
 import { useExtras } from '@/lib/stores/extras';
 import { useProfile } from '@/lib/stores/profile';
 import { toast, useUi } from '@/lib/stores/ui';
+import { useCelebration } from './session-celebration';
 
 const REMINDER_LABEL = { homework: 'Homework', exam: 'Exam', assignment: 'Assignment' } as const;
 
@@ -66,9 +67,9 @@ export function GlobalEffects() {
     const tick = () => {
       const result = useProfile.getState().tick();
       if (!result) return;
-      toast(`Session complete. +${result.base + result.bonus} points${result.bonus ? ' including a bonus' : ''}.`);
       sendBrowserAlert('Focus session complete', `${result.session.minutes} minutes of ${result.session.subject} logged.`, true);
-      useUi.getState().setReflectionOpen(true);
+      // Celebrate first; the reflection question opens once the celebration closes.
+      useCelebration.getState().show({ minutes: result.session.minutes, subject: result.session.subject, points: result.base + result.bonus, bonus: result.bonus > 0, onDone: () => useUi.getState().setReflectionOpen(true) });
       syncAfterSession();
     };
     const onVisibility = () => {

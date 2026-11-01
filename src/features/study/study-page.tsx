@@ -7,6 +7,7 @@ import { Icon, type IconName } from '@/components/ui/icons';
 import { LEGACY_TOOL_ACTION } from '@/features/ai/actions';
 import { ChatTool } from '@/features/ai/chat';
 import { NotesTool } from '@/features/ai/notes';
+import { GoogleDocsTool } from './google-docs';
 import { CoursesTool } from '@/features/courses/courses-tool';
 import { GamesPage } from '@/features/games/games-page';
 import { isDue } from '@/features/games/srs';
@@ -15,12 +16,13 @@ import { useExtras } from '@/lib/stores/extras';
 import { useLearning } from '@/lib/stores/learning';
 import { cn } from '@/lib/utils';
 
-export type Tool = 'chat' | 'practice' | 'notes' | 'courses';
+export type Tool = 'chat' | 'practice' | 'notes' | 'docs' | 'courses';
 
 const TOOLS: { id: Tool; label: string; icon: IconName; blurb: string }[] = [
   { id: 'chat', label: 'Tutor', icon: 'ai', blurb: 'Ask, solve, summarize, practice tests' },
   { id: 'practice', label: 'Flashcards', icon: 'games', blurb: 'Your sets: review, quiz, match' },
   { id: 'notes', label: 'Notes', icon: 'file', blurb: 'Notes and lecture recordings' },
+  { id: 'docs', label: 'Google Docs', icon: 'book', blurb: 'Your Google Docs, Sheets and Slides, inside Studytime' },
   { id: 'courses', label: 'Courses', icon: 'layers', blurb: 'Short courses on any topic, made for you' },
 ];
 
@@ -54,6 +56,7 @@ function Center({ tool, action, from }: { tool: Tool; action: string; from: stri
   switch (tool) {
     case 'chat': return <div className="h-[calc(100dvh-150px)] min-h-[560px] overflow-hidden panel"><ChatTool initialAction={action} /></div>;
     case 'notes': return <NotesTool startRecording={from === 'lectures'} />;
+    case 'docs': return <GoogleDocsTool />;
     case 'practice': return <GamesPage embedded />;
     case 'courses': return <CoursesTool />;
   }

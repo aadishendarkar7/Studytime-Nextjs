@@ -19,7 +19,7 @@ import { addFeed, allEvents, busyTimes, feedUrl, guessKind, refreshFeed, syncOut
 
 const DAY = 86_400_000;
 
-type Source = 'google' | 'canvas' | 'other';
+type Source = 'google' | 'canvas' | 'moodle' | 'other';
 const HOW_TO: Record<Source, { label: string; steps: string[]; placeholder: string }> = {
   google: {
     label: 'Google Calendar',
@@ -39,6 +39,16 @@ const HOW_TO: Record<Source, { label: string; steps: string[]; placeholder: stri
       'At the bottom right, click "Calendar Feed".',
       'Copy the link it shows and paste it below.',
       'Every assignment, quiz and exam due date in your courses will flow into your planner.',
+    ],
+  },
+  moodle: {
+    label: 'Moodle & others',
+    placeholder: 'https://moodle.yourschool.edu/calendar/export_execute.php?userid=...&authtoken=...',
+    steps: [
+      'Moodle: open Calendar, click "Import or export calendars", then "Export calendar".',
+      'Choose "All courses" and "Recent and next 60 days", then click "Get calendar URL" and copy it.',
+      'Brightspace (D2L): Calendar, Subscribe, copy the link. Blackboard: Calendar, Share Calendar, copy the link.',
+      'Paste it below. Every due date flows into your planner.',
     ],
   },
   other: {
@@ -82,12 +92,12 @@ export function ConnectCard() {
   return (
     <Card id="connect" className="lg:col-span-5">
       <CardHeader title="Connect your calendars" description="Studytime reads your classes and due dates, then plans study time around them. It refreshes every 15 minutes while the app is open." />
-      <Segmented label="Calendar" value={source} onChange={(v) => (setSource(v), setDeadlines(v === 'canvas' || deadlines))} options={(Object.keys(HOW_TO) as Source[]).map((k) => ({ value: k, label: HOW_TO[k].label }))} />
+      <Segmented label="Calendar" value={source} onChange={(v) => (setSource(v), setDeadlines(v === 'canvas' || v === 'moodle' || deadlines))} options={(Object.keys(HOW_TO) as Source[]).map((k) => ({ value: k, label: HOW_TO[k].label }))} />
       <ol className="mt-4 grid list-decimal gap-1.5 pl-5 text-[14px] leading-[22px] text-ink-2">
         {how.steps.map((s) => <li key={s}>{s}</li>)}
       </ol>
       <Field label="Calendar link" htmlFor="feedUrl"><Input id="feedUrl" value={url} placeholder={how.placeholder} onChange={(e) => setUrl(e.target.value)} /></Field>
-      <Field label="Name" hint="optional" htmlFor="feedName"><Input id="feedName" maxLength={40} value={name} placeholder={guessKind(url) === 'canvas' ? 'Canvas' : 'Classes'} onChange={(e) => setName(e.target.value)} /></Field>
+      <Field label="Name" hint="optional" htmlFor="feedName"><Input id="feedName" maxLength={40} value={name} placeholder={({ canvas: 'Canvas', moodle: 'Moodle', brightspace: 'Brightspace', blackboard: 'Blackboard' } as Record<string, string>)[guessKind(url)] ?? 'Classes'} onChange={(e) => setName(e.target.value)} /></Field>
       <Checkbox label="Add due dates to my planner as deadlines" checked={deadlines} onChange={(e) => setDeadlines(e.target.checked)} />
       <Button className="mt-3" onClick={connect} loading={busy}>Connect</Button>
       {routine && (

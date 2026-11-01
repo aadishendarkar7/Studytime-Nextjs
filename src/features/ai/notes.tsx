@@ -15,7 +15,7 @@ import { useAi, type Note, type NoteKind } from '@/lib/stores/ai';
 import { useLearning } from '@/lib/stores/learning';
 import { toast, useUi } from '@/lib/stores/ui';
 import { cn, copyText, shortDate } from '@/lib/utils';
-import { generateCards } from './tasks';
+import { generateCards, nameNote } from './tasks';
 import { Composer, InlineSelect } from './composer';
 import { listLectures, Recorder, RecordingRow } from './lectures';
 import { AiErrorBox, AiOutput } from './ui';
@@ -40,6 +40,26 @@ function NoteView({ note, onOpen, onBack }: { note: Note; onOpen: (id: string) =
   const [question, setQuestion] = useState('');
   const [cardsBusy, setCardsBusy] = useState(false);
   const [more, setMore] = useState(false);
+  const [naming, setNaming] = useState(false);
+  const rename = () => {
+    const t = prompt('Rename note', note.title)?.trim();
+    if (t) ai.updateNote(note.id, { title: t.slice(0, 80) });
+  };
+  const aiName = async () => {
+    setMore(false);
+    setNaming(true);
+    try {
+      const t = await nameNote(note.content);
+      if (t) {
+        ai.updateNote(note.id, { title: t });
+        toast(`Renamed to “${t}”.`);
+      }
+    } catch (e) {
+      toast((e as Error).message, 'error');
+    } finally {
+      setNaming(false);
+    }
+  };
   const material = `Title: ${note.title}\n\n${note.content.slice(0, 150_000)}`;
 
   const make = async (kind: 'summary' | 'quiz') => {
@@ -71,7 +91,10 @@ function NoteView({ note, onOpen, onBack }: { note: Note; onOpen: (id: string) =
   return (
     <article>
       <button type="button" onClick={onBack} className="mb-3 flex items-center gap-1 text-[13px] font-medium text-muted hover:text-ink"><Icon name="chevron" className="size-3.5 rotate-180" /> All notes</button>
-      <h2 className="text-[24px] leading-8">{note.title}</h2>
+      <h2 className="flex flex-wrap items-center gap-2 text-[24px] leading-8">
+        <button type="button" title="Rename" onClick={rename} className="text-left hover:underline decoration-line-strong underline-offset-4">{note.title}</button>
+        <button type="button" onClick={aiName} disabled={naming} className="inline-flex h-7 items-center gap-1 rounded-lg border border-line px-2 font-sans text-[12px] font-medium text-ink-2 hover:border-line-strong hover:text-ink disabled:opacity-60"><Icon name="sparkle" className={cn('size-3.5', naming && 'animate-pulse')} />{naming ? 'Naming…' : 'AI name'}</button>
+      </h2>
       <p className="mt-0.5 text-[13px] text-muted">{KIND_LABEL[note.kind]}, {note.folder}, {shortDate(note.createdAt)}</p>
 
       <div className="mt-4 flex flex-wrap items-center gap-1.5">
@@ -83,6 +106,8 @@ function NoteView({ note, onOpen, onBack }: { note: Note; onOpen: (id: string) =
           <Button size="sm" variant="ghost" aria-label="More" aria-expanded={more} onClick={() => setMore(!more)}><Icon name="menu" className="size-4" /></Button>
           {more && (
             <div className="absolute top-10 right-0 z-30 grid w-52 gap-0.5 panel p-1.5 shadow-lg" onMouseLeave={() => setMore(false)}>
+              <MenuItem icon="pen" onClick={() => (setMore(false), rename())}>Rename</MenuItem>
+              <MenuItem icon="sparkle" onClick={() => void aiName()}>Name it with AI</MenuItem>
               <MenuItem icon="download" onClick={() => useUi.getState().print({ title: note.title, markdown: note.content })}>Download PDF</MenuItem>
               <MenuItem icon="copy" onClick={async () => toast((await copyText(note.content)) ? 'Copied.' : 'Could not copy.')}>Copy text</MenuItem>
               <label className="flex items-center gap-2 px-2.5 py-1.5 text-[13px] text-ink-2">
@@ -152,6 +177,8 @@ function Writer({ onOpen }: { onOpen: (id: string) => void }) {
     const content = await run.run({ tier: 'main', maxTokens: 6000, system: tutorSystem(ai), messages: [{ role: 'user', content: [...toParts(att.files), { type: 'text', text: `${NOTE_PROMPTS[kind]}\n\nTitle: ${name}\n\n${text.trim() ? `Material:\n${text.slice(0, 150_000)}` : 'The material is in the attached files.'}` }] }] });
     if (content) {
       const note = ai.saveNote({ title: name, folder, kind, content });
+      // No title typed: let the AI name it from what it wrote.
+      if (!title.trim()) void nameNote(content).then((t) => t && useAi.getState().updateNote(note.id, { title: t }), () => undefined);
       run.reset();
       setText('');
       setTitle('');
@@ -213,6 +240,8 @@ export function NotesTool({ startRecording = false }: { startRecording?: boolean
   const [adding, setAdding] = useState<'write' | 'record' | null>(startRecording ? 'record' : null);
   const [viewId, setViewId] = useState<string | null>(() => (typeof location !== 'undefined' ? new URLSearchParams(location.search).get('note') : null));
   const [folder, setFolder] = useState('all');
+  const [selecting, setSelecting] = useState(false);
+  const [picked, setPicked] = useState<string[]>([]);
   const [recs, setRecs] = useState<Lecture[]>([]);
   const reload = useCallback(() => listLectures().then(setRecs).catch(() => setRecs([])), []);
   useEffect(() => {
@@ -251,7 +280,17 @@ export function NotesTool({ startRecording = false }: { startRecording?: boolean
 
       <section>
         <div className="mb-1 flex items-center justify-between gap-3">
-          <h2 className="text-[15px] font-semibold">Your notes</h2>
+          <h2 className="mr-auto text-[15px] font-semibold">Your notes</h2>
+          {ai.notes.length > 0 && <Button size="sm" variant="ghost" onClick={() => (setSelecting(!selecting), setPicked([]))}>{selecting ? 'Cancel' : 'Select'}</Button>}
+          {selecting && (
+            <Button size="sm" variant="danger" disabled={!picked.length} onClick={() => {
+              if (!confirm(`Delete ${picked.length} note${picked.length === 1 ? '' : 's'}? This cannot be undone.`)) return;
+              picked.forEach((id) => ai.deleteNote(id));
+              toast(`Deleted ${picked.length} note${picked.length === 1 ? '' : 's'}.`);
+              setPicked([]);
+              setSelecting(false);
+            }}>Delete {picked.length || ''}</Button>
+          )}
           {items.length > 0 && folders.length > 1 && (
             <InlineSelect label="Folder" value={folder} onChange={(e) => setFolder(e.target.value)}>
               <option value="all">All folders</option>
@@ -262,12 +301,14 @@ export function NotesTool({ startRecording = false }: { startRecording?: boolean
         {items.length ? (
           <ul id="notesLibrary" className="divide-y divide-line">
             {items.map((it) => it.type === 'rec' ? <RecordingRow key={it.rec.id} l={it.rec} onChange={reload} onOpenNote={open} /> : (
-              <li key={it.note.id}>
-                <button type="button" data-note-id={it.note.id} onClick={() => open(it.note.id)} className="group flex w-full items-center gap-3 py-2.5 text-left">
+              <li key={it.note.id} className="flex items-center gap-1">
+                {selecting && <input type="checkbox" aria-label={`Select ${it.note.title}`} checked={picked.includes(it.note.id)} onChange={() => setPicked((p) => (p.includes(it.note.id) ? p.filter((x) => x !== it.note.id) : [...p, it.note.id]))} className="mr-2 size-5 shrink-0" />}
+                <button type="button" data-note-id={it.note.id} onClick={() => (selecting ? setPicked((p) => (p.includes(it.note.id) ? p.filter((x) => x !== it.note.id) : [...p, it.note.id])) : open(it.note.id))} className="group flex min-w-0 flex-1 items-center gap-3 py-2.5 text-left">
                   <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-surface-3 text-muted"><Icon name={it.note.kind === 'quiz' ? 'quiz' : it.note.kind === 'summary' ? 'bulb' : 'file'} className="size-4" /></span>
                   <span className="min-w-0 flex-1"><strong className="block truncate text-[15px] font-medium group-hover:underline">{it.note.title}</strong><small className="text-[13px] text-muted">{KIND_LABEL[it.note.kind]}, {it.note.folder}, {shortDate(it.note.createdAt)}</small></span>
-                  <Icon name="chevron" className="size-4 shrink-0 text-muted" />
+                  {!selecting && <Icon name="chevron" className="size-4 shrink-0 text-muted" />}
                 </button>
+                {!selecting && <button type="button" aria-label={`Delete ${it.note.title}`} title="Delete" onClick={() => confirm(`Delete “${it.note.title}”?`) && (ai.deleteNote(it.note.id), toast('Note deleted.'))} className="grid size-8 shrink-0 place-items-center rounded-lg text-muted hover:bg-surface-3 hover:text-danger"><Icon name="trash" className="size-4" /></button>}
               </li>
             ))}
           </ul>

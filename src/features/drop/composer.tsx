@@ -12,7 +12,7 @@ import { api } from '@/lib/api';
 import { useExtras, type DropLogEntry } from '@/lib/stores/extras';
 import { useProfile } from '@/lib/stores/profile';
 import { toast } from '@/lib/stores/ui';
-import { CATEGORIES } from '@/lib/types';
+import { CATEGORIES, categoryMark } from '@/lib/types';
 import { uid } from '@/lib/utils';
 import { refreshDrops } from './live';
 import { recentPlaces, VIBES } from './logic';
@@ -126,7 +126,7 @@ export function DropComposer({ open, onClose, preset }: { open: boolean; onClose
       <Field label="Studying" hint="optional" htmlFor="dpWhat"><Input id="dpWhat" maxLength={60} list="dpCourses" placeholder="STAT400 problem set" value={form.subject} onChange={(e) => set({ subject: e.target.value })} /></Field>
       <datalist id="dpCourses">{p.courses.map((c) => <option key={c} value={c} />)}</datalist>
       <Field label="Category" htmlFor="dpCat">
-        <Select id="dpCat" value={form.category} onChange={(e) => set({ category: e.target.value })}>{CATEGORIES.map((c) => <option key={c}>{c}</option>)}</Select>
+        <Select id="dpCat" value={form.category} onChange={(e) => set({ category: e.target.value })}>{CATEGORIES.map((c) => <option key={c} value={c}>{categoryMark(c)} {c}</option>)}</Select>
       </Field>
       <Field label="Table vibe">
         <Segmented className="[&>button]:flex-1" label="Table vibe" value={form.vibe} onChange={(vibe) => set({ vibe })} options={VIBES.map((v) => ({ value: v.value, label: v.label }))} />

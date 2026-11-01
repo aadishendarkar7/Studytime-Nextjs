@@ -6,6 +6,7 @@ import { DropComposerHost } from '@/features/drop/composer';
 import { startAccount, useAccount } from '@/features/auth/account';
 import { Welcome } from '@/features/auth/welcome';
 import { GlobalEffects } from './global-effects';
+import { SessionCelebration } from './session-celebration';
 import { PrintPortal } from './print-portal';
 import { ReflectionDialog } from './reflection-dialog';
 import { BottomTabs, Sidebar, Topbar } from './sidebar';
@@ -39,6 +40,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         </main>
       </div>
       <GlobalEffects />
+      <SessionCelebration />
       <ReflectionDialog />
       <PrintPortal />
       <DropComposerHost />

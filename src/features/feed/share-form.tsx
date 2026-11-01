@@ -151,7 +151,7 @@ export function ShareForm({ initial, onDone, submitLabel = 'Post' }: { initial?:
               const on = crew.includes(f.id);
               return (
                 <button key={f.id} type="button" aria-pressed={on} disabled={!on && crew.length >= 5} onClick={() => setCrew(on ? crew.filter((x) => x !== f.id) : [...crew, f.id])} className={cn('inline-flex h-9 items-center gap-1.5 rounded-lg border pr-3 pl-1.5 text-[14px] disabled:opacity-40', on ? 'border-ink bg-surface-3 text-ink' : 'border-line hover:border-ink/30')}>
-                  <Avatar name={f.name} color={toneFor(f.id)} size={22} />
+                  <Avatar name={f.name} color={toneFor(f.id)} size={22} userId={f.id} />
                   {f.name.split(' ')[0]}
                   {on && <Icon name="check" className="size-3.5" />}
                 </button>

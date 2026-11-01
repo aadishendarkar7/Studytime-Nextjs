@@ -30,7 +30,7 @@ export interface RoomView {
   members: { id: string; name: string; status: 'focusing' | 'break' | 'idle'; subject: string; endsAt: number | null; weekMinutes: number; weeklyGoal: number; online: boolean; lastSeen: number }[];
   kudos: { id: string; from: string; at: number }[];
 }
-export interface ImportedCalendar { kind: 'google' | 'canvas' | 'outlook' | 'apple' | 'other'; name: string; events: { uid: string; title: string; start: number; end: number; allDay: boolean; location: string }[] }
+export interface ImportedCalendar { kind: 'google' | 'canvas' | 'moodle' | 'brightspace' | 'blackboard' | 'outlook' | 'apple' | 'other'; name: string; events: { uid: string; title: string; start: number; end: number; allDay: boolean; location: string }[] }
 
 const chatHeaders = (token: string) => ({ 'X-Chat-Token': token });
 
@@ -67,6 +67,8 @@ export const api = {
     password: (current: string, next: string) => request<{ user: AccountView }>('/api/auth/password', { method: 'PUT', json: { current, next } }),
     deleteAccount: (body: { password?: string; confirm?: string }) => request<{ ok: true }>('/api/auth/account', { method: 'DELETE', json: body }),
     profile: (body: { name?: string; school?: string; major?: string; year?: string; courses?: string[]; onboarded?: boolean; recapEmail?: boolean }) => request<{ user: AccountView }>('/api/auth/profile', { method: 'PUT', json: body }),
+    avatar: (image: string) => request<{ ok: true; at: number }>('/api/auth/avatar', { method: 'PUT', json: { image } }),
+    removeAvatar: () => request<{ ok: true }>('/api/auth/avatar', { method: 'DELETE' }),
     getData: () => request<{ data: string | null; at: number }>('/api/auth/data'),
     putData: (data: string) => request<{ ok: true; at: number }>('/api/auth/data', { method: 'PUT', json: { data } }),
   },

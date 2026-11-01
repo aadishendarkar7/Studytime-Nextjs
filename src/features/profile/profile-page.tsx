@@ -8,6 +8,7 @@ import { Field, FieldRow, Input, Note, Select } from '@/components/ui/field';
 import { Icon } from '@/components/ui/icons';
 import { streaks } from '@/features/focus/logic';
 import { MAJORS, YEARS } from '@/lib/constants';
+import { PictureCard } from './picture-card';
 import { PromptsCard } from './style-cards';
 import { useExtras } from '@/lib/stores/extras';
 import { useProfile } from '@/lib/stores/profile';
@@ -139,6 +140,7 @@ export function ProfilePage({ embedded = false }: { embedded?: boolean } = {}) {
     <>
       {!embedded && <PageHeader title={p.name || 'Profile'} description={line || 'Add your school, major and year below.'} />}
       <div className="grid gap-5 lg:grid-cols-12 [&>*]:min-w-0">
+        <PictureCard />
         {!embedded && <StatsCard />}
         <AboutCard />
         <CoursesCard />

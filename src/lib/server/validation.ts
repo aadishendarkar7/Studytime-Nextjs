@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { maskBadWords } from '@/lib/word-filter';
 import { CATEGORIES } from '@/lib/types';
 import { SPOT_TAGS } from '@/lib/types';
 
@@ -65,7 +66,7 @@ export const dropSchema = z.object({
   circle: z.object({ code: z.string().max(8), memberId: z.string().max(32) }).nullable().optional(),
 });
 
-export const chatTextSchema = z.string().transform((v) => v.replace(/\r\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim().slice(0, 1000)).refine((v) => v.length > 0, 'Write a message first');
+export const chatTextSchema = z.string().transform((v) => maskBadWords(v.replace(/\r\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim().slice(0, 1000))).refine((v) => v.length > 0, 'Write a message first');
 export const presenceSchema = z.object({
   name: nameSchema,
   school: text(80),

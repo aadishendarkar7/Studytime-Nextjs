@@ -23,7 +23,7 @@ import { ConnectCard, CrunchCard, PlanCard, ReviewCard, SubscribeCard } from './
 
 type View = 'day' | 'week' | 'month';
 type Kind = 'event' | 'block' | 'due';
-interface Item { key: string; id: string; kind: Kind; title: string; start: number; end: number; allDay: boolean; color: string; sub: string; done?: boolean }
+interface Item { key: string; id: string; kind: Kind; title: string; start: number; end: number; allDay: boolean; color: string; sub: string; done?: boolean; group?: Item[] }
 
 const HOUR = 52;
 const DAY = 86_400_000;
@@ -40,12 +40,22 @@ function useItems() {
   return useMemo<Item[]>(() => {
     const hidden = new Set(hiddenCalendars);
     const out: Item[] = [];
+    // A due date that was already copied into the planner shows once, as a deadline.
+    const open = reminders.filter((r) => !r.done && !hidden.has('deadlines'));
+    const copied = (title: string, at: number) => open.some((r) => r.title === title.slice(0, 120) && Math.abs(r.dueAt - at) < 86_400_000);
     for (const f of calendarFeeds) {
       if (hidden.has(f.id)) continue;
-      for (const e of f.events) out.push({ key: `${f.id}${e.uid}`, id: e.uid, kind: 'event', title: e.title, start: e.start, end: e.end, allDay: e.allDay || e.end - e.start <= 60_000, color: f.color, sub: e.location || f.name });
+      for (const e of f.events) if (!copied(e.title, e.start)) out.push({ key: `${f.id}${e.uid}`, id: e.uid, kind: 'event', title: e.title, start: e.start, end: e.end, allDay: e.allDay || e.end - e.start <= 60_000, color: f.color, sub: e.location || f.name });
     }
     if (!hidden.has('blocks')) for (const b of studyBlocks) out.push({ key: b.id, id: b.id, kind: 'block', title: b.title, start: b.start, end: b.end, allDay: false, color: 'var(--accent-fill)', sub: 'Study block', done: b.done });
-    if (!hidden.has('deadlines')) for (const r of reminders) if (!r.done) out.push({ key: r.id, id: r.id, kind: 'due', title: r.title, start: r.dueAt, end: r.dueAt, allDay: true, color: 'var(--danger)', sub: `Due ${fmt(r.dueAt)}` });
+    const due: Item[] = open.map((r) => ({ key: r.id, id: r.id, kind: 'due', title: r.title, start: r.dueAt, end: r.dueAt, allDay: true, color: 'var(--danger)', sub: `Due ${fmt(r.dueAt)}` }));
+    // Several deadlines on one day collapse into a single "3 due" item, so busy days stay readable.
+    const byDay = new Map<number, Item[]>();
+    for (const d of due) byDay.set(startOfDay(d.start), [...(byDay.get(startOfDay(d.start)) ?? []), d]);
+    for (const [day, list] of byDay) {
+      if (list.length === 1) out.push(list[0]);
+      else out.push({ key: `due-${day}`, id: `due-${day}`, kind: 'due', title: `${list.length} due`, start: Math.min(...list.map((l) => l.start)), end: Math.min(...list.map((l) => l.start)), allDay: true, color: 'var(--danger)', sub: list.map((l) => l.title).join(', '), group: list.sort((a, b) => a.start - b.start) });
+    }
     return out;
   }, [calendarFeeds, studyBlocks, hiddenCalendars, reminders]);
 }
@@ -126,7 +136,7 @@ function TimeGrid({ days, items, today, now, onCreate, onOpen }: { days: number[
             <p className={cn('tnum mx-auto mt-0.5 grid size-9 place-items-center rounded-full text-[20px]', d === today ? 'bg-ink font-semibold text-bg' : 'text-ink')}>{new Date(d).getDate()}</p>
             <div className="mt-1 grid gap-0.5">
               {allDay(d).slice(0, 3).map((i) => (
-                <button key={i.key} type="button" onClick={() => onOpen(i)} title={i.title} className="truncate rounded-md px-1.5 py-0.5 text-left text-[12px] font-medium text-white" style={{ background: i.color }}>{i.kind === 'due' ? `Due: ${i.title}` : i.title}</button>
+                <button key={i.key} type="button" onClick={() => onOpen(i)} title={i.title} className="truncate rounded-md px-1.5 py-0.5 text-left text-[12px] font-medium text-white" style={{ background: i.color }}>{i.kind === 'due' && !i.group ? `Due: ${i.title}` : i.title}</button>
               ))}
               {allDay(d).length > 3 && <span className="text-[11px] text-muted">+{allDay(d).length - 3} more</span>}
             </div>
@@ -253,6 +263,28 @@ function CreateDialog({ at, onClose }: { at: number; onClose: () => void }) {
   );
 }
 
+function DueGroupDialog({ item, onClose }: { item: Item; onClose: () => void }) {
+  const p = useProfile();
+  const list = (item.group ?? []).filter((g) => p.reminders.some((r) => r.id === g.id && !r.done));
+  return (
+    <Dialog open onClose={onClose} title={`Due ${new Date(item.start).toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}`}>
+      {list.length ? (
+        <ul className="divide-y divide-line rounded-xl border border-line">
+          {list.map((g) => (
+            <li key={g.id} className="flex items-center gap-3 px-3 py-2.5">
+              <span className="size-2.5 shrink-0 rounded-full bg-danger" />
+              <span className="min-w-0 flex-1"><strong className="block truncate text-[14px] font-medium">{g.title}</strong><span className="tnum text-[12px] text-muted">{fmt(g.start)}</span></span>
+              <Button size="sm" variant="secondary" onClick={() => (p.setReminderDone(g.id, true), toast('Marked done.'))}>Done</Button>
+              <button type="button" aria-label={`Delete ${g.title}`} onClick={() => p.deleteReminder(g.id)} className="grid size-8 place-items-center rounded-lg text-muted hover:bg-surface-3 hover:text-danger"><Icon name="trash" className="size-4" /></button>
+            </li>
+          ))}
+        </ul>
+      ) : <p className="text-[14px] text-muted">All done for this day.</p>}
+      <div className="mt-5 flex justify-end"><Button variant="ghost" onClick={onClose}>Close</Button></div>
+    </Dialog>
+  );
+}
+
 function EventDialog({ item, onClose }: { item: Item; onClose: () => void }) {
   const x = useExtras();
   const p = useProfile();
@@ -282,17 +314,24 @@ function EventDialog({ item, onClose }: { item: Item; onClose: () => void }) {
   );
 }
 
-type PlanTab = 'routine' | 'suggest' | 'deadlines' | 'syllabus' | 'breakdown' | 'exams' | 'busy' | 'calendars';
+/** Three tabs instead of eight: everything about due dates, everything about planning study time, and connections. */
+type PlanTab = 'deadlines' | 'study' | 'calendars';
 const PLAN_TABS: { value: PlanTab; label: string }[] = [
-  { value: 'routine', label: 'Weekly routine' },
-  { value: 'exams', label: 'Exam prep' },
-  { value: 'suggest', label: 'Deadlines plan' },
   { value: 'deadlines', label: 'Deadlines' },
-  { value: 'syllabus', label: 'Import syllabus' },
-  { value: 'breakdown', label: 'Break it down' },
-  { value: 'busy', label: 'Busy weeks' },
+  { value: 'study', label: 'Study plan' },
   { value: 'calendars', label: 'Connect calendars' },
 ];
+/** Old links (?plan=syllabus and so on) still land on the right tab. */
+const OLD_TABS: Record<string, PlanTab> = { suggest: 'deadlines', syllabus: 'deadlines', breakdown: 'deadlines', routine: 'study', exams: 'study', busy: 'study' };
+
+function More({ title, children, open }: { title: string; children: React.ReactNode; open?: boolean }) {
+  return (
+    <details open={open} className="group mt-3 rounded-xl border border-line">
+      <summary className="flex cursor-pointer list-none items-center justify-between gap-2 px-4 py-3 text-[14px] font-semibold">{title}<Icon name="chevron" className="size-3.5 text-muted transition-transform group-open:rotate-90" /></summary>
+      <div className="border-t border-line px-4 py-3">{children}</div>
+    </details>
+  );
+}
 
 export function CalendarPage() {
   const x = useExtras();
@@ -306,7 +345,7 @@ export function CalendarPage() {
   const [examParam] = useState(() => (typeof location !== 'undefined' ? new URLSearchParams(location.search).get('exam') : null));
   const [plan, setPlan] = useState<PlanTab | null>(() => {
     const q = typeof location !== 'undefined' ? new URLSearchParams(location.search).get('plan') : null;
-    return PLAN_TABS.some((t) => t.value === q) ? (q as PlanTab) : null;
+    return q ? (PLAN_TABS.some((t) => t.value === q) ? (q as PlanTab) : OLD_TABS[q] ?? null) : null;
   });
 
   const changeView = (v: View) => (setView(v), x.update({ calendarView: v }));
@@ -362,7 +401,7 @@ export function CalendarPage() {
                 );
               })}
             </ul>
-            <Button variant="link" size="sm" className="mt-1 ml-2" onClick={() => setPlan('calendars')}>+ Add Google or Canvas</Button>
+            <Button variant="link" size="sm" className="mt-1 ml-2" onClick={() => setPlan('calendars')}>+ Add Google, Canvas or Moodle</Button>
           </div>
         </aside>
 
@@ -375,7 +414,7 @@ export function CalendarPage() {
             </span>
             <h1 className="mr-auto text-[26px] leading-8 max-sm:text-[21px]">{title}</h1>
             <Segmented wrap={false} label="View" value={view} onChange={changeView} options={[{ value: 'day', label: 'Day' }, { value: 'week', label: 'Week' }, { value: 'month', label: 'Month' }]} />
-            <Button onClick={() => setPlan(x.calendarFeeds.length ? 'routine' : 'calendars')}>Plan</Button>
+            <Button onClick={() => setPlan(x.calendarFeeds.length ? 'study' : 'calendars')}>Plan</Button>
             <Button variant="secondary" className="lg:hidden" aria-label="Create" onClick={() => setCreating(Date.now())}><Icon name="plus" className="size-4" /></Button>
           </div>
           {view === 'month'
@@ -386,18 +425,27 @@ export function CalendarPage() {
       </div>
 
       {creating !== null && <CreateDialog key={creating} at={creating} onClose={() => setCreating(null)} />}
-      {opened && <EventDialog item={opened} onClose={() => setOpened(null)} />}
+      {opened && (opened.group ? <DueGroupDialog item={opened} onClose={() => setOpened(null)} /> : <EventDialog item={opened} onClose={() => setOpened(null)} />)}
       <Sheet open={plan !== null} onClose={() => setPlan(null)} title="Plan" wide>
         {plan && (
           <>
             <Segmented className="mb-4" label="Planning tools" value={plan} onChange={setPlan} options={PLAN_TABS} />
-            {plan === 'suggest' && <PlanCard />}
-            {plan === 'deadlines' && <><ReminderForm /><ReminderList /></>}
-            {plan === 'syllabus' && <SyllabusImport />}
-            {plan === 'breakdown' && <Breakdown />}
-            {plan === 'exams' && <><ExamPrepCard initial={examParam} /><div className="mt-4"><ReviewCard /></div></>}
-            {plan === 'routine' && <RoutineCard onConnect={() => setPlan('calendars')} />}
-            {plan === 'busy' && <CrunchCard />}
+            {plan === 'deadlines' && (
+              <>
+                <ReminderForm />
+                <ReminderList />
+                <More title="Plan study time for these deadlines"><PlanCard /></More>
+                <More title="Import deadlines from a syllabus"><SyllabusImport /></More>
+                <More title="Break a big assignment into steps"><Breakdown /></More>
+              </>
+            )}
+            {plan === 'study' && (
+              <>
+                <RoutineCard onConnect={() => setPlan('calendars')} />
+                <More title="Exam prep" open={!!examParam}><ExamPrepCard initial={examParam} /><div className="mt-4"><ReviewCard /></div></More>
+                <More title="Busy weeks ahead"><CrunchCard /></More>
+              </>
+            )}
             {plan === 'calendars' && <><ConnectCard /><SubscribeCard /></>}
           </>
         )}

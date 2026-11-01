@@ -21,7 +21,7 @@ export interface CalendarFeed {
   id: string;
   name: string;
   url: string;
-  kind: 'google' | 'canvas' | 'outlook' | 'apple' | 'other';
+  kind: 'google' | 'canvas' | 'moodle' | 'brightspace' | 'blackboard' | 'outlook' | 'apple' | 'other';
   color: string;
   /** Add all-day and due-date events from this feed to the planner as deadlines. */
   addDeadlines: boolean;
@@ -41,6 +41,7 @@ export interface StudyBlock {
   href?: string;
   done: boolean;
 }
+export interface GoogleDocLink { id: string; kind: 'document' | 'spreadsheets' | 'presentation'; title: string; folder: string; addedAt: number }
 export interface PetBody { species: 'cat' | 'bunny' | 'bear' | 'pup' | 'blob'; fur: string; eyes: 'round' | 'sparkle' | 'dot'; marking: 'none' | 'spots' | 'stripe' | 'patch'; blush: boolean }
 export const DEFAULT_PET: PetBody = { species: 'cat', fur: '#f2c7a3', eyes: 'round', marking: 'none', blush: true };
 export interface PlanPrefs { dayStart: string; dayEnd: string; blockMinutes: number; maxPerDay: number }
@@ -133,6 +134,8 @@ export interface ExtrasData {
   examPreps: Record<string, { topics: { id: string; name: string; conf: 'new' | 'shaky' | 'solid'; minutes: number }[]; setId?: string }>;
   /** Short courses the AI made for you. */
   courses: MiniCourse[];
+  /** Google Docs, Sheets and Slides linked into Study, opened inside the app. */
+  googleDocs: GoogleDocLink[];
   /** Challenges you joined, and when you finished them. */
   challenges: JoinedChallenge[];
   /** Days you collected the daily check-in reward (YYYY-MM-DD). */
@@ -191,6 +194,7 @@ export const defaultExtras = (): ExtrasData => ({
   calendarView: 'week',
   examPreps: {},
   courses: [],
+  googleDocs: [],
   challenges: [],
   rewardDays: [],
   petBody: DEFAULT_PET,
@@ -223,7 +227,7 @@ export const useExtras = create<ExtrasData & ExtrasActions>()(
       merge: (persisted, current) => {
         const p = { ...current, ...(persisted as Partial<ExtrasData>) };
         const base = defaultExtras();
-        for (const key of ['spots', 'calendarFeeds', 'studyBlocks', 'checkins', 'parked', 'resets', 'myDrops', 'joinedDrops', 'dropsSeen', 'dropLog', 'hiddenCalendars', 'chatBlocked', 'myEvents', 'eventRsvps', 'inventory', 'restDays', 'courses', 'challenges', 'rewardDays'] as const) if (!Array.isArray(p[key])) (p as ExtrasData)[key] = base[key] as never;
+        for (const key of ['spots', 'calendarFeeds', 'studyBlocks', 'checkins', 'parked', 'resets', 'myDrops', 'joinedDrops', 'dropsSeen', 'dropLog', 'hiddenCalendars', 'chatBlocked', 'myEvents', 'eventRsvps', 'inventory', 'restDays', 'courses', 'googleDocs', 'challenges', 'rewardDays'] as const) if (!Array.isArray(p[key])) (p as ExtrasData)[key] = base[key] as never;
         for (const key of ['water', 'breakdowns', 'chatRead', 'examPreps'] as const) if (!p[key] || typeof p[key] !== 'object' || Array.isArray(p[key])) (p as ExtrasData)[key] = base[key] as never;
         p.planPrefs = { ...base.planPrefs, ...(p.planPrefs || {}) };
         p.quiet = { ...base.quiet, ...(p.quiet && typeof p.quiet === 'object' ? p.quiet : {}) };
