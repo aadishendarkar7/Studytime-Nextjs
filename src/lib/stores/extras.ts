@@ -119,7 +119,7 @@ export interface ExtrasData {
   petName: string;
   petWear: string;
   eventRsvps: { eventId: string; rsvpId: string; token: string }[];
-  calendarView: 'day' | 'week' | 'month';
+  calendarView: 'day' | 'week' | 'month' | 'year';
   /** Exam prep: topics and how confident you feel, keyed by exam. */
   /** How your pet looks. */
   petBody: PetBody;
