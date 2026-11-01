@@ -1,4 +1,5 @@
 'use client';
+import type { ArenaAnswer, ArenaBoardEntry, ArenaHome, ArenaMode, ArenaRunView, Topic } from './arena/types';
 import type { BuddyView, FeedPost, PersonView, PostVisibility, EventInput, EventView, PactView, ChatChannelInfo, ChatMessage, ChatPerson, ChatStatus, ChatThread, CircleMemberView, ClassView, Deck, DropInput, DropView, LeaderboardResult, LeaderScope, PartnerInput, PartnerListing, PublicSpot, SpotInput } from './types';
 
 export class ApiError extends Error {
@@ -155,6 +156,13 @@ export const api = {
     advance: (code: string, token: string) => request<ClassView>(`/api/classes/${enc(code)}/advance`, { method: 'POST', headers: { 'X-Class-Token': token }, json: {} }),
     answer: (code: string, token: string, choice: string) => request<ClassView>(`/api/classes/${enc(code)}/answer`, { method: 'POST', headers: { 'X-Class-Token': token }, json: { choice } }),
     progress: (code: string, token: string, minutes: number) => request<{ ok: true }>(`/api/classes/${enc(code)}/progress`, { method: 'PUT', headers: { 'X-Class-Token': token }, json: { minutes } }),
+  },
+  arena: {
+    home: () => request<ArenaHome>('/api/arena'),
+    start: (body: { mode: ArenaMode; topic?: Topic; to?: string; duelId?: string }) => request<{ run: ArenaRunView }>('/api/arena/play', { method: 'POST', json: body }),
+    answer: (id: string, choice: number) => request<ArenaAnswer>(`/api/arena/play/${enc(id)}`, { method: 'POST', json: { choice } }),
+    board: (scope: 'all' | 'school' | 'following', kind: 'rating' | 'week') => request<{ entries: ArenaBoardEntry[] }>(`/api/arena/board?scope=${scope}&kind=${kind}`),
+    decline: (duelId: string) => request<{ ok: true }>('/api/arena/decline', { method: 'POST', json: { duelId } }),
   },
   leaderboard: {
     register: () => request<{ token: string; id: string }>('/api/leaderboard/register', { method: 'POST', json: {} }),

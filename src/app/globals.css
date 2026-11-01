@@ -327,3 +327,6 @@ html.color-ripple::view-transition-new(root) { animation: color-ripple 700ms cub
 .md-recall strong.shown { color: inherit; background: var(--accent-soft); }
 .md-recall strong * { visibility: hidden; }
 .md-recall strong.shown * { visibility: visible; }
+/* Arena: points float up from your score. */
+@keyframes st-score-pop { 0% { opacity: 0; transform: translateY(4px); } 20% { opacity: 1; } 100% { opacity: 0; transform: translateY(-16px); } }
+.st-score-pop { animation: st-score-pop 900ms ease-out forwards; }

@@ -8,6 +8,7 @@ export const NAV: NavItem[] = [
   { href: '/study', label: 'Study', icon: 'book', hint: 'AI tutor, flashcards, notes, courses', group: 'study' },
   { href: '/calendar', label: 'Calendar', icon: 'calendar', group: 'study' },
   { href: '/drop', label: 'Drop a Spot', icon: 'pin', hint: 'Who is studying where', group: 'together' },
+  { href: '/arena', label: 'Arena', icon: 'trophy', hint: 'Quiz matches against other students', group: 'together' },
   { href: '/feed', label: 'Feed', icon: 'flame', hint: 'Study sessions people post', group: 'together' },
   { href: '/friends', label: 'Friends', icon: 'friends', hint: 'Your friends, classmates and messages', group: 'together' },
   { href: '/leaderboard', label: 'Leaderboard', icon: 'leaders', hint: 'Rankings, challenges, trophies', group: 'together' },
@@ -18,6 +19,6 @@ export const NAV: NavItem[] = [
 export const GROUP_LABEL: Record<NavItem['group'], string> = { main: '', together: 'Together', study: 'Study', me: 'You' };
 
 /** The five shown in the phone tab bar; Drop a Spot sits in the middle. The rest are in the menu. */
-export const MOBILE_TABS = ['/', '/study', '/drop', '/feed', '/friends'];
+export const MOBILE_TABS = ['/', '/study', '/drop', '/arena', '/feed'];
 
 export const isActive = (pathname: string, href: string) => (href === '/' ? pathname === '/' : pathname === href || pathname.startsWith(`${href}/`));
