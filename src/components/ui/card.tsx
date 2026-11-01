@@ -37,7 +37,7 @@ export function PageHeader({ title, description, action, level = 1 }: { title: s
 
 export function Empty({ title, children, action }: { title?: string; children: ReactNode; action?: ReactNode }) {
   return (
-    <div className="well px-4 py-4">
+    <div className="py-2">
       {title && <p className="text-[14px] leading-6 font-semibold text-ink">{title}</p>}
       <p className="mt-0.5 max-w-[68ch] text-[13px] leading-5 text-muted">{children}</p>
       {action && <div className="mt-4">{action}</div>}
@@ -47,10 +47,10 @@ export function Empty({ title, children, action }: { title?: string; children: R
 
 export function Badge({ tone = 'default', children, className }: { tone?: 'default' | 'ok' | 'warn' | 'accent'; children: ReactNode; className?: string }) {
   const tones = {
-    default: 'bg-surface-3 text-ink-2',
-    ok: 'bg-ok-soft text-ok',
-    warn: 'bg-warn-soft text-warn',
-    accent: 'bg-accent-soft text-accent-ink',
+    default: 'text-muted',
+    ok: 'text-ok',
+    warn: 'text-warn',
+    accent: 'text-accent-ink',
   };
-  return <span className={cn('inline-flex items-center gap-1 rounded-md px-1.5 text-[12px] leading-5 font-medium whitespace-nowrap', tones[tone], className)}>{children}</span>;
+  return <span className={cn('inline-flex items-center gap-1 text-[12px] leading-5 font-medium whitespace-nowrap', tones[tone], className)}>{children}</span>;
 }

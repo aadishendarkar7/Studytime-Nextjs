@@ -26,7 +26,7 @@ const when = (at: number) => {
   const today = new Date();
   const y = new Date(Date.now() - 86_400_000);
   const day = d.toDateString() === today.toDateString() ? 'Today' : d.toDateString() === y.toDateString() ? 'Yesterday' : d.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
-  return `${day} · ${d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}`;
+  return `${day}, ${d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}`;
 };
 
 const shareText = (p: FeedPost, me: string | undefined) => {
@@ -65,7 +65,7 @@ async function highlightImage(p: FeedPost) {
     photo.close();
     g.fillStyle = '#a1a1aa';
     g.font = font(32, 500);
-    g.fillText(fit(`${names} · ${date}`, 52), 80, 860);
+    g.fillText(fit(`${names}, ${date}`, 52), 80, 860);
     g.fillStyle = '#fafafa';
     g.font = font(130, 700);
     g.fillText(fmtMinutes(p.minutes), 80, 1010);
@@ -81,7 +81,7 @@ async function highlightImage(p: FeedPost) {
     g.fillRect(80, 120, 72, 8);
     g.fillStyle = '#a1a1aa';
     g.font = font(34, 500);
-    g.fillText(fit(`${names} · ${date}`, 50), 80, 200);
+    g.fillText(fit(`${names}, ${date}`, 50), 80, 200);
     g.fillStyle = '#fafafa';
     g.font = font(64, 700);
     g.fillText(fit(p.subject || 'Study session', 26), 80, 282);
@@ -242,14 +242,14 @@ export function HighlightCard({ post, onChange, onOpenPerson }: { post: FeedPost
   const inCrew = (post.crew ?? []).some((c) => c.id === me);
   const people = [{ id: post.userId, full: post.name, name: mine ? 'You' : post.name }, ...(post.crew ?? []).map((c) => ({ id: c.id, full: c.name, name: c.id === me ? 'you' : c.name.split(' ')[0] }))];
   const names = people.length === 1 ? people[0].name : `${people.slice(0, -1).map((p) => p.name).join(', ')} and ${people[people.length - 1].name}`;
-  const details = [post.place, post.with.filter((w) => !(post.crew ?? []).some((c) => c.name === w)).length ? `with ${post.with.filter((w) => !(post.crew ?? []).some((c) => c.name === w)).join(', ')}` : ''].filter(Boolean).join(' · ');
+  const details = [post.place, post.with.filter((w) => !(post.crew ?? []).some((c) => c.name === w)).length ? `with ${post.with.filter((w) => !(post.crew ?? []).some((c) => c.name === w)).join(', ')}` : ''].filter(Boolean).join(', ');
   return (
     <article className="min-w-0 panel p-4">
       <header className="flex items-center gap-2.5">
         <span className="flex -space-x-2">{people.slice(0, 4).map((p) => <span key={p.id} className="rounded-full ring-2 ring-surface"><Avatar name={p.full} color={toneFor(p.id)} size={32} /></span>)}</span>
         <div className="min-w-0 flex-1">
           <button type="button" disabled={!onOpenPerson || mine} onClick={() => onOpenPerson?.(post.userId)} className="block truncate text-left text-[14px] font-semibold enabled:hover:underline">{names}</button>
-          <p className="truncate text-[12px] text-muted">{when(post.at)}{post.school ? ` · ${post.school}` : ''}</p>
+          <p className="truncate text-[12px] text-muted">{when(post.at)}{post.school ? `, ${post.school}` : ''}</p>
         </div>
         <ShareMenu post={post} />
         {!mine && <MoreMenu post={post} onGone={() => onChange(null)} />}
@@ -261,7 +261,7 @@ export function HighlightCard({ post, onChange, onOpenPerson }: { post: FeedPost
       )}
       <div className="mt-3 flex min-w-0 items-baseline gap-3">
         <p className="tnum shrink-0 font-display text-[34px] leading-10 font-semibold tracking-tight">{fmtMinutes(post.minutes)}</p>
-        <p className="min-w-0 truncate text-[15px] text-ink-2">{people.length > 1 ? 'together' : ''}{post.subject ? `${people.length > 1 ? ' · ' : ''}${post.subject}` : people.length > 1 ? '' : 'studying'}</p>
+        <p className="min-w-0 truncate text-[15px] text-ink-2">{people.length > 1 ? 'together' : ''}{post.subject ? `${people.length > 1 ? ', ' : ''}${post.subject}` : people.length > 1 ? '' : 'studying'}</p>
       </div>
       {details && <p className="mt-0.5 flex items-center gap-1 truncate text-[13px] text-muted"><Icon name="pin" className="size-3.5 shrink-0" />{details}</p>}
       {post.topics.length > 0 && (
@@ -272,13 +272,11 @@ export function HighlightCard({ post, onChange, onOpenPerson }: { post: FeedPost
       {post.note && <p className="mt-3 text-[14px] leading-5 text-ink-2">{post.note}</p>}
       <footer className="mt-3 flex items-center gap-3 border-t border-line pt-3">
         {!mine && !inCrew && (
-          <button type="button" disabled={busy} onClick={cheer} aria-pressed={cheered} className={cn('inline-flex h-8 items-center gap-1.5 rounded-lg border px-2.5 text-[13px] font-medium transition-colors', cheered ? 'border-accent bg-accent-soft text-accent-ink' : 'border-line text-ink-2 hover:border-line-strong hover:text-ink')}>
-            <Icon name="star" className="size-3.5" /> {cheered ? 'Cheered' : 'Nice work'}
+          <button type="button" disabled={busy} onClick={cheer} aria-pressed={cheered} className={cn('inline-flex h-8 items-center gap-1.5 rounded-lg border px-2.5 text-[13px] font-medium transition-colors', cheered ? 'border-ink bg-surface-3 text-ink' : 'border-line text-ink-2 hover:border-line-strong hover:text-ink')}>{cheered ? 'Cheered' : 'Nice work'}
           </button>
         )}
         {!mine && !inCrew && (
-          <button type="button" onClick={together} className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-line px-2.5 text-[13px] font-medium text-ink-2 hover:border-line-strong hover:text-ink" title={theirDrop ? `Join ${post.name} at ${theirDrop.spotName}` : 'Drop a spot there for next time'}>
-            <Icon name="pin" className="size-3.5" /> {theirDrop ? 'Join them now' : 'Study together'}
+          <button type="button" onClick={together} className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-line px-2.5 text-[13px] font-medium text-ink-2 hover:border-line-strong hover:text-ink" title={theirDrop ? `Join ${post.name} at ${theirDrop.spotName}` : 'Drop a spot there for next time'}>{theirDrop ? 'Join them now' : 'Study together'}
           </button>
         )}
         <span className="min-w-0 truncate text-[12px] text-muted">
@@ -325,7 +323,7 @@ export function PersonSheet({ id, onClose }: { id: string | null; onClose: () =>
             <Avatar name={shown.person.name} color={toneFor(shown.person.id)} size={48} />
             <div className="min-w-0 flex-1">
               <p className="text-[15px] font-semibold">{shown.person.name}</p>
-              <p className="truncate text-[13px] text-muted">{[shown.person.major, shown.person.school].filter(Boolean).join(' · ') || 'Studytime'}</p>
+              <p className="truncate text-[13px] text-muted">{[shown.person.major, shown.person.school].filter(Boolean).join(', ') || 'Studytime'}</p>
             </div>
             <FollowButton person={shown.person} onChange={(person) => setData({ ...shown, person })} />
           </div>
@@ -362,7 +360,7 @@ export function FindPeople({ onOpen }: { onOpen: (id: string) => void }) {
             <Avatar name={p.name} color={toneFor(p.id)} size={28} />
             <button type="button" onClick={() => onOpen(p.id)} className="min-w-0 flex-1 text-left">
               <span className="block truncate text-[13px] font-medium hover:underline">{p.name}</span>
-              <span className="block truncate text-[11px] text-muted">{[p.major, p.school].filter(Boolean).join(' · ') || 'Studytime'}</span>
+              <span className="block truncate text-[11px] text-muted">{[p.major, p.school].filter(Boolean).join(', ') || 'Studytime'}</span>
             </button>
             <FollowButton person={p} onChange={(np) => setPeople((l) => (l ?? []).map((x) => (x.id === np.id ? np : x)))} />
           </li>
@@ -391,16 +389,16 @@ export function HighlightsTab() {
         <div className="mb-3 flex flex-wrap items-center gap-2">
           <Segmented wrap={false} label="Whose posts" value={scope} onChange={setScope} options={[{ value: 'foryou', label: 'For you' }, { value: 'following', label: 'Following' }, { value: 'mine', label: 'Mine' }]} />
           <span className="flex-1" />
-          <Button onClick={() => setWriting(true)}><Icon name="plus" className="size-4" /> Post</Button>
+          <Button onClick={() => setWriting(true)}>Post</Button>
         </div>
         {posts === null ? (
           <p className="py-6 text-[13px] text-muted">Loading</p>
         ) : posts.length ? (
           <div className="grid gap-3 [&>*]:min-w-0">{posts.map((p) => <HighlightCard key={p.id} post={p} onChange={(np) => replace(p.id, np)} onOpenPerson={setPerson} />)}</div>
         ) : (
-          <div className="rounded-xl border border-dashed border-line px-5 py-8 text-center">
-            <p className="text-[15px] font-semibold">{scope === 'mine' ? 'No posts yet' : 'Nothing here yet'}</p>
-            <Button className="mt-3" onClick={() => setWriting(true)}><Icon name="plus" className="size-4" /> Post your first session</Button>
+          <div className="border-t border-line py-6">
+            <p className="text-[15px] font-semibold">{scope === 'mine' ? 'You have not posted yet' : scope === 'following' ? 'Nobody you follow has posted yet' : 'No posts yet'}</p>
+            <p className="mt-0.5 text-[14px] text-muted">After a focus session, post what you studied and where. Friends see it here.</p>
           </div>
         )}
       </div>

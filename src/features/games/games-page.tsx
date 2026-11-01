@@ -43,8 +43,8 @@ function DeckLibrary({ onAdded }: { onAdded?: () => void }) {
             <article key={d.id} className="flex flex-col gap-1.5 border border-line p-4 rounded-xl">
               <Badge className="self-start">{d.subject || 'General'}</Badge>
               <h3 className="mt-1 font-semibold">{d.name}</h3>
-              <p className="text-[13px] text-muted">{d.cards.length} cards{d.author ? ` · by ${d.author}` : ''}</p>
-              <p className="flex-1 text-xs text-muted">{d.cards.slice(0, 3).map((c) => c.front).join(' · ')}</p>
+              <p className="text-[13px] text-muted">{d.cards.length} cards{d.author ? `, by ${d.author}` : ''}</p>
+              <p className="flex-1 text-xs text-muted">{d.cards.slice(0, 3).map((c) => c.front).join(', ')}</p>
               <Button variant="secondary" className="mt-2" onClick={() => {
                 if (added && !confirm('You already added this deck. Add another copy?')) return;
                 l.addSet(d.name, d.cards, d.subject || DEFAULT_FOLDER, d.id);
@@ -96,7 +96,7 @@ function NewSet({ onDone }: { onDone: (id: string) => void }) {
         <form className="mt-3 flex flex-wrap gap-2" onSubmit={(e) => (e.preventDefault(), void generate())}>
           <Input autoFocus className="min-w-48 flex-[2]" maxLength={2000} value={topic} onChange={(e) => setTopic(e.target.value)} placeholder="Cell respiration, Spanish verbs, or paste notes" aria-label="Topic" />
           <Select className="w-auto" value={count} onChange={(e) => setCount(Number(e.target.value))} aria-label="Number of cards">{[10, 15, 25].map((n) => <option key={n} value={n}>{n} cards</option>)}</Select>
-          <Button type="submit" loading={busy} disabled={!topic.trim()}><Icon name="sparkle" className="size-4" /> Make cards</Button>
+          <Button type="submit" loading={busy} disabled={!topic.trim()}>Make cards</Button>
         </form>
       ) : (
         <div className="mt-3 grid gap-2">
@@ -140,7 +140,7 @@ function EditCards({ set }: { set: StudySet }) {
       <form className="flex flex-wrap gap-2" onSubmit={(e) => (e.preventDefault(), add())}>
         <Input className="min-w-36 flex-1" maxLength={180} value={front} onChange={(e) => setFront(e.target.value)} placeholder="Front" aria-label="Front" />
         <Input className="min-w-36 flex-1" maxLength={180} value={back} onChange={(e) => setBack(e.target.value)} placeholder="Back" aria-label="Back" />
-        <Button type="submit" variant="secondary" disabled={!front.trim() || !back.trim()}><Icon name="plus" className="size-4" /> Add</Button>
+        <Button type="submit" variant="secondary" disabled={!front.trim() || !back.trim()}>Add</Button>
       </form>
       <ul className="max-h-96 overflow-y-auto rounded-xl border border-line">
         {set.cards.map((c) => (
@@ -166,7 +166,7 @@ function EditCards({ set }: { set: StudySet }) {
         </Select>
         <Button size="sm" variant="ghost" onClick={() => { const n = prompt('Rename', set.name)?.trim(); if (n) l.updateSet(set.id, { name: n.slice(0, 60) }); }}>Rename</Button>
         <Button size="sm" variant="ghost" onClick={share}>Share</Button>
-        <Button size="sm" variant="ghost" className="ml-auto text-danger" onClick={() => confirm(`Delete “${set.name}”?`) && l.deleteSet(set.id)}><Icon name="trash" className="size-4" /> Delete set</Button>
+        <Button size="sm" variant="ghost" className="ml-auto text-danger" onClick={() => confirm(`Delete “${set.name}”?`) && l.deleteSet(set.id)}>Delete set</Button>
       </div>
     </div>
   );
@@ -193,13 +193,13 @@ function SetView({ set, onBack }: { set: StudySet; onBack: () => void }) {
         <Button size="sm" variant="ghost" aria-label="All sets" onClick={onBack}><Icon name="chevron" className="size-4 rotate-180" /></Button>
         <div className="min-w-0 flex-1">
           <h2 className="truncate text-[20px] leading-7">{set.name}</h2>
-          <p className="tnum text-[13px] text-muted">{set.cards.length} cards{due ? ` · ${due} to review` : ''}</p>
+          <p className="tnum text-[13px] text-muted">{set.cards.length} cards{due ? `, ${due} to review` : ''}</p>
         </div>
-        <Button variant="secondary" onClick={() => setEditing(true)}><Icon name="pen" className="size-4" /> Edit cards</Button>
+        <Button variant="secondary" onClick={() => setEditing(true)}>Edit cards</Button>
       </div>
       <div role="tablist" aria-label="How to study" className="grid grid-cols-3 gap-2">
         {PLAY.map((m) => (
-          <button key={m.id} type="button" role="tab" aria-selected={play === m.id} disabled={!set.cards.length || (m.id !== 'cards' && set.cards.length < 4)} onClick={() => setPlay(m.id)} className={cn('flex items-center justify-center gap-2 rounded-xl border py-3 text-[14px] font-semibold transition-colors disabled:opacity-40', play === m.id ? 'border-accent bg-accent-soft text-accent-ink' : 'border-line bg-surface text-ink-2 hover:border-ink/30')}>
+          <button key={m.id} type="button" role="tab" aria-selected={play === m.id} disabled={!set.cards.length || (m.id !== 'cards' && set.cards.length < 4)} onClick={() => setPlay(m.id)} className={cn('flex items-center justify-center gap-2 rounded-xl border py-3 text-[14px] font-semibold transition-colors disabled:opacity-40', play === m.id ? 'border-ink bg-surface-3 text-ink' : 'border-line bg-surface text-ink-2 hover:border-ink/30')}>
             <Icon name={m.icon} className="size-[18px]" /> {m.label}
           </button>
         ))}
@@ -208,7 +208,7 @@ function SetView({ set, onBack }: { set: StudySet; onBack: () => void }) {
         {set.cards.length ? <GameStage key={`${set.id}-${mode}`} set={set} mode={mode} /> : (
           <div className="grid place-items-center py-10 text-center">
             <p className="text-[15px] font-semibold">No cards yet</p>
-            <Button className="mt-3" onClick={() => setEditing(true)}><Icon name="plus" className="size-4" /> Add cards</Button>
+            <Button className="mt-3" onClick={() => setEditing(true)}>Add cards</Button>
           </div>
         )}
       </div>
@@ -241,8 +241,8 @@ export function GamesPage({ embedded = false }: { embedded?: boolean } = {}) {
       {open ? <SetView key={open.id} set={open} onBack={() => setOpenId(null)} /> : (
         <div className="grid gap-4">
           <div className="flex flex-wrap items-center gap-2">
-            <Button onClick={() => setPanel('new')}><Icon name="plus" className="size-4" /> New set</Button>
-            <Button variant="secondary" onClick={() => setPanel('decks')}><Icon name="book" className="size-4" /> Browse decks</Button>
+            <Button onClick={() => setPanel('new')}>New set</Button>
+            <Button variant="secondary" onClick={() => setPanel('decks')}>Browse decks</Button>
             {totalDue > 0 && <span className="tnum ml-auto text-[13px] text-muted"><strong className="text-ink">{totalDue}</strong> due today</span>}
             {folders.length > 1 && (
               <Select aria-label="Folder" className={cn('h-9 w-auto text-[13px]', totalDue === 0 && 'ml-auto')} value={folder} onChange={(e) => setFolder(e.target.value)}>
@@ -265,12 +265,12 @@ export function GamesPage({ embedded = false }: { embedded?: boolean } = {}) {
                   <button type="button" onClick={() => go(s.id)} className="grid min-w-0 text-left">
                     <span className="text-[12px] text-muted">{s.folder}</span>
                     <strong className="mt-0.5 line-clamp-2 text-[16px] leading-6 font-semibold">{s.name}</strong>
-                    <span className="mt-1 line-clamp-1 text-[13px] text-muted">{s.cards.slice(0, 3).map((c) => c.front).join(' · ') || 'No cards yet'}</span>
+                    <span className="mt-1 line-clamp-1 text-[13px] text-muted">{s.cards.slice(0, 3).map((c) => c.front).join(', ') || 'No cards yet'}</span>
                   </button>
                   <div className="mt-auto flex flex-wrap items-center gap-2 pt-4">
                     <span className="tnum flex-1 text-[13px] whitespace-nowrap text-muted">{s.cards.length} cards</span>
                     {due > 0 && <Badge tone="accent">{due} due</Badge>}
-                    <Button size="sm" onClick={() => go(s.id)}><Icon name="play" className="size-3.5" /> Study</Button>
+                    <Button size="sm" onClick={() => go(s.id)}>Study</Button>
                   </div>
                 </li>
               );

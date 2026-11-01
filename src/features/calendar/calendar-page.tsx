@@ -95,7 +95,7 @@ function MiniMonth({ anchor, onPick, today }: { anchor: number; onPick: (ms: num
           const d = addDays(start, i);
           const inMonth = new Date(d).getMonth() === m;
           return (
-            <button key={d} type="button" onClick={() => onPick(d)} className={cn('tnum mx-auto grid size-7 place-items-center rounded-full', d === today ? 'bg-accent-fill font-semibold text-white' : sameDay(d, anchor) ? 'bg-accent-soft font-semibold text-accent-ink' : inMonth ? 'text-ink hover:bg-surface-3' : 'text-muted/60 hover:bg-surface-3')}>
+            <button key={d} type="button" onClick={() => onPick(d)} className={cn('tnum mx-auto grid size-7 place-items-center rounded-full', d === today ? 'bg-ink font-semibold text-bg' : sameDay(d, anchor) ? 'bg-accent-soft font-semibold text-accent-ink' : inMonth ? 'text-ink hover:bg-surface-3' : 'text-muted/60 hover:bg-surface-3')}>
               {new Date(d).getDate()}
             </button>
           );
@@ -123,7 +123,7 @@ function TimeGrid({ days, items, today, now, onCreate, onOpen }: { days: number[
         {days.map((d) => (
           <div key={d} className="border-l border-line px-1.5 pt-2 pb-1.5 text-center">
             <p className="text-[12px] font-medium text-muted uppercase">{new Date(d).toLocaleDateString(undefined, { weekday: 'short' })}</p>
-            <p className={cn('tnum mx-auto mt-0.5 grid size-9 place-items-center rounded-full text-[20px]', d === today ? 'bg-accent-fill font-semibold text-white' : 'text-ink')}>{new Date(d).getDate()}</p>
+            <p className={cn('tnum mx-auto mt-0.5 grid size-9 place-items-center rounded-full text-[20px]', d === today ? 'bg-ink font-semibold text-bg' : 'text-ink')}>{new Date(d).getDate()}</p>
             <div className="mt-1 grid gap-0.5">
               {allDay(d).slice(0, 3).map((i) => (
                 <button key={i.key} type="button" onClick={() => onOpen(i)} title={i.title} className="truncate rounded-md px-1.5 py-0.5 text-left text-[12px] font-medium text-white" style={{ background: i.color }}>{i.kind === 'due' ? `Due: ${i.title}` : i.title}</button>
@@ -158,11 +158,11 @@ function TimeGrid({ days, items, today, now, onCreate, onOpen }: { days: number[
                     type="button"
                     onClick={() => onOpen(i)}
                     title={`${i.title}, ${fmt(i.start)} to ${fmt(i.end)}`}
-                    className={cn('absolute overflow-hidden rounded-lg px-1.5 py-1 text-left text-[12px] leading-4 transition-shadow hover:shadow-md', i.kind === 'block' ? 'border-l-[3px] border-accent bg-accent-soft text-accent-ink' : 'text-white', i.done && 'opacity-50 line-through')}
+                    className={cn('absolute overflow-hidden rounded-lg px-1.5 py-1 text-left text-[12px] leading-4 transition-shadow hover:shadow-md', i.kind === 'block' ? 'border-l-[3px] border-ink bg-surface-3 text-ink' : 'text-white', i.done && 'opacity-50 line-through')}
                     style={{ top: top + 1, height: h, left: `calc(${(col / n) * 100}% + 2px)`, width: `calc(${100 / n}% - 4px)`, background: i.kind === 'block' ? undefined : i.color }}
                   >
                     <strong className="block truncate font-semibold">{i.title}</strong>
-                    {h > 36 && <span className="block truncate opacity-90">{fmt(i.start)}{i.sub && h > 52 ? ` · ${i.sub}` : ''}</span>}
+                    {h > 36 && <span className="block truncate opacity-90">{fmt(i.start)}{i.sub && h > 52 ? `, ${i.sub}` : ''}</span>}
                   </button>
                 );
               })}
@@ -193,7 +193,7 @@ function MonthGrid({ anchor, items, today, onDay, onOpen }: { anchor: number; it
           const list = items.filter((x) => (x.allDay ? sameDay(x.start, d) : x.start < addDays(d, 1) && x.end > d)).sort((a, b) => Number(b.allDay) - Number(a.allDay) || a.start - b.start);
           return (
             <div key={d} className={cn('min-h-28 border-r border-b border-line p-1.5 max-sm:min-h-20 [&:nth-child(7n)]:border-r-0', new Date(d).getMonth() !== m && 'bg-surface-2')}>
-              <button type="button" onClick={() => onDay(d)} className={cn('tnum grid size-7 place-items-center rounded-full text-[13px]', d === today ? 'bg-accent-fill font-semibold text-white' : new Date(d).getMonth() === m ? 'hover:bg-surface-3' : 'text-muted')}>{new Date(d).getDate()}</button>
+              <button type="button" onClick={() => onDay(d)} className={cn('tnum grid size-7 place-items-center rounded-full text-[13px]', d === today ? 'bg-ink font-semibold text-bg' : new Date(d).getMonth() === m ? 'hover:bg-surface-3' : 'text-muted')}>{new Date(d).getDate()}</button>
               <div className="mt-0.5 grid gap-0.5">
                 {list.slice(0, 3).map((x) => (
                   <button key={x.key} type="button" onClick={() => onOpen(x)} className="flex min-w-0 items-center gap-1 rounded px-1 text-left text-[12px] leading-5 hover:bg-surface-3">
@@ -344,7 +344,7 @@ export function CalendarPage() {
     <>
       <div className="mt-6 grid gap-5 max-sm:mt-4 lg:grid-cols-[240px_minmax(0,1fr)] [&>*]:min-w-0">
         <aside className="hidden content-start gap-6 lg:grid">
-          <Button size="lg" onClick={() => setCreating(Date.now() + 60 * 60_000 - (Date.now() % (15 * 60_000)))}><Icon name="plus" className="size-4" /> Create</Button>
+          <Button size="lg" onClick={() => setCreating(Date.now() + 60 * 60_000 - (Date.now() % (15 * 60_000)))}>Create</Button>
           <MiniMonth anchor={anchor} today={today} onPick={setAnchor} />
           <div>
             <p className="mb-2 text-[13px] font-semibold text-muted">My calendars</p>
@@ -375,7 +375,7 @@ export function CalendarPage() {
             </span>
             <h1 className="mr-auto text-[26px] leading-8 max-sm:text-[21px]">{title}</h1>
             <Segmented wrap={false} label="View" value={view} onChange={changeView} options={[{ value: 'day', label: 'Day' }, { value: 'week', label: 'Week' }, { value: 'month', label: 'Month' }]} />
-            <Button onClick={() => setPlan(x.calendarFeeds.length ? 'routine' : 'calendars')}><Icon name="sparkle" className="size-4" /> Plan</Button>
+            <Button onClick={() => setPlan(x.calendarFeeds.length ? 'routine' : 'calendars')}>Plan</Button>
             <Button variant="secondary" className="lg:hidden" aria-label="Create" onClick={() => setCreating(Date.now())}><Icon name="plus" className="size-4" /></Button>
           </div>
           {view === 'month'

@@ -49,12 +49,12 @@ function AdvancedAiSettings() {
           const p = PROVIDERS[id];
           const active = ai.provider === id;
           return (
-            <button key={id} type="button" role="radio" aria-checked={active} onClick={() => ai.update({ provider: id as ProviderId })} className={cn("rounded-lg border px-3.5 py-3 text-left transition-colors", active ? "border-accent bg-accent-soft" : "border-line bg-surface hover:bg-surface-2")}>
+            <button key={id} type="button" role="radio" aria-checked={active} onClick={() => ai.update({ provider: id as ProviderId })} className={cn("rounded-lg border px-3.5 py-3 text-left transition-colors", active ? "border-ink bg-surface-3" : "border-line bg-surface hover:bg-surface-2")}>
               <span className="flex items-center justify-between gap-2">
                 <strong className="text-sm">{p.label}</strong>
                 <Badge tone={p.free ? 'ok' : 'default'}>{p.free ? 'Free' : 'Paid'}</Badge>
               </span>
-              <span className="mt-1.5 block text-xs text-muted">{p.images ? 'Text, photos & PDFs' : 'Text only'}{ai.keys[id] ? ' · key saved' : conn.status?.serverProviders.includes(id) ? ' · provided by site' : ''}</span>
+              <span className="mt-1.5 block text-xs text-muted">{p.images ? 'Text, photos & PDFs' : 'Text only'}{ai.keys[id] ? ', key saved' : conn.status?.serverProviders.includes(id) ? ', provided by site' : ''}</span>
             </button>
           );
         })}
@@ -111,7 +111,7 @@ function ProviderForm() {
           <div className="mt-3 flex flex-wrap items-center gap-2">
             <Button variant="secondary" loading={testing} onClick={test}>Test connection</Button>
             {savedKey && <Button variant="danger" onClick={() => (ai.setKey(ai.provider, ''), toast('Key removed from this browser.'))}>Remove key</Button>}
-            <a href={provider.keyUrl} target="_blank" rel="noopener noreferrer" className="text-[13px] font-semibold text-accent-ink underline">Get a {provider.free ? 'free ' : ''}key →</a>
+            <a href={provider.keyUrl} target="_blank" rel="noopener noreferrer" className="text-[13px] font-semibold text-accent-ink underline">Get a {provider.free ? 'free ' : ''}key</a>
           </div>
           {conn.status?.requiresAccessCode && (
             <Field label="Site access code" htmlFor="aiAccess" hint="only needed to use this site’s shared key">

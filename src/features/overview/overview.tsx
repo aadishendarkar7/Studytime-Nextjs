@@ -9,7 +9,7 @@ import { PrimaryAction } from '@/features/drop/drop-sheet';
 import { useDrops, whenLabel } from '@/features/drop/live';
 import { hotSpots } from '@/features/drop/logic';
 import { minutesOn, weekMinutes } from '@/features/focus/logic';
-import { PetCompanion, useGarden } from '@/features/garden/garden-page';
+import { useGarden } from '@/features/garden/garden-page';
 import { useExtras } from '@/lib/stores/extras';
 import { useProfile } from '@/lib/stores/profile';
 import { useNow } from '@/lib/use-now';
@@ -30,11 +30,11 @@ function OutNow() {
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <h2 className="font-sans text-[15px] leading-6 font-semibold">Out studying now</h2>
-          <p className="truncate text-[12px] text-muted">{live.length ? <><span className="mr-1 inline-block size-1.5 rounded-full bg-ok align-middle" />{plural(people, 'person', 'people')} at {plural(live.length, 'spot')}{hot && hot.people > 1 ? ` · busiest: ${hot.name}` : ''}</> : 'No one is out yet. Be the first.'}</p>
+          <p className="truncate text-[12px] text-muted">{live.length ? <><span className="mr-1 inline-block size-1.5 rounded-full bg-ok align-middle" />{plural(people, 'person', 'people')} at {plural(live.length, 'spot')}{hot && hot.people > 1 ? `, busiest: ${hot.name}` : ''}</> : 'No one is out yet. Be the first.'}</p>
         </div>
         <span className="flex shrink-0 gap-1">
           <Link href="/drop"><Button size="sm" variant="ghost">Map</Button></Link>
-          <Button size="sm" variant="secondary" onClick={() => show()}><Icon name="pin" className="size-4" /> Drop</Button>
+          <Button size="sm" variant="secondary" onClick={() => show()}>Drop</Button>
         </span>
       </div>
       {list.length ? (
@@ -44,7 +44,7 @@ function OutNow() {
               <Avatar name={d.name} size={30} />
               <Link href={`/drop?d=${d.id}`} className="min-w-0 flex-1">
                 <span className="block truncate text-[14px]"><span className="font-semibold">{d.name}</span> <span className="text-muted">at</span> {d.spotName}</span>
-                <span className="tnum block truncate text-[12px] text-muted">{d.startsAt <= now ? <span className="font-medium text-ok">Live · </span> : null}{whenLabel(d, now)}</span>
+                <span className="tnum block truncate text-[12px] text-muted">{d.startsAt <= now ? <span className="font-medium text-ok">Live, </span> : null}{whenLabel(d, now)}</span>
               </Link>
               <PrimaryAction d={d} />
             </li>
@@ -116,7 +116,7 @@ export function Overview() {
   const today = minutesOn(sessions, todayKey());
   const week = weekMinutes(sessions, d);
   // The header states facts about today instead of a greeting.
-  const line = today ? `${fmtMinutes(today)} focused today · ${fmtMinutes(week)} this week` : week ? `Nothing yet today · ${fmtMinutes(week)} this week` : 'No sessions yet this week';
+  const line = today ? `${fmtMinutes(today)} focused today, ${fmtMinutes(week)} this week` : week ? `Nothing yet today, ${fmtMinutes(week)} this week` : 'No sessions yet this week';
   return (
     <>
       <header className="mt-4 mb-5 flex flex-wrap items-end justify-between gap-4 max-sm:mt-2">
@@ -124,7 +124,6 @@ export function Overview() {
           <h1 className="text-[26px] leading-8 max-sm:text-[22px]">{d.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}</h1>
           <p className="tnum mt-0.5 text-[14px] text-muted">{line}</p>
         </div>
-        <PetCompanion className="max-sm:hidden" />
       </header>
       <div className="grid gap-4 lg:grid-cols-12 [&>*]:min-w-0">
         <FocusPanel className="lg:col-span-7 xl:col-span-8" />

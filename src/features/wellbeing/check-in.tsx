@@ -18,7 +18,7 @@ export function MoodPicker({ value, onChange }: { value: Mood | null; onChange: 
   return (
     <div role="radiogroup" aria-label="Mood" className="grid grid-cols-5 gap-1.5">
       {MOODS.map((m) => (
-        <button key={m.value} type="button" role="radio" aria-checked={value === m.value} onClick={() => onChange(m.value)} className={cn('flex flex-col items-center gap-1.5 rounded-xl border px-1 py-2.5 text-[13px] font-medium transition-colors', value === m.value ? 'border-accent bg-accent-soft text-accent-ink' : 'border-line hover:bg-surface-3')}>
+        <button key={m.value} type="button" role="radio" aria-checked={value === m.value} onClick={() => onChange(m.value)} className={cn('flex flex-col items-center gap-1.5 rounded-xl border px-1 py-2.5 text-[13px] font-medium transition-colors', value === m.value ? 'border-ink bg-surface-3 text-ink' : 'border-line hover:bg-surface-3')}>
           <span className="size-5 rounded-full" style={{ background: MOOD_FILL[m.value] }} aria-hidden="true" />
           {m.label}
         </button>

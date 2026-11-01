@@ -4,7 +4,6 @@ import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { Avatar } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Icon } from '@/components/ui/icons';
 import { useAccount } from '@/features/auth/account';
 import { SignInGate } from '@/features/auth/sign-in-gate';
 import { InviteCard } from '@/features/auth/invite-card';
@@ -63,9 +62,9 @@ function ClassPageBody() {
           <p className="text-[13px] text-muted">{data ? `${plural(others.length, 'classmate')} on Studytime${p.school ? ` at ${p.school}` : ''}` : 'Loading'}</p>
         </div>
         <div className="flex flex-wrap gap-2">
-          {!onProfile && <Button variant="secondary" onClick={() => (p.update({ courses: [...p.courses, key].slice(0, 12) }), toast(`${key} added to your classes.`))}><Icon name="plus" className="size-4" /> Add to my classes</Button>}
-          <Link href={`/friends?tab=messages&channel=${encodeURIComponent(courseChannel(p.school, key))}`}><Button variant="secondary"><Icon name="chat" className="size-4" /> Class chat</Button></Link>
-          <Button onClick={() => useDropComposer.getState().show({ subject: key })}><Icon name="pin" className="size-4" /> Drop a spot for {key}</Button>
+          {!onProfile && <Button variant="secondary" onClick={() => (p.update({ courses: [...p.courses, key].slice(0, 12) }), toast(`${key} added to your classes.`))}>Add to my classes</Button>}
+          <Link href={`/friends?tab=messages&channel=${encodeURIComponent(courseChannel(p.school, key))}`}><Button variant="secondary">Class chat</Button></Link>
+          <Button onClick={() => useDropComposer.getState().show({ subject: key })}>Drop a spot for {key}</Button>
         </div>
       </header>
 

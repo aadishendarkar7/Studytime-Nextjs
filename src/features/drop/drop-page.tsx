@@ -31,7 +31,7 @@ const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, '');
 
 function Chip({ on, onClick, children }: { on: boolean; onClick: () => void; children: React.ReactNode }) {
   return (
-    <button type="button" aria-pressed={on} onClick={onClick} className={cn('inline-flex h-8 shrink-0 items-center gap-1.5 rounded-lg border px-2.5 text-[13px] font-medium transition-colors', on ? 'border-accent-fill bg-accent-fill text-white' : 'border-line bg-surface text-ink-2 hover:border-line-strong/60 hover:text-ink')}>
+    <button type="button" aria-pressed={on} onClick={onClick} className={cn('inline-flex h-8 shrink-0 items-center gap-1.5 rounded-md border px-2.5 text-[13px] font-medium transition-colors', on ? 'border-ink bg-ink text-bg' : 'border-line bg-surface text-ink-2 hover:border-line-strong hover:text-ink')}>
       {children}
     </button>
   );
@@ -95,10 +95,10 @@ function YourDropBar({ onOpen }: { onOpen: (id: string) => void }) {
         const live = d.startsAt <= now;
         return (
           <div key={d.id} className="flex flex-wrap items-center gap-3 rounded-xl border border-accent/30 bg-accent-soft px-4 py-2.5">
-            <span className="relative grid size-8 place-items-center rounded-lg bg-accent-fill text-white"><Icon name="pin" className="size-4" />{live && <span className="absolute -top-0.5 -right-0.5 size-3 rounded-full border-2 border-surface bg-ok" />}</span>
+            <span className="relative grid size-8 place-items-center rounded-lg bg-ink text-bg"><Icon name="pin" className="size-4" />{live && <span className="absolute -top-0.5 -right-0.5 size-3 rounded-full border-2 border-surface bg-ok" />}</span>
             <div className="min-w-0 flex-1">
               <p className="truncate text-[14px] font-semibold text-ink">{mine ? (live ? `You are live at ${d.spotName}` : `You dropped ${d.spotName}`) : `Joining ${d.name} at ${d.spotName}`}</p>
-              <p className="tnum text-[12px] text-ink-2">{whenLabel(d, now)}{mine ? ` · ${d.joiners.length ? `${here} here, ${d.joiners.length - here} coming` : 'waiting for people'}` : ''}{d.messages.length ? ` · ${plural(d.messages.length, 'message')}` : ''}</p>
+              <p className="tnum text-[12px] text-ink-2">{whenLabel(d, now)}{mine ? `, ${d.joiners.length ? `${here} here, ${d.joiners.length - here} coming` : 'waiting for people'}` : ''}{d.messages.length ? `, ${plural(d.messages.length, 'message')}` : ''}</p>
             </div>
             <div className="flex gap-2">
               <PrimaryAction d={d} />
@@ -170,7 +170,7 @@ function LiveTab({ openId, setOpenId }: { openId: string | null; setOpenId: (id:
     const mine = new Set(x.myDrops.map((m) => m.id));
     return [
       ...x.spots.map((s) => ({ id: `spot-${s.id}`, lat: s.lat, lng: s.lng, title: s.name, body: 'Your saved spot', kind: 'mine' as const })),
-      ...shown.filter((d) => d.lat !== null && d.lng !== null).map((d) => ({ id: d.id, lat: d.lat!, lng: d.lng!, title: `${d.name} at ${d.spotName}`, body: `${whenLabel(d)} · ${vibeLabel(d.vibe)}${d.joiners.length ? ` · ${d.joiners.length + 1} people` : ''}`, kind: mine.has(d.id) ? ('mydrop' as const) : ('drop' as const), label: d.name })),
+      ...shown.filter((d) => d.lat !== null && d.lng !== null).map((d) => ({ id: d.id, lat: d.lat!, lng: d.lng!, title: `${d.name} at ${d.spotName}`, body: `${whenLabel(d)}, ${vibeLabel(d.vibe)}${d.joiners.length ? `, ${d.joiners.length + 1} people` : ''}`, kind: mine.has(d.id) ? ('mydrop' as const) : ('drop' as const), label: d.name })),
     ];
   }, [shown, x.spots, x.myDrops]);
 
@@ -185,19 +185,17 @@ function LiveTab({ openId, setOpenId }: { openId: string | null; setOpenId: (id:
       <section className="relative self-start overflow-hidden panel lg:sticky lg:top-6 lg:col-span-7">
         <SpotMap pins={pins} focus={focus} onSelect={(id) => !id.startsWith('spot-') && open(id)} onPick={(lat, lng) => useDropComposer.getState().show({ lat, lng })} className="h-[620px] max-sm:h-[380px]" />
         <div className="pointer-events-none absolute inset-x-3 top-3 z-[500] flex justify-end">
-          <button type="button" onClick={nearMe} className={cn('pointer-events-auto inline-flex h-8 items-center gap-1.5 rounded-lg border px-3 text-[13px] font-medium shadow-sm', me ? 'border-accent-fill bg-accent-fill text-white' : 'border-line bg-surface text-ink')}>
-            <Icon name="locate" className="size-4" /> {me ? 'Nearest first' : 'Near me'}
+          <button type="button" onClick={nearMe} className={cn('pointer-events-auto inline-flex h-8 items-center gap-1.5 rounded-lg border px-3 text-[13px] font-medium shadow-sm', me ? 'border-accent-fill bg-ink text-bg' : 'border-line bg-surface text-ink')}>{me ? 'Nearest first' : 'Near me'}
           </button>
         </div>
         <div className="pointer-events-none absolute inset-x-3 bottom-3 z-[500] flex justify-between gap-2">
-          <span className="pointer-events-auto inline-flex items-center gap-1.5 rounded-lg border border-line bg-surface/95 px-2.5 py-1 text-[12px] font-medium text-ink-2"><LiveDot on={nowList.length > 0} />{nowList.length ? `${plural(nowList.length, 'drop')} live` : 'Quiet right now'}{later.length ? ` · ${later.length} later` : ''}</span>
-          <button type="button" onClick={() => useDropComposer.getState().show()} className="pointer-events-auto inline-flex h-8 items-center gap-1.5 rounded-lg bg-accent-fill px-3 text-[13px] font-semibold text-white shadow-sm"><Icon name="plus" className="size-4" /> Drop here</button>
+          <span className="pointer-events-auto inline-flex items-center gap-1.5 rounded-lg border border-line bg-surface/95 px-2.5 py-1 text-[12px] font-medium text-ink-2">{nowList.length > 0 && <LiveDot on />}{nowList.length ? `${plural(nowList.length, 'drop')} live` : 'Quiet right now'}{later.length ? `, ${later.length} later` : ''}</span>
         </div>
       </section>
 
       <div className="grid content-start gap-4 lg:col-span-5">
         {error && <p className="rounded-xl bg-danger-soft px-4 py-3 text-[14px] text-danger">{error}</p>}
-        <Segmented label="Show" value={side} onChange={setSide} options={[{ value: 'now', label: nowList.length ? `Happening now · ${nowList.length}` : 'Happening now' }, { value: 'yours', label: 'Your drops' }]} />
+        <Segmented label="Show" value={side} onChange={setSide} options={[{ value: 'now', label: nowList.length ? `Happening now (${nowList.length})` : 'Happening now' }, { value: 'yours', label: 'Your drops' }]} />
         {side === 'yours' ? <YoursTab /> : <>
         <div className="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1 [scrollbar-width:none]">
           <Chip on={vibe === 'all'} onClick={() => setVibe('all')}>All</Chip>
@@ -230,13 +228,10 @@ function LiveTab({ openId, setOpenId }: { openId: string | null; setOpenId: (id:
         <section>
           <div className="divide-y divide-line overflow-hidden panel empty:hidden">
             {nowList.length ? nowList.map((d) => <DropRow key={d.id} d={d} me={me} selected={openId === d.id} onOpen={() => open(d.id)} />) : loaded && (
-              <div className="flex flex-col items-center px-6 py-10 text-center">
-                <span className="grid size-12 place-items-center rounded-full bg-accent-soft text-accent-ink"><Icon name="pin" className="size-6" /></span>
-                <p className="mt-3 text-[16px] font-semibold">{filtered ? 'Nothing matches' : p.school ? `Be the first at ${p.school}` : 'Be the first one out'}</p>
-                <div className="mt-4 flex gap-2">
-                  {filtered && <Button variant="secondary" onClick={() => (setVibe('all'), setCategory('all'), setMyCourses(false))}>Show all</Button>}
-                  <Button onClick={() => useDropComposer.getState().show()}><Icon name="pin" className="size-4" /> Drop a spot</Button>
-                </div>
+              <div className="px-4 py-5">
+                <p className="text-[14px] font-semibold">{filtered ? 'Nothing matches those filters' : p.school ? `Nobody from ${p.school} is out yet` : 'Nobody is out yet'}</p>
+                <p className="mt-0.5 text-[13px] text-muted">{filtered ? 'Try fewer filters.' : 'When someone drops a spot, it shows up here and on the map.'}</p>
+                {filtered && <Button className="mt-3" size="sm" variant="secondary" onClick={() => (setVibe('all'), setCategory('all'), setMyCourses(false))}>Show all</Button>}
               </div>
             )}
           </div>
@@ -283,7 +278,7 @@ function LiveDot({ on }: { on: boolean }) {
 
 function Stat({ label, value, note, small }: { label: string; value: string; note?: string; small?: boolean }) {
   return (
-    <div className="well min-w-0 px-3 py-2.5">
+    <div className="min-w-0 border-l-2 border-line pl-3">
       <p className="text-[12px] text-muted">{label}</p>
       <p className={cn('tnum mt-0.5 truncate font-display', small ? 'text-[17px] leading-7' : 'text-[22px] leading-7')}>{value}</p>
       {note && <p className="truncate text-[12px] text-muted">{note}</p>}
@@ -301,7 +296,7 @@ function YoursTab() {
   const log = [...x.dropLog].filter((e) => e.at <= now).sort((a, b) => b.at - a.at).slice(0, 40);
   if (!x.dropLog.length)
     return (
-      <Empty title="No drops yet" action={<Button onClick={() => useDropComposer.getState().show()}><Icon name="pin" className="size-4" /> Drop your first spot</Button>}>{null}</Empty>
+      <Empty title="No drops yet" action={<Button onClick={() => useDropComposer.getState().show()}>Drop your first spot</Button>}>{null}</Empty>
     );
   return (
     <div className="grid gap-6">
@@ -321,7 +316,7 @@ function YoursTab() {
                 <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-surface-3 text-ink-2"><Icon name="pin" className="size-4" /></span>
                 <span className="min-w-0 flex-1">
                   <strong className="block truncate text-[14px] font-medium">{e.spotName}</strong>
-                  <span className="block truncate text-[13px] text-muted">{[e.subject, vibeLabel(e.vibe)].filter(Boolean).join(' · ')}</span>
+                  <span className="block truncate text-[13px] text-muted">{[e.subject, vibeLabel(e.vibe)].filter(Boolean).join(', ')}</span>
                 </span>
                 <Icon name="plus" className="size-4 text-muted" />
               </button>
@@ -341,7 +336,7 @@ function YoursTab() {
               <span className="tnum w-20 shrink-0 text-[12px] text-muted">{new Date(e.at).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}</span>
               <span className="min-w-0 flex-1">
                 <strong className="block truncate text-[14px] font-medium">{e.spotName}</strong>
-                <span className="block truncate text-[13px] text-muted">{ROLE[e.role]}{e.subject ? ` · ${e.subject}` : ''}{e.with.length ? ` · with ${e.with.slice(0, 3).join(', ')}${e.with.length > 3 ? ` +${e.with.length - 3}` : ''}` : ''}</span>
+                <span className="block truncate text-[13px] text-muted">{ROLE[e.role]}{e.subject ? `, ${e.subject}` : ''}{e.with.length ? `, with ${e.with.slice(0, 3).join(', ')}${e.with.length > 3 ? ` +${e.with.length - 3}` : ''}` : ''}</span>
               </span>
               <span className="tnum text-[13px] text-muted">{fmtMinutes(Math.round(Math.min(e.minutes, (now - e.at) / 60_000)))}</span>
             </li>
@@ -405,14 +400,14 @@ export function DropPage() {
       <header className="mt-4 mb-4 flex flex-wrap items-end justify-between gap-4 max-sm:mt-2">
         <div className="min-w-0">
           <p className="flex items-center gap-2 text-[12px] font-medium text-muted">
-            <LiveDot on={live.length > 0} />
+            {live.length > 0 && <LiveDot on />}
             {live.length ? `${plural(people, 'person', 'people')} studying at ${plural(live.length, 'spot')} right now` : 'No one is out right now'}
           </p>
           <h1 className="mt-1 text-[26px] leading-8 max-sm:text-[22px]">Drop a Spot</h1>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Button variant="secondary" onClick={() => useDropComposer.getState().show({ solo: true })}><Icon name="user" className="size-4" /> Study solo</Button>
-          <Button onClick={() => useDropComposer.getState().show()}><Icon name="pin" className="size-4" /> Drop a spot</Button>
+          <Button variant="secondary" onClick={() => useDropComposer.getState().show({ solo: true })}>Study solo</Button>
+          <Button onClick={() => useDropComposer.getState().show()}>Drop a spot</Button>
         </div>
       </header>
       <YourDropBar onOpen={setOpenId} />

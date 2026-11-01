@@ -145,8 +145,8 @@ export function GardenPage() {
         </div>
 
         <div className="flex flex-wrap items-center gap-2 border-t border-line px-4 py-3">
-          <Button size="sm" variant="secondary" onClick={() => (say(g.stage === 'egg' ? undefined : `Thanks. Your turn: ${['shoulders down', 'unclench your jaw', 'sit up a bit', 'look away from the screen for 20 seconds'][Math.floor(Math.random() * 4)]}.`), love())}><Icon name="heart" className="size-4" /> Pet</Button>
-          <Button size="sm" variant="secondary" onClick={() => setDesigning(true)}><Icon name="palette" className="size-4" /> Customize</Button>
+          <Button size="sm" variant="secondary" onClick={() => (say(g.stage === 'egg' ? undefined : `Thanks. Your turn: ${['shoulders down', 'unclench your jaw', 'sit up a bit', 'look away from the screen for 20 seconds'][Math.floor(Math.random() * 4)]}.`), love())}>Pet</Button>
+          <Button size="sm" variant="secondary" onClick={() => setDesigning(true)}>Customize</Button>
           <span className="flex-1" />
           <label className="flex items-center gap-2 text-[13px]">
             <span className="text-muted">Wearing</span>
@@ -218,7 +218,7 @@ export function PacksPanel() {
           <h2 className="font-sans text-[15px] leading-6 font-semibold">Mystery packs</h2>
           <p className="text-[13px] text-muted">One for every hour of focus, plus one for every friend who joins from your invite link. Duplicates turn into +{DUPLICATE_POINTS} points.</p>
         </div>
-        <Button onClick={open} disabled={!g.packs || opening}><Icon name="sparkle" className="size-4" /> {g.packs ? `Open a pack (${g.packs})` : 'No packs yet'}</Button>
+        <Button onClick={open} disabled={!g.packs || opening}>{g.packs ? `Open a pack (${g.packs})` : 'No packs yet'}</Button>
       </div>
       <div className="mt-4 grid h-[150px] place-items-center rounded-xl border border-dashed border-line bg-surface-2" style={{ perspective: 600 }}>
         {opening ? (
@@ -293,7 +293,7 @@ function PetDesigner({ stage, onClose }: { stage: ReturnType<typeof petStage>; o
       <div className="grid gap-5 sm:grid-cols-[180px_minmax(0,1fr)]">
         <div className="grid content-start gap-2">
           <div className="aspect-square rounded-xl bg-surface-2 p-2"><PetArt mood="happy" wear={x.petWear} stage={stage} body={body} /></div>
-          <Button size="sm" variant="secondary" onClick={surprise}><Icon name="sparkle" className="size-4" /> Surprise me</Button>
+          <Button size="sm" variant="secondary" onClick={surprise}>Surprise me</Button>
         </div>
         <div className="grid content-start gap-4">
           <div>

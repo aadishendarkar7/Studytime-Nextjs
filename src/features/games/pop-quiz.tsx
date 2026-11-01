@@ -75,7 +75,7 @@ export function PopQuiz() {
     <div role="dialog" aria-labelledby="pq-title" className="water-pop fixed right-4 bottom-20 z-50 w-[min(380px,calc(100vw-32px))] panel p-4 shadow-lg lg:right-6 lg:bottom-6">
       <div className="flex items-start gap-2">
         <div className="min-w-0 flex-1">
-          <p className="text-[12px] font-medium text-muted">Pop quiz · {q.setName}</p>
+          <p className="text-[12px] font-medium text-muted">Pop quiz: {q.setName}</p>
           <p id="pq-title" className="mt-1 text-[15px] leading-6 font-semibold">{q.front}</p>
         </div>
         <button type="button" onClick={close} aria-label="Close" className="-mt-1 -mr-1 grid size-7 shrink-0 place-items-center rounded-md text-muted hover:bg-surface-3 hover:text-ink"><Icon name="close" className="size-4" /></button>

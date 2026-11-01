@@ -101,9 +101,9 @@ export function ExamPrepCard({ initial }: { initial?: string | null }) {
           const r = readiness((x.examPreps[e.key]?.topics ?? []) as Topic[], x.studyBlocks, e.key);
           const on = e.key === exam.key;
           return (
-            <button key={e.key} type="button" role="tab" aria-selected={on} onClick={() => (setKey(e.key), setProposals(null))} className={cn('min-w-[170px] shrink-0 rounded-xl border px-3.5 py-2.5 text-left', on ? 'border-accent bg-accent-soft' : 'border-line bg-surface hover:border-line-strong')}>
+            <button key={e.key} type="button" role="tab" aria-selected={on} onClick={() => (setKey(e.key), setProposals(null))} className={cn('min-w-[170px] shrink-0 rounded-xl border px-3.5 py-2.5 text-left', on ? 'border-ink bg-surface-3' : 'border-line bg-surface hover:border-line-strong')}>
               <span className="block truncate text-[14px] font-semibold">{e.title}</span>
-              <span className="tnum block text-[12px] text-muted">{countdown(e.at, now)}{r !== null ? ` · ${r}% ready` : ' · not planned'}</span>
+              <span className="tnum block text-[12px] text-muted">{countdown(e.at, now)}{r !== null ? `, ${r}% ready` : ', not planned'}</span>
             </button>
           );
         })}
@@ -112,7 +112,7 @@ export function ExamPrepCard({ initial }: { initial?: string | null }) {
       <Card>
         <CardHeader
           title={exam.title}
-          description={`${new Date(exam.at).toLocaleString(undefined, { weekday: 'long', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })} · ${countdown(exam.at, now)}`}
+          description={`${new Date(exam.at).toLocaleString(undefined, { weekday: 'long', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}, ${countdown(exam.at, now)}`}
           action={ready !== null && (
             <div className="w-40">
               <div className="flex justify-between text-[12px]"><span className="text-muted">Ready</span><span className="tnum font-semibold">{ready}%</span></div>
@@ -145,7 +145,7 @@ export function ExamPrepCard({ initial }: { initial?: string | null }) {
           <Button type="submit" variant="secondary">Add</Button>
         </form>
         <div className="mt-3 flex flex-wrap gap-2">
-          <Button variant="secondary" loading={busy} onClick={() => (showMaterial || topics.length ? findTopics() : setShowMaterial(true))}><Icon name="sparkle" className="size-4" /> {topics.length ? 'Suggest more topics' : 'Find topics with AI'}</Button>
+          <Button variant="secondary" loading={busy} onClick={() => (showMaterial || topics.length ? findTopics() : setShowMaterial(true))}>{topics.length ? 'Suggest more topics' : 'Find topics with AI'}</Button>
           {!showMaterial && <Button variant="ghost" onClick={() => setShowMaterial(true)}>Paste a study guide</Button>}
         </div>
         {showMaterial && (
@@ -158,7 +158,7 @@ export function ExamPrepCard({ initial }: { initial?: string | null }) {
         {topics.length > 0 && (
           <div className="mt-5 rounded-xl bg-surface-2 p-4">
             <p className="text-[14px]"><strong className="font-semibold">{plural(need.length + 2, 'session')}, about {fmtMinutes(needMinutes)}</strong> <span className="text-muted">over the {days > 1 ? `${days} days` : 'time'} left. Topics in order, a practice exam two days before, a light review the day before.</span></p>
-            <Button className="mt-3" onClick={build}><Icon name="calendar" className="size-4" /> {upcoming.length ? 'Rebuild my plan' : 'Build my exam plan'}</Button>
+            <Button className="mt-3" onClick={build}>{upcoming.length ? 'Rebuild my plan' : 'Build my exam plan'}</Button>
             {proposals && <ProposalList key={proposals.length + String(proposals[0]?.start)} proposals={proposals} onDone={() => setProposals(null)} />}
           </div>
         )}

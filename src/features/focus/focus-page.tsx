@@ -8,7 +8,6 @@ import { useProfile } from '@/lib/stores/profile';
 import { cn } from '@/lib/utils';
 import { toast } from '@/lib/stores/ui';
 import { useDropComposer } from '@/features/drop/composer';
-import { Icon } from '@/components/ui/icons';
 import { awardFor, DURATIONS, MAX_LENGTH, MIN_LENGTH } from './logic';
 import { TimerReadout } from './timer-readout';
 
@@ -73,7 +72,7 @@ export function FocusPanel({ className }: { className?: string }) {
       <div className="mt-6 flex flex-wrap items-center gap-3">
         <Button size="lg" onClick={p.startOrPause}>{t.mode === 'running' ? 'Pause' : t.mode === 'paused' ? 'Resume' : 'Start focus'}</Button>
         {locked && <Button size="lg" variant="secondary" onClick={p.resetTimer}>Reset</Button>}
-        <Button variant="ghost" onClick={() => useDropComposer.getState().show({ minutes: p.duration })}><Icon name="pin" className="size-4" /> Tell friends where</Button>
+        <Button variant="ghost" onClick={() => useDropComposer.getState().show({ minutes: p.duration })}>Tell friends where</Button>
       </div>
       {justFinishedTiny && t.mode === 'ready' && (
         <div className="mt-4 flex flex-wrap items-center gap-3 rounded-xl bg-accent-soft px-4 py-3">

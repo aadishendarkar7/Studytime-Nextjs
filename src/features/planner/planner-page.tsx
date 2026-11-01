@@ -3,14 +3,13 @@ import { useEffect, useState } from 'react';
 import { Badge, Card, CardHeader, Empty, PageHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Field, FieldRow, Input, Select } from '@/components/ui/field';
-import { Icon } from '@/components/ui/icons';
-import { streaks } from '@/features/focus/logic';
+
 import { Breakdown } from './breakdown';
 import { LEAD_NAMES, REMINDER_TYPES, ReminderRow, SessionRow } from '@/features/shared';
 import { useProfile } from '@/lib/stores/profile';
 import { toast } from '@/lib/stores/ui';
 import type { ReminderType } from '@/lib/types';
-import { cn, dateKey, downloadFile, fmtMinutes, localDateTimeValue, todayKey } from '@/lib/utils';
+import { cn, dateKey, downloadFile, localDateTimeValue, todayKey } from '@/lib/utils';
 import { minutesOn } from '@/features/focus/logic';
 import { SyllabusImport } from './syllabus-import';
 
@@ -78,7 +77,7 @@ export function ReminderList() {
   );
   return (
     <Card className="mt-5">
-      <CardHeader title="Reminders" action={<div className="flex items-center gap-3"><Badge>{upcoming.length} upcoming</Badge><Button size="sm" variant="secondary" onClick={exportIcs}><Icon name="download" className="size-4" /> Export to calendar</Button></div>} />
+      <CardHeader title="Reminders" action={<div className="flex items-center gap-3"><Badge>{upcoming.length} upcoming</Badge><Button size="sm" variant="secondary" onClick={exportIcs}>Export to calendar</Button></div>} />
       {upcoming.length || done.length ? (
         <>
           {upcoming.map((r) => <ReminderRow key={r.id} r={r} actions={actions(r.id, false)} />)}
@@ -93,20 +92,18 @@ export function ReminderList() {
 }
 
 export function Activity() {
-  const { sessions, points } = useProfile();
+  const { sessions } = useProfile();
   const [month, setMonth] = useState(() => new Date(new Date().getFullYear(), new Date().getMonth(), 1));
   const y = month.getFullYear();
   const m = month.getMonth();
   const first = (new Date(y, m, 1).getDay() + 6) % 7;
   const count = new Date(y, m + 1, 0).getDate();
   const now = new Date();
-  const { best } = streaks(sessions);
-  const total = sessions.reduce((n, s) => n + s.minutes, 0);
   const [showAll, setShowAll] = useState(false);
   return (
     <section id="activity" className="scroll-mt-6">
       <PageHeader level={2} title="Your activity" description="Study minutes by day, and your full session history." />
-      <div className="grid gap-5 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
+      <div className="grid max-w-3xl gap-5">
         <Card>
           <CardHeader
             title={month.toLocaleDateString(undefined, { month: 'long', year: 'numeric' })}
@@ -124,23 +121,12 @@ export function Activity() {
               const key = dateKey(new Date(y, m, i + 1));
               const n = minutesOn(sessions, key);
               return (
-                <span key={key} title={n ? `${n} minutes studied` : 'No study sessions'} className={cn('tnum grid aspect-square place-items-center border text-[13px] font-medium rounded-xl', n ? 'border-accent-fill bg-accent-fill text-white' : 'border-line text-ink-2', key === todayKey() && 'border-line outline-2 -outline-offset-3 outline-ink')}>
+                <span key={key} title={n ? `${n} minutes studied` : 'No study sessions'} className={cn('tnum grid aspect-square place-items-center border text-[13px] font-medium rounded-xl', n ? 'border-accent-fill bg-ink text-bg' : 'border-line text-ink-2', key === todayKey() && 'border-line outline-2 -outline-offset-3 outline-ink')}>
                   {i + 1}
                 </span>
               );
             })}
           </div>
-        </Card>
-        <Card>
-          <CardHeader title="Your numbers" />
-          {[
-            ['Total study time', fmtMinutes(total)],
-            ['Sessions completed', String(sessions.length)],
-            ['Longest streak', `${best} ${best === 1 ? 'day' : 'days'}`],
-            ['Points earned', `${points} pts`],
-          ].map(([label, value]) => (
-            <div key={label} className="flex justify-between border-b border-line py-3.5 text-sm last:border-0"><span className="text-muted">{label}</span><strong>{value}</strong></div>
-          ))}
         </Card>
       </div>
       <Card className="mt-5">

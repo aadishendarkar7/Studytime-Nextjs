@@ -147,7 +147,7 @@ export function ChatTool({ compact = false, initialAction = '', onHide }: { comp
         <div className="mb-2">
           <div className="flex flex-wrap gap-1.5" role="radiogroup" aria-label="What should the tutor do">
             {[{ id: '', label: 'Ask' }, ...ACTIONS].filter((a) => PRIMARY.includes(a.id) || a.id === action).map((a) => (
-              <button key={a.id} type="button" role="radio" aria-checked={action === a.id} onClick={() => (setAction(a.id), inputRef.current?.focus())} className={cn('shrink-0 rounded-lg border px-2.5 py-1 text-[12px] font-medium whitespace-nowrap transition-colors', action === a.id ? 'border-accent bg-accent-soft text-accent-ink' : 'border-line bg-surface text-ink-2 hover:border-line-strong hover:text-ink')}>{a.label}</button>
+              <button key={a.id} type="button" role="radio" aria-checked={action === a.id} onClick={() => (setAction(a.id), inputRef.current?.focus())} className={cn('shrink-0 rounded-md border px-2.5 py-1 text-[12px] font-medium whitespace-nowrap transition-colors', action === a.id ? 'border-ink bg-ink text-bg' : 'border-line bg-surface text-ink-2 hover:border-line-strong hover:text-ink')}>{a.label}</button>
             ))}
           </div>
           {action === 'custom' && <input value={custom} onChange={(e) => setCustom(e.target.value)} maxLength={300} aria-label="What to make" placeholder="What should it make? e.g. a formula sheet for chapters 3 and 4 only" className="mt-1.5 h-9 w-full rounded-lg border border-line-strong/60 bg-surface px-3 text-[13px] outline-none focus:border-accent" />}
@@ -190,7 +190,7 @@ export function ChatTool({ compact = false, initialAction = '', onHide }: { comp
             </select>
             <Icon name="down" className="pointer-events-none absolute right-2 size-3.5 text-muted" />
           </span>
-          <button type="submit" id="chatSend" aria-label={run.running ? 'Stop' : 'Send'} disabled={!run.running && !input.trim() && !att.files.length} className="ml-auto grid size-8 place-items-center rounded-full bg-accent-fill text-white transition-opacity hover:opacity-85 disabled:opacity-25">
+          <button type="submit" id="chatSend" aria-label={run.running ? 'Stop' : 'Send'} disabled={!run.running && !input.trim() && !att.files.length} className="ml-auto grid size-8 place-items-center rounded-full bg-ink text-bg transition-opacity hover:opacity-85 disabled:opacity-25">
             <Icon name={run.running ? 'stop' : 'up'} className="size-4" />
           </button>
         </div>
@@ -206,7 +206,7 @@ export function ChatTool({ compact = false, initialAction = '', onHide }: { comp
           m.role === 'user' ? (
             <div key={i} className="flex justify-end">
               <div className="max-w-[85%] rounded-2xl bg-surface-3 px-4 py-2.5 text-[15px] leading-6 whitespace-pre-wrap text-ink">
-                {m.action && <span className="mb-1 block text-[11px] font-semibold tracking-wide text-accent-ink uppercase">{actionById(m.action)?.label ?? 'Custom'}</span>}
+                {m.action && <span className="mb-1 block text-[12px] font-medium text-muted">{actionById(m.action)?.label ?? 'Custom'}</span>}
                 {m.content}
                 {m.files?.length ? <small className="mt-1 block text-[12px] text-muted">Attached: {m.files.join(', ')}</small> : null}
               </div>
@@ -228,13 +228,16 @@ export function ChatTool({ compact = false, initialAction = '', onHide }: { comp
       <h2 className={cn('text-center font-sans font-semibold tracking-tight', compact ? 'text-[17px]' : 'text-[24px] leading-8')}>{mode === 'support' ? 'How are you doing?' : 'What are you studying?'}</h2>
       {!compact && <p className="mt-1 text-center text-[14px] text-muted">{mode === 'support' ? 'Talk through stress or motivation. This is not a replacement for a counselor.' : 'Ask anything, or attach lecture slides, a PDF or a photo and pick what to make from it.'}</p>}
       <div className="mt-6 w-full">{composer}</div>
-      <div className={cn('mx-auto mt-4 grid w-full max-w-[720px] gap-2', !compact && 'sm:grid-cols-2')}>
+      {/* Starters as a short plain list, not a grid of cards. */}
+      <ul className="mx-auto mt-4 w-full max-w-[720px] divide-y divide-line border-t border-line">
         {STARTERS[mode].map((st) => (
-          <button key={st} type="button" onClick={() => (st.endsWith(' ') ? (setInput(st), inputRef.current?.focus()) : send(st))} className="rounded-xl border border-line px-3.5 py-2.5 text-left text-[13px] text-ink-2 hover:bg-surface-2 hover:text-ink">
-            {st.trim().replace(/:$/, '')}
-          </button>
+          <li key={st}>
+            <button type="button" onClick={() => (st.endsWith(' ') ? (setInput(st), inputRef.current?.focus()) : send(st))} className="w-full py-2.5 text-left text-[13px] text-ink-2 hover:text-ink">
+              {st.trim().replace(/:$/, '')}
+            </button>
+          </li>
         ))}
-      </div>
+      </ul>
     </div>
   );
 
@@ -257,7 +260,7 @@ export function ChatTool({ compact = false, initialAction = '', onHide }: { comp
     <div className="grid h-full min-h-0 lg:grid-cols-[248px_minmax(0,1fr)]">
       <aside className="flex min-h-0 flex-col border-line bg-surface-2 max-lg:hidden lg:border-r">
         <div className="p-3">
-          <Button block variant="secondary" onClick={newChat} className="justify-start"><Icon name="plus" className="size-4" /> New chat</Button>
+          <Button block variant="secondary" onClick={newChat} className="justify-start">New chat</Button>
         </div>
         <p className="px-4 pb-1 text-[12px] font-medium text-muted">Recent</p>
         <div className="min-h-0 flex-1 overflow-y-auto px-2 pb-3" id="chatList">
@@ -265,7 +268,7 @@ export function ChatTool({ compact = false, initialAction = '', onHide }: { comp
             <div key={c.id} className={cn('group flex items-center rounded-lg', c.id === ai.activeChat ? 'bg-surface-3' : 'hover:bg-surface-3/70')}>
               <button type="button" onClick={() => ai.update({ activeChat: c.id })} className="min-w-0 flex-1 px-2.5 py-1.5 text-left">
                 <span className={cn('block truncate text-[13px]', c.id === ai.activeChat ? 'font-medium text-ink' : 'text-ink-2')}>{c.title}</span>
-                <span className="block text-[11px] text-muted">{c.mode === 'support' ? 'Talk it through' : 'Tutor'} · {shortDate(c.updatedAt)}</span>
+                <span className="block text-[11px] text-muted">{c.mode === 'support' ? 'Talk it through' : 'Tutor'}, {shortDate(c.updatedAt)}</span>
               </button>
               <button type="button" aria-label="Delete chat" onClick={() => confirm('Delete this chat?') && ai.deleteChat(c.id)} className="mr-1 grid size-7 place-items-center rounded-md text-muted opacity-0 group-hover:opacity-100 hover:text-ink focus:opacity-100"><Icon name="close" className="size-3.5" /></button>
             </div>

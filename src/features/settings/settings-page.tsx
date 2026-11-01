@@ -5,7 +5,6 @@ import { Dialog } from '@/components/ui/dialog';
 import { Card, CardHeader, PageHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Checkbox, Field, Input, Note } from '@/components/ui/field';
-import { Icon } from '@/components/ui/icons';
 import { AppearanceOptions } from '@/components/shell/appearance-picker';
 import { clearLocalData, saveNow, signOut, useAccount } from '@/features/auth/account';
 import { signInHref } from '@/features/auth/sign-in-gate';
@@ -71,7 +70,7 @@ function AccountCard() {
       <p className="mt-1 text-[13px] text-muted">{saving ? 'Saving…' : savedAt ? `Last saved ${new Date(savedAt).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}` : 'Saves a couple of minutes after changes.'}</p>
       <div className="mt-4 flex flex-wrap gap-2">
         <Button variant="secondary" onClick={() => saveNow().then(() => toast('Saved to your account.'))}>Save now</Button>
-        <Button variant="secondary" onClick={() => void shareInvite(user.id, user.name)}><Icon name="send" className="size-4" /> Invite friends</Button>
+        <Button variant="secondary" onClick={() => void shareInvite(user.id, user.name)}>Invite friends</Button>
         <Button variant="destructive" onClick={() => void signOut()}>Sign out</Button>
       </div>
       <div className="mt-5 grid gap-2 border-t border-line pt-4">
@@ -171,8 +170,8 @@ function DataCard() {
     <Card>
       <CardHeader title="Backup and restore" description="Your progress is saved in this browser. Export a backup to move it to another device." />
       <div className="flex flex-wrap gap-2">
-        <Button variant="secondary" onClick={() => downloadFile(`studytime-backup-${new Date().toISOString().slice(0, 10)}.json`, exportBackup(), 'application/json')}><Icon name="download" className="size-4" /> Export backup</Button>
-        <Button variant="secondary" onClick={() => fileInput.current?.click()}><Icon name="upload" className="size-4" /> Import backup</Button>
+        <Button variant="secondary" onClick={() => downloadFile(`studytime-backup-${new Date().toISOString().slice(0, 10)}.json`, exportBackup(), 'application/json')}>Export backup</Button>
+        <Button variant="secondary" onClick={() => fileInput.current?.click()}>Import backup</Button>
         <input
           ref={fileInput}
           type="file"

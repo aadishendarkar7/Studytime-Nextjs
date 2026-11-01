@@ -26,7 +26,7 @@ const KIND_LABEL: Record<NoteKind, string> = { notes: 'Notes', cheatsheet: 'Chea
 
 function ToolButton({ icon, label, active, loading, onClick }: { icon: IconName; label: string; active?: boolean; loading?: boolean; onClick: () => void }) {
   return (
-    <button type="button" onClick={onClick} disabled={loading} aria-pressed={active} className={cn('flex h-9 items-center gap-1.5 rounded-lg border px-3 text-[13px] font-medium transition-colors disabled:opacity-60', active ? 'border-accent bg-accent-soft text-accent-ink' : 'border-line bg-surface text-ink-2 hover:border-ink/30 hover:text-ink')}>
+    <button type="button" onClick={onClick} disabled={loading} aria-pressed={active} className={cn('flex h-9 items-center gap-1.5 rounded-lg border px-3 text-[13px] font-medium transition-colors disabled:opacity-60', active ? 'border-ink bg-surface-3 text-ink' : 'border-line bg-surface text-ink-2 hover:border-ink/30 hover:text-ink')}>
       <Icon name={icon} className={cn('size-4', loading && 'animate-pulse')} /> {label}
     </button>
   );
@@ -72,7 +72,7 @@ function NoteView({ note, onOpen, onBack }: { note: Note; onOpen: (id: string) =
     <article>
       <button type="button" onClick={onBack} className="mb-3 flex items-center gap-1 text-[13px] font-medium text-muted hover:text-ink"><Icon name="chevron" className="size-3.5 rotate-180" /> All notes</button>
       <h2 className="text-[24px] leading-8">{note.title}</h2>
-      <p className="mt-0.5 text-[13px] text-muted">{KIND_LABEL[note.kind]} · {note.folder} · {shortDate(note.createdAt)}</p>
+      <p className="mt-0.5 text-[13px] text-muted">{KIND_LABEL[note.kind]}, {note.folder}, {shortDate(note.createdAt)}</p>
 
       <div className="mt-4 flex flex-wrap items-center gap-1.5">
         <ToolButton icon="chat" label="Ask" active={mode === 'ask'} onClick={() => (run.reset(), setMode(mode === 'ask' ? null : 'ask'))} />
@@ -239,8 +239,8 @@ export function NotesTool({ startRecording = false }: { startRecording?: boolean
   return (
     <div className="grid gap-6">
       <div className="flex flex-wrap gap-2">
-        <Button onClick={() => setAdding('write')}><Icon name="plus" className="size-4" /> New note</Button>
-        <Button variant="secondary" onClick={() => setAdding('record')}><Icon name="mic" className="size-4" /> Record a lecture</Button>
+        <Button onClick={() => setAdding('write')}>New note</Button>
+        <Button variant="secondary" onClick={() => setAdding('record')}>Record a lecture</Button>
       </div>
       <Dialog open={adding === 'write'} onClose={closeAdding} title="New note">
         {adding === 'write' && <Writer onOpen={open} />}
@@ -251,7 +251,7 @@ export function NotesTool({ startRecording = false }: { startRecording?: boolean
 
       <section>
         <div className="mb-1 flex items-center justify-between gap-3">
-          <h2 className="text-[13px] font-semibold tracking-wide text-muted uppercase">Your notes</h2>
+          <h2 className="text-[15px] font-semibold">Your notes</h2>
           {items.length > 0 && folders.length > 1 && (
             <InlineSelect label="Folder" value={folder} onChange={(e) => setFolder(e.target.value)}>
               <option value="all">All folders</option>
@@ -265,7 +265,7 @@ export function NotesTool({ startRecording = false }: { startRecording?: boolean
               <li key={it.note.id}>
                 <button type="button" data-note-id={it.note.id} onClick={() => open(it.note.id)} className="group flex w-full items-center gap-3 py-2.5 text-left">
                   <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-surface-3 text-muted"><Icon name={it.note.kind === 'quiz' ? 'quiz' : it.note.kind === 'summary' ? 'bulb' : 'file'} className="size-4" /></span>
-                  <span className="min-w-0 flex-1"><strong className="block truncate text-[15px] font-medium group-hover:underline">{it.note.title}</strong><small className="text-[13px] text-muted">{KIND_LABEL[it.note.kind]} · {it.note.folder} · {shortDate(it.note.createdAt)}</small></span>
+                  <span className="min-w-0 flex-1"><strong className="block truncate text-[15px] font-medium group-hover:underline">{it.note.title}</strong><small className="text-[13px] text-muted">{KIND_LABEL[it.note.kind]}, {it.note.folder}, {shortDate(it.note.createdAt)}</small></span>
                   <Icon name="chevron" className="size-4 shrink-0 text-muted" />
                 </button>
               </li>

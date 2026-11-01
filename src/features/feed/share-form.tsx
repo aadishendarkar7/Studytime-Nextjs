@@ -138,7 +138,7 @@ export function ShareForm({ initial, onDone, submitLabel = 'Post' }: { initial?:
       <div>
         <p className="mb-1.5 text-[13px] font-medium text-muted">How long</p>
         <div className="flex flex-wrap items-center gap-1.5">
-          {TIMES.map((m) => <button key={m} type="button" aria-pressed={form.minutes === m} onClick={() => set({ minutes: m })} className={cn('h-9 min-w-12 rounded-lg border px-3 text-[14px] font-medium', form.minutes === m ? 'border-accent-fill bg-accent-fill text-white' : 'border-line hover:border-ink/30')}>{timeLabel(m)}</button>)}
+          {TIMES.map((m) => <button key={m} type="button" aria-pressed={form.minutes === m} onClick={() => set({ minutes: m })} className={cn('h-9 min-w-12 rounded-lg border px-3 text-[14px] font-medium', form.minutes === m ? 'border-accent-fill bg-ink text-bg' : 'border-line hover:border-ink/30')}>{timeLabel(m)}</button>)}
           <Input aria-label="Minutes" type="number" min={5} max={720} value={form.minutes} onChange={(e) => set({ minutes: Number(e.target.value) })} className="h-9 w-20 text-[14px]" />
           <span className="text-[13px] text-muted">min</span>
         </div>
@@ -150,7 +150,7 @@ export function ShareForm({ initial, onDone, submitLabel = 'Post' }: { initial?:
             {friends.slice(0, 12).map((f) => {
               const on = crew.includes(f.id);
               return (
-                <button key={f.id} type="button" aria-pressed={on} disabled={!on && crew.length >= 5} onClick={() => setCrew(on ? crew.filter((x) => x !== f.id) : [...crew, f.id])} className={cn('inline-flex h-9 items-center gap-1.5 rounded-lg border pr-3 pl-1.5 text-[14px] disabled:opacity-40', on ? 'border-accent bg-accent-soft text-accent-ink' : 'border-line hover:border-ink/30')}>
+                <button key={f.id} type="button" aria-pressed={on} disabled={!on && crew.length >= 5} onClick={() => setCrew(on ? crew.filter((x) => x !== f.id) : [...crew, f.id])} className={cn('inline-flex h-9 items-center gap-1.5 rounded-lg border pr-3 pl-1.5 text-[14px] disabled:opacity-40', on ? 'border-ink bg-surface-3 text-ink' : 'border-line hover:border-ink/30')}>
                   <Avatar name={f.name} color={toneFor(f.id)} size={22} />
                   {f.name.split(' ')[0]}
                   {on && <Icon name="check" className="size-3.5" />}

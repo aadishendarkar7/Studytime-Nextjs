@@ -1,6 +1,5 @@
 'use client';
 import { Button } from '@/components/ui/button';
-import { Icon } from '@/components/ui/icons';
 import { toast } from '@/lib/stores/ui';
 import { copyText, plural } from '@/lib/utils';
 import { useAccount } from './account';
@@ -29,7 +28,7 @@ export function InviteCard({ className }: { className?: string }) {
     <section className={className ?? 'panel p-4'}>
       <h2 className="font-sans text-[15px] font-semibold">Invite friends</h2>
       <p className="mt-0.5 text-[12px] leading-5 text-muted">Friends who join from your link follow you right away, and you get a mystery pack for each one.{user.invites ? ` ${plural(user.invites, 'friend')} joined so far.` : ''}</p>
-      <Button size="sm" className="mt-3" onClick={() => void shareInvite(user.id, user.name)}><Icon name="send" className="size-4" /> Share invite link</Button>
+      <Button size="sm" className="mt-3" onClick={() => void shareInvite(user.id, user.name)}>Share invite link</Button>
     </section>
   );
 }

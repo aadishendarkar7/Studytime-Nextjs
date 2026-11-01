@@ -28,7 +28,7 @@ export function AppearanceOptions() {
     <div className="grid gap-3.5">
       <Segmented className="[&>button]:flex-1" wrap={false} label="Theme" value={p.theme} onChange={(theme) => changeLook({ theme })} options={[{ value: 'light', label: 'Light' }, { value: 'dark', label: 'Dark' }, { value: 'system', label: 'Auto' }]} />
       <div>
-        <p className="mb-2 text-[12px] text-muted">Color{active ? <span className="text-ink"> · {active.name}</span> : <span className="text-ink"> · Your own</span>}</p>
+        <p className="mb-2 text-[12px] text-muted">Color{active ? <span className="text-ink">: {active.name}</span> : <span className="text-ink">, Your own</span>}</p>
         <div role="radiogroup" aria-label="Color" className="flex flex-wrap items-center gap-2">
           {palettes.map((x) => (
             <button key={x.name} type="button" role="radio" aria-checked={active?.name === x.name} aria-label={x.name} title={x.name} onClick={(e) => changeLook({ accent: x.accent, glow: x.glow }, e)} className={cn('size-7 rounded-full', active?.name === x.name && 'ring-2 ring-offset-2 ring-offset-surface')} style={{ background: `linear-gradient(135deg, ${x.accent} 50%, ${x.glow} 50%)`, ['--tw-ring-color' as string]: x.accent }} />
@@ -75,9 +75,6 @@ export function AppearanceButtons() {
     <div ref={box} className="relative flex items-center gap-1.5">
       <button type="button" onClick={(e) => changeLook({ theme: isDark ? 'light' : 'dark' }, e)} aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'} title={theme === 'system' ? 'Following your device' : undefined} className="grid size-9 place-items-center rounded-lg text-muted hover:bg-surface-3 hover:text-ink">
         <Icon name={isDark ? 'sun' : 'moon'} className="size-[18px]" />
-      </button>
-      <button type="button" onClick={() => setOpen(!open)} aria-expanded={open} aria-label="Appearance" className={cn("grid size-9 place-items-center rounded-lg text-muted hover:bg-surface-3 hover:text-ink", open && "bg-surface-3 text-ink")}>
-        <Icon name="palette" className="size-[18px]" />
       </button>
       {open && (
         <div role="dialog" aria-label="Appearance" className="absolute top-11 right-0 z-50 w-[min(320px,calc(100vw-32px))] panel p-4 shadow-lg">

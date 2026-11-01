@@ -3,7 +3,6 @@ import { useState } from 'react';
 import { Badge, Card, CardHeader, Empty } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Checkbox, Field, FieldRow, Input, Note, Select } from '@/components/ui/field';
-import { Icon } from '@/components/ui/icons';
 import { Segmented } from '@/components/ui/segmented';
 import { api } from '@/lib/api';
 import { useExtras } from '@/lib/stores/extras';
@@ -268,7 +267,7 @@ export function SubscribeCard() {
         <>
           <div className="flex gap-2">
             <Input readOnly aria-label="Subscribe link" value={feedUrl(outgoingFeed.token)} onFocus={(e) => e.target.select()} />
-            <Button variant="secondary" onClick={() => copyText(feedUrl(outgoingFeed.token)).then(() => toast('Link copied.'))}><Icon name="copy" className="size-4" /> Copy</Button>
+            <Button variant="secondary" onClick={() => copyText(feedUrl(outgoingFeed.token)).then(() => toast('Link copied.'))}>Copy</Button>
           </div>
           <div className="mt-4"><Segmented label="Calendar app" value={app} onChange={setApp} options={[{ value: 'google', label: 'Google' }, { value: 'apple', label: 'Apple' }, { value: 'outlook', label: 'Outlook' }]} /></div>
           <ol className="mt-3 grid list-decimal gap-1.5 pl-5 text-[14px] leading-[22px] text-ink-2">{steps.map((s) => <li key={s}>{s}</li>)}</ol>

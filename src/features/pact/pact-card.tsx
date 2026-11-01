@@ -143,7 +143,7 @@ export function PactCard({ className }: { className?: string }) {
                 <div className="min-w-0 flex-1">
                   <div className="flex items-baseline justify-between gap-2 text-[13px]">
                     <span className="truncate font-medium">{isMe ? 'You' : m.name}</span>
-                    <span className="tnum text-muted">{fmtMinutes(m.minutes)} · {pct}%</span>
+                    <span className="tnum text-muted">{fmtMinutes(m.minutes)}, {pct}%</span>
                   </div>
                   <span className="mt-1 block h-1.5 overflow-hidden rounded-full bg-surface-3"><span className={cn('block h-full rounded-full', pct >= 100 ? 'bg-ok' : isMe ? 'bg-ink' : 'bg-accent')} style={{ width: `${pct}%` }} /></span>
                 </div>

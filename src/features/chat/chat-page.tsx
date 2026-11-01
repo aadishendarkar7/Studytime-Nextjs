@@ -27,7 +27,7 @@ function dayLabel(ms: number, now: number) {
   return new Date(ms).toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' });
 }
 const yearLabel = (y: string) => YEARS.find((x) => x.value === y)?.label ?? '';
-const detail = (p: ChatPerson) => p.statusText || [p.major, yearLabel(p.year)].filter(Boolean).join(' · ') || p.school || 'Online';
+const detail = (p: ChatPerson) => p.statusText || [p.major, yearLabel(p.year)].filter(Boolean).join(', ') || p.school || 'Online';
 
 /** Turns plain URLs into links. Everything else stays text. */
 function Linkified({ text }: { text: string }) {
@@ -93,7 +93,7 @@ function PeopleGroup({ title, people, me, onPick }: { title: string; people: Cha
   if (!people.length) return null;
   return (
     <div>
-      <p className="mb-1 px-2 text-[12px] font-medium text-muted">{title} · {people.length}</p>
+      <p className="mb-1 px-2 text-[12px] font-medium text-muted">{title} ({people.length})</p>
       {people.map((u) => (
         <button key={u.id} type="button" onClick={() => onPick(u)} className="flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-left hover:bg-surface-3">
           <Avatar name={u.name} color={toneFor(u.id)} size={28} online />
@@ -146,7 +146,7 @@ function PersonDialog({ person, onClose, onMessage }: { person: ChatPerson | nul
       <div className="flex items-center gap-3">
         <Avatar name={person.name} color={toneFor(person.id)} size={48} online />
         <div className="min-w-0">
-          <p className="truncate text-[14px] text-ink">{[person.major, yearLabel(person.year)].filter(Boolean).join(' · ') || 'Student'}</p>
+          <p className="truncate text-[14px] text-ink">{[person.major, yearLabel(person.year)].filter(Boolean).join(', ') || 'Student'}</p>
           <p className="truncate text-[13px] text-muted">{person.school || 'School not set'}</p>
         </div>
       </div>
@@ -170,7 +170,7 @@ function PersonDialog({ person, onClose, onMessage }: { person: ChatPerson | nul
       )}
       {!me && (
         <div className="mt-5 flex gap-2">
-          <Button onClick={() => (onMessage(person), onClose())} disabled={blocked}><Icon name="send" className="size-4" /> Message</Button>
+          <Button onClick={() => (onMessage(person), onClose())} disabled={blocked}>Message</Button>
           <Button variant="ghost" onClick={() => (x.update({ chatBlocked: blocked ? x.chatBlocked.filter((b) => b !== person.id) : [...x.chatBlocked, person.id] }), toast(blocked ? `${person.name} is unblocked.` : `${person.name} is blocked. You will not see their messages.`))}>{blocked ? 'Unblock' : 'Block'}</Button>
         </div>
       )}

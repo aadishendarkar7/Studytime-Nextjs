@@ -31,7 +31,7 @@ const Feedback = ({ ok, children }: { ok: boolean | null; children: React.ReactN
 function FlipCard({ front, back, flipped, onFlip, hint }: { front: string; back: string; flipped: boolean; onFlip: () => void; hint: string }) {
   return (
     <button type="button" onClick={onFlip} aria-label={flipped ? 'Show question' : 'Show answer'} className={cn('mt-3 flex min-h-56 w-full flex-col items-center justify-center gap-3 rounded-2xl border p-6 text-center shadow-[0_6px_20px_-12px_rgb(var(--shadow-color)/0.35)] transition-colors hover:border-accent', flipped ? 'border-accent/40 bg-accent-soft' : 'border-line bg-surface')}>
-      <small className="text-[12px] font-semibold text-muted">{flipped ? 'Answer' : 'Question'}{hint ? ` · ${hint}` : ''}</small>
+      <small className="text-[12px] font-semibold text-muted">{flipped ? 'Answer' : 'Question'}{hint ? `, ${hint}` : ''}</small>
       <strong className="font-display text-xl leading-snug text-ink">{flipped ? back : front}</strong>
       {flipped && <em className="text-[13px] text-muted not-italic">{front}</em>}
     </button>
@@ -93,7 +93,7 @@ export function ReviewMode({ set }: { set: StudySet }) {
           {RATINGS.map((r, i) => (
             <button key={r.id} type="button" onClick={() => rate(r.id)} className={cn('grid gap-0.5 border bg-surface px-2 py-2.5 rounded-xl', r.id === 'again' ? 'border-danger/40' : r.id === 'good' ? 'border-ok/40' : 'border-line-strong')}>
               <strong className={cn('text-sm', r.id === 'again' && 'text-danger', r.id === 'good' && 'text-ok')}>{r.label}</strong>
-              <small className="text-[12px] text-muted">{previewInterval(card.srs, r.id)} · {i + 1}</small>
+              <small className="text-[12px] text-muted">{previewInterval(card.srs, r.id)}, {i + 1}</small>
             </button>
           ))}
         </div>
@@ -118,7 +118,7 @@ export function FlashcardsMode({ set }: { set: StudySet }) {
       <FlipCard front={card.front} back={card.back} flipped={flipped} onFlip={() => setFlipped(!flipped)} hint="" />
       <div className="mt-3 flex justify-between gap-2">
         <Button variant="secondary" onClick={() => setFlipped(!flipped)}>{flipped ? 'Show question' : 'Show answer'}</Button>
-        <Button onClick={() => (setIndex(index + 1), setFlipped(false))}>Next card →</Button>
+        <Button onClick={() => (setIndex(index + 1), setFlipped(false))}>Next card</Button>
       </div>
     </>
   );
@@ -136,11 +136,11 @@ export function QuizMode({ set }: { set: StudySet }) {
   if (!card) return <Result title="Round complete!">{score} of {order.length} correct<div className="mt-4"><Button onClick={() => (setRound(round + 1), setIndex(0), setScore(0), setPicked(null))}>Play again</Button></div></Result>;
   return (
     <>
-      <Progress>Question {index + 1} of {order.length} · {score} correct</Progress>
+      <Progress>Question {index + 1} of {order.length}, {score} correct</Progress>
       <h3 className="mt-3 mb-4 text-lg font-semibold">{card.front}</h3>
       <div className="grid gap-2 sm:grid-cols-2">
         {choices.map((c) => (
-          <button key={c} type="button" disabled={picked !== null} onClick={() => { setPicked(c); if (c === card.back) setScore(score + 1); else useLearning.getState().addMistake({ q: card.front, a: card.back, given: c, source: `Quiz · ${set.name}`, setId: set.id, cardId: card.id }); }} className={cn('min-h-14 border bg-surface p-3 text-left text-sm font-semibold transition-colors enabled:hover:bg-accent-soft rounded-xl', picked !== null && c === card.back ? 'border-ok bg-ok-soft' : picked === c ? 'border-danger bg-danger-soft' : 'border-line-strong')}>
+          <button key={c} type="button" disabled={picked !== null} onClick={() => { setPicked(c); if (c === card.back) setScore(score + 1); else useLearning.getState().addMistake({ q: card.front, a: card.back, given: c, source: `Quiz, ${set.name}`, setId: set.id, cardId: card.id }); }} className={cn('min-h-14 border bg-surface p-3 text-left text-sm font-semibold transition-colors enabled:hover:bg-accent-soft rounded-xl', picked !== null && c === card.back ? 'border-ok bg-ok-soft' : picked === c ? 'border-danger bg-danger-soft' : 'border-line-strong')}>
             {c}
           </button>
         ))}
@@ -148,7 +148,7 @@ export function QuizMode({ set }: { set: StudySet }) {
       {picked !== null && (
         <>
           <Feedback ok={picked === card.back}>{picked === card.back ? 'Correct!' : `Answer: ${card.back}`}</Feedback>
-          <Button className="mt-2" onClick={() => (setIndex(index + 1), setPicked(null))}>Next question →</Button>
+          <Button className="mt-2" onClick={() => (setIndex(index + 1), setPicked(null))}>Next question</Button>
         </>
       )}
     </>
@@ -167,7 +167,7 @@ export function BlankMode({ set }: { set: StudySet }) {
   if (!card) return <Result title="Round complete!">{score} of {order.length} correct<div className="mt-4"><Button onClick={() => (setRound(round + 1), setIndex(0), setScore(0))}>Play again</Button></div></Result>;
   return (
     <>
-      <Progress>Question {index + 1} of {order.length} · {score} correct</Progress>
+      <Progress>Question {index + 1} of {order.length}, {score} correct</Progress>
       <h3 className="mt-3 mb-4 text-lg font-semibold">{card.front}</h3>
       <form
         className="flex flex-wrap gap-2"
@@ -177,7 +177,7 @@ export function BlankMode({ set }: { set: StudySet }) {
           const ok = norm(value) === norm(card.back);
           setResult(ok);
           if (ok) setScore(score + 1);
-          else useLearning.getState().addMistake({ q: card.front, a: card.back, given: value.trim(), source: `Fill in the blank · ${set.name}`, setId: set.id, cardId: card.id });
+          else useLearning.getState().addMistake({ q: card.front, a: card.back, given: value.trim(), source: `Fill in the blank, ${set.name}`, setId: set.id, cardId: card.id });
         }}
       >
         <Input autoFocus className="min-w-40 flex-1" value={value} disabled={result !== null} onChange={(e) => setValue(e.target.value)} placeholder="Type the answer" aria-label="Your answer" />
@@ -186,7 +186,7 @@ export function BlankMode({ set }: { set: StudySet }) {
       {result !== null && (
         <>
           <Feedback ok={result}>{result ? 'Correct!' : `Answer: ${card.back}`}</Feedback>
-          <Button className="mt-2" onClick={() => (setIndex(index + 1), setValue(''), setResult(null))}>Next question →</Button>
+          <Button className="mt-2" onClick={() => (setIndex(index + 1), setValue(''), setResult(null))}>Next question</Button>
         </>
       )}
     </>
@@ -217,7 +217,7 @@ export function MatchingMode({ set }: { set: StudySet }) {
       <Progress>{matched.size} of {tiles.length / 2} pairs</Progress>
       <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
         {tiles.map((t, i) => (
-          <button key={i} type="button" disabled={matched.has(t.pair)} onClick={() => click(i)} className={cn('min-h-16 border p-3 text-sm font-semibold transition-colors rounded-xl', matched.has(t.pair) ? 'border-transparent bg-ok-soft text-ok' : picked === i ? 'border-accent bg-accent-soft' : 'border-line-strong bg-surface hover:bg-surface-2')}>
+          <button key={i} type="button" disabled={matched.has(t.pair)} onClick={() => click(i)} className={cn('min-h-16 border p-3 text-sm font-semibold transition-colors rounded-xl', matched.has(t.pair) ? 'border-transparent bg-ok-soft text-ok' : picked === i ? 'border-ink bg-surface-3' : 'border-line-strong bg-surface hover:bg-surface-2')}>
             {t.text}
           </button>
         ))}
@@ -270,7 +270,7 @@ export function SpeedMode({ set }: { set: StudySet }) {
     setPhase('playing');
   };
   if (phase === 'intro') return <Result title="Speed round">Answer as many as you can in 60 seconds. Streaks earn bonus points.{best ? ` Your best on this set: ${best}.` : ''}<div className="mt-4"><Button onClick={start}>Start</Button></div></Result>;
-  if (phase === 'over') return <Result title={record ? 'New best!' : 'Time!'}>You scored <b>{score}</b> points{record ? '' : ` · best ${best}`}.<div className="mt-4"><Button onClick={start}>Play again</Button></div></Result>;
+  if (phase === 'over') return <Result title={record ? 'New best!' : 'Time!'}>You scored <b>{score}</b> points{record ? '' : `, best ${best}`}.<div className="mt-4"><Button onClick={start}>Play again</Button></div></Result>;
   const answer = (c: string) => {
     if (c === card.back) {
       const gained = 10 + Math.min(10, streak * 2);
@@ -288,7 +288,7 @@ export function SpeedMode({ set }: { set: StudySet }) {
     <>
       <div className="flex items-center justify-between text-sm font-semibold">
         <span className={cn('font-display text-2xl', left <= 10 ? 'text-danger' : 'text-accent-ink')}>{left}s</span>
-        <span>{score} pts{streak > 1 ? ` · ${streak} in a row` : ''}</span>
+        <span>{score} pts{streak > 1 ? `, ${streak} in a row` : ''}</span>
       </div>
       <div className="mt-2 h-1.5 overflow-hidden bg-surface-3"><div className="h-full bg-accent transition-[width] duration-200" style={{ width: `${(left / 60) * 100}%` }} /></div>
       <h3 className="mt-4 mb-4 text-lg font-semibold">{card.front}</h3>

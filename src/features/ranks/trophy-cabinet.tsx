@@ -42,7 +42,7 @@ export function Cup({ tier, size = 56, id }: { tier: Tier; size?: number; id: st
 function Shelf({ title, items, selected, onPick }: { title: string; items: Trophy[]; selected: string | null; onPick: (id: string) => void }) {
   return (
     <div>
-      <p className="mb-1 px-1 text-[11px] font-semibold tracking-[0.08em] text-[#8b9199] uppercase">{title}</p>
+      <p className="mb-1 px-1 text-[12px] font-medium text-[#8b9199]">{title}</p>
       <div className="grid grid-cols-4 items-end gap-1 px-1 sm:gap-3">
         {items.map((t) => (
           <button key={t.id} type="button" onClick={() => onPick(t.id)} aria-pressed={selected === t.id} aria-label={`${t.title}: ${TIER_NAME[t.tier]}`} className={cn('group relative flex flex-col items-center rounded-lg pt-2 pb-1 transition-colors', selected === t.id ? 'bg-white/[0.06]' : 'hover:bg-white/[0.03]')}>
@@ -71,7 +71,7 @@ export function TrophyCabinet({ list, extra }: { list: Trophy[]; extra?: { title
     <div className="overflow-hidden rounded-2xl border border-[#2c3035] bg-[#141619] shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
       <div className="flex items-center justify-between gap-3 border-b border-white/[0.06] px-5 py-3">
         <p className="text-[15px] font-semibold text-[#f1efe9]">Trophy case</p>
-        <p className="tnum text-[13px] text-[#a1a7ae]">{earned} of {all.length} · <span className="text-[#e9b93a]">{golds} gold</span></p>
+        <p className="tnum text-[13px] text-[#a1a7ae]">{earned} of {all.length}, <span className="text-[#e9b93a]">{golds} gold</span></p>
       </div>
       <div className="relative grid gap-6 bg-[radial-gradient(120%_70%_at_50%_0%,#262a2f_0%,#16181b_70%)] px-4 pt-5 pb-7 sm:px-6">
         <span className="pointer-events-none absolute inset-0 bg-[linear-gradient(115deg,transparent_30%,rgba(255,255,255,0.035)_45%,transparent_55%)]" />

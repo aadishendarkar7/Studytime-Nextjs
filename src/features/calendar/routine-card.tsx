@@ -74,7 +74,7 @@ export function RoutineCard({ onConnect }: { onConnect: () => void }) {
       )}
 
       <Card>
-        <CardHeader title="Your weekly routine" description="A short review the same day as each class, while it is fresh, plus longer blocks for each course on days you do not have it." action={<Button onClick={() => { const p = buildRoutine({ reviewMinutes: review, deepPerCourse: deep }); setProposals(p); if (!p.length) toast('Your week already has these blocks, or there is no free time left.'); }}><Icon name="sparkle" className="size-4" /> Build my week</Button>} />
+        <CardHeader title="Your weekly routine" description="A short review the same day as each class, while it is fresh, plus longer blocks for each course on days you do not have it." action={<Button onClick={() => { const p = buildRoutine({ reviewMinutes: review, deepPerCourse: deep }); setProposals(p); if (!p.length) toast('Your week already has these blocks, or there is no free time left.'); }}>Build my week</Button>} />
         {classes.length ? (
           <ul className="flex flex-wrap gap-1.5">
             {classes.map((c) => <li key={c.name} className="rounded-md border border-line bg-surface-2 px-2 py-1 text-[13px]"><span className="font-semibold">{c.name}</span> <span className="text-muted">· {c.perWeek}× a week</span></li>)}

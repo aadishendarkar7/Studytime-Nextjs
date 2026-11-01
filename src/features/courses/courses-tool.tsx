@@ -67,7 +67,7 @@ function LessonView({ course, lesson, onBack, onNext }: { course: MiniCourse; le
       <h2 className="text-[24px] leading-8">{lesson.title}</h2>
       {lesson.goal && <p className="mt-1 text-[14px] text-muted">{lesson.goal}</p>}
       <div className="mt-5">
-        {state.busy ? <Thinking label="Writing your lesson" /> : state.error ? <div className="grid justify-items-start gap-3"><AiErrorBox error={state.error} /><Button variant="secondary" onClick={() => (setState({ busy: true, error: null }), setAttempt(attempt + 1))}><Icon name="reset" className="size-4" /> Try again</Button></div> : <Markdown>{lesson.body}</Markdown>}
+        {state.busy ? <Thinking label="Writing your lesson" /> : state.error ? <div className="grid justify-items-start gap-3"><AiErrorBox error={state.error} /><Button variant="secondary" onClick={() => (setState({ busy: true, error: null }), setAttempt(attempt + 1))}>Try again</Button></div> : <Markdown>{lesson.body}</Markdown>}
       </div>
       {!state.busy && lesson.quiz.length > 0 && (
         <section className="mt-8 grid gap-4 border-t border-line pt-6">
@@ -95,7 +95,7 @@ function LessonView({ course, lesson, onBack, onNext }: { course: MiniCourse; le
       {!state.busy && !state.error && (
         <div className="mt-6 flex items-center justify-between gap-3 border-t border-line pt-4">
           <span className="tnum text-[13px] text-muted">{answered ? `${score} of ${lesson.quiz.length} right` : ''}</span>
-          <Button onClick={finish} disabled={lesson.quiz.length > 0 && !answered}>{onNext ? 'Next lesson' : 'Finish'} <Icon name="arrow" className="size-4" /></Button>
+          <Button onClick={finish} disabled={lesson.quiz.length > 0 && !answered}>{onNext ? 'Next lesson' : 'Finish'}</Button>
         </div>
       )}
     </article>
@@ -122,16 +122,16 @@ function CourseView({ course, onBack }: { course: MiniCourse; onBack: () => void
           <Bar value={done} total={total} className="flex-1" />
           <span className="tnum text-[13px] text-muted">{done}/{total}</span>
         </div>
-        {next && <Button className="mt-4" onClick={() => setLessonId(next.id)}><Icon name="play" className="size-4" /> {done ? 'Continue' : 'Start'}: {next.title}</Button>}
+        {next && <Button className="mt-4" onClick={() => setLessonId(next.id)}>{done ? 'Continue' : 'Start'}: {next.title}</Button>}
       </div>
       {course.units.map((u, ui) => (
         <section key={ui}>
-          <h3 className="mb-1.5 text-[13px] font-semibold text-muted">Unit {ui + 1} · {u.title}</h3>
+          <h3 className="mb-1.5 text-[13px] font-semibold text-muted">Unit {ui + 1}: {u.title}</h3>
           <ol className="divide-y divide-line panel">
             {u.lessons.map((l) => (
               <li key={l.id}>
                 <button type="button" onClick={() => setLessonId(l.id)} className="group flex w-full items-center gap-3 px-3.5 py-3 text-left">
-                  <span className={cn('grid size-7 shrink-0 place-items-center rounded-full border', l.done ? 'border-transparent bg-accent-fill text-white' : l.id === next?.id ? 'border-accent text-accent' : 'border-line text-muted')}>
+                  <span className={cn('grid size-7 shrink-0 place-items-center rounded-full border', l.done ? 'border-transparent bg-ink text-bg' : l.id === next?.id ? 'border-accent text-accent' : 'border-line text-muted')}>
                     <Icon name={l.done ? 'check' : 'play'} className="size-3.5" />
                   </span>
                   <span className="min-w-0 flex-1">
@@ -183,7 +183,7 @@ export function CoursesTool() {
         <label htmlFor="courseTopic" className="text-[15px] font-semibold">What do you want to learn?</label>
         <div className="mt-2 flex gap-2">
           <Input id="courseTopic" value={topic} maxLength={120} onChange={(e) => setTopic(e.target.value)} placeholder="Any topic" className="h-10" />
-          <Button type="submit" loading={busy} disabled={!topic.trim()}><Icon name="sparkle" className="size-4" /> Make course</Button>
+          <Button type="submit" loading={busy} disabled={!topic.trim()}>Make course</Button>
         </div>
         {!courses.length && (
           <div className="mt-3 flex flex-wrap gap-1.5">
@@ -200,7 +200,7 @@ export function CoursesTool() {
             return (
               <li key={c.id}>
                 <button type="button" onClick={() => setOpenId(c.id)} className="flex h-full w-full flex-col panel p-4 text-left transition-colors hover:border-ink/25">
-                  <span className="flex items-center gap-2 text-[12px] text-muted"><Icon name="layers" className="size-3.5" /> {c.units.length} units · {total} lessons</span>
+                  <span className="flex items-center gap-2 text-[12px] text-muted">{c.units.length} units, {total} lessons</span>
                   <strong className="mt-1 line-clamp-2 text-[16px] leading-6 font-semibold">{c.title}</strong>
                   <span className="mt-auto flex items-center gap-3 pt-4">
                     <Bar value={done} total={total} className="flex-1" />

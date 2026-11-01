@@ -70,9 +70,9 @@ function NavLinks({ pathname, large, mini }: { pathname: string; large?: boolean
                 aria-current={active ? 'page' : undefined}
                 title={mini ? item.label : undefined}
                 aria-label={mini ? item.label : undefined}
-                className={cn('flex items-center gap-2.5 rounded-lg px-2.5 transition-colors', large ? 'min-h-12 text-[16px]' : mini ? 'h-9 justify-center px-0' : 'h-8 text-[14px]', active ? 'bg-accent-soft font-medium text-accent-ink' : 'text-ink-2 hover:bg-surface-3/70 hover:text-ink')}
+                className={cn('flex items-center gap-2.5 rounded-lg px-2.5 transition-colors', large ? 'min-h-12 text-[16px]' : mini ? 'h-9 justify-center px-0' : 'h-8 text-[14px]', active ? 'bg-surface-3 font-medium text-ink' : 'text-ink-2 hover:bg-surface-3/70 hover:text-ink')}
               >
-                <Icon name={item.icon} className={cn('size-[17px] shrink-0', active || item.href === '/drop' ? 'text-accent-ink' : 'text-muted')} />
+                <Icon name={item.icon} className={cn('size-[17px] shrink-0', active ? 'text-ink' : 'text-muted')} />
                 {!mini && <span className="min-w-0 flex-1 truncate">
                   {item.label}
                   {large && item.hint && <small className="block text-[13px] font-normal text-muted">{item.hint}</small>}
@@ -128,7 +128,7 @@ export function Sidebar() {
       {mini ? (
         <div className="mt-3 grid justify-items-center gap-2 border-t border-line pt-3">
           <Link href={signedIn ? '/you?tab=profile' : signInHref('signup')} aria-label={signedIn ? name : 'Create account'} title={signedIn ? name : 'Create account'}>
-            {signedIn ? <Avatar name={name} size={28} /> : <span className="grid size-8 place-items-center rounded-lg bg-accent-fill text-white"><Icon name="user" className="size-4" /></span>}
+            {signedIn ? <Avatar name={name} size={28} /> : <span className="grid size-8 place-items-center rounded-lg bg-ink text-bg"><Icon name="user" className="size-4" /></span>}
           </Link>
           <Link href="/settings" aria-label="Settings" title="Settings" className={cn('grid size-8 place-items-center rounded-lg hover:bg-surface-3 hover:text-ink', isActive(pathname, '/settings') ? 'bg-surface-3 text-ink' : 'text-muted')}><Icon name="settings" className="size-[17px]" /></Link>
         </div>
@@ -145,7 +145,7 @@ export function Sidebar() {
                 </span>
               </Link>
             ) : (
-              <Link href={signInHref('signup')} className="flex min-w-0 flex-1 items-center gap-2.5 rounded-lg bg-accent-fill px-3 py-2 text-white hover:opacity-90">
+              <Link href={signInHref('signup')} className="flex min-w-0 flex-1 items-center gap-2.5 rounded-lg bg-ink px-3 py-2 text-bg hover:bg-ink/85">
                 <Icon name="user" className="size-4" />
                 <span className="min-w-0"><strong className="block truncate text-[13px] font-semibold">Create account</strong><small className="block truncate text-[12px] text-white/80">Free. Saves your progress</small></span>
               </Link>
@@ -196,7 +196,7 @@ export function Topbar() {
         <TimerChip hidden={pathname === '/'} />
         <div className="ml-auto flex items-center gap-1">
           <AppearanceButtons />
-          {!signedIn && <Link href={signInHref('signin')} className="ml-1 inline-flex h-8 items-center rounded-lg bg-accent-fill px-3 text-[13px] font-semibold text-white hover:opacity-90 lg:hidden">Sign in</Link>}
+          {!signedIn && <Link href={signInHref('signin')} className="ml-1 inline-flex h-8 items-center rounded-lg bg-ink px-3 text-[13px] font-semibold text-bg hover:bg-ink/85 lg:hidden">Sign in</Link>}
           <button
             type="button"
             onClick={() => setOpenAt(open ? null : pathname)}
@@ -234,9 +234,7 @@ export function BottomTabs() {
           if (item.href === '/drop')
             return (
               <Link key={item.href} href={item.href} aria-current={active ? 'page' : undefined} className="flex min-h-14 flex-col items-center justify-center gap-0.5 text-[11px] font-medium text-ink">
-                <span className="relative grid h-8 w-12 place-items-center rounded-xl bg-accent-fill text-white">
-                  <Icon name="pin" className="size-[18px]" />
-                  {badges.unread > 0 && <span className="absolute -top-1 -left-1 size-2.5 rounded-full border-2 border-surface bg-ink" />}
+                <span className="relative grid h-8 w-12 place-items-center rounded-xl bg-ink text-bg">{badges.unread > 0 && <span className="absolute -top-1 -left-1 size-2.5 rounded-full border-2 border-surface bg-ink" />}
                   {badges.live > 0 && <span className="tnum absolute -top-1.5 -right-1.5 grid h-4 min-w-4 place-items-center rounded-full border-2 border-surface bg-ok px-0.5 text-[10px] leading-none text-white">{badges.live}</span>}
                 </span>
                 Drop

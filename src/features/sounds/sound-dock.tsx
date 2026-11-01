@@ -44,7 +44,7 @@ export function SoundDock({ className }: { className?: string }) {
         </div>
       )}
       <div className="flex items-center gap-2">
-        <button type="button" onClick={toggleSound} aria-label={playing ? `Pause ${soundLabel(sound)}` : `Play ${soundLabel(sound)}`} className={cn('grid size-7 shrink-0 place-items-center rounded-md', playing ? 'bg-accent-fill text-white' : 'bg-surface-3 text-ink hover:bg-line')}>
+        <button type="button" onClick={toggleSound} aria-label={playing ? `Pause ${soundLabel(sound)}` : `Play ${soundLabel(sound)}`} className={cn('grid size-7 shrink-0 place-items-center rounded-md', playing ? 'bg-ink text-bg' : 'bg-surface-3 text-ink hover:bg-line')}>
           <Icon name={playing ? 'pause' : 'play'} className="size-3.5" />
         </button>
         <button type="button" aria-haspopup="menu" aria-expanded={open} onClick={() => setOpen(!open)} className="flex min-w-0 flex-1 items-center gap-1 rounded-md px-1 py-0.5 text-left leading-tight hover:bg-surface-3">

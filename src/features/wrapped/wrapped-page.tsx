@@ -1,7 +1,6 @@
 'use client';
 import { useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Icon } from '@/components/ui/icons';
 import { Segmented } from '@/components/ui/segmented';
 import { STYLES } from '@/features/profile/style';
 import { useExtras } from '@/lib/stores/extras';
@@ -38,7 +37,7 @@ async function shareImage(w: Wrapped, period: Period, name: string, style: strin
   const font = (size: number, weight = 600) => `${weight} ${size}px -apple-system, BlinkMacSystemFont, system-ui, "Segoe UI", Roboto, sans-serif`;
   g.fillStyle = '#a1a1aa';
   g.font = font(34, 500);
-  g.fillText(`Studytime Wrapped · ${PERIOD_LABEL[period]}`, 80, 200);
+  g.fillText(`Studytime Wrapped, ${PERIOD_LABEL[period]}`, 80, 200);
   g.fillStyle = '#fafafa';
   g.font = font(64, 700);
   g.fillText(name || 'My study recap', 80, 280);
@@ -93,7 +92,7 @@ export function WrappedPage() {
     <div className="grid gap-4">
       <div className="flex flex-wrap items-center gap-2">
         <Segmented wrap={false} label="Period" value={period} onChange={setPeriod} options={(Object.keys(PERIOD_LABEL) as Period[]).map((k) => ({ value: k, label: PERIOD_LABEL[k] }))} />
-        <Button size="sm" className="ml-auto" disabled={!w.sessions} onClick={() => shareImage(w, period, p.name, style)}><Icon name="download" className="size-4" /> Share image</Button>
+        <Button size="sm" className="ml-auto" disabled={!w.sessions} onClick={() => shareImage(w, period, p.name, style)}>Share image</Button>
       </div>
       {w.sessions ? (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">

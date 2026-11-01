@@ -50,7 +50,7 @@ export function DropZone({ onFiles, accept, multiple = true, title, hint, inputI
         setOver(false);
         if (e.dataTransfer.files.length) onFiles(e.dataTransfer.files);
       }}
-      className={cn('my-3 flex cursor-pointer items-center gap-3 rounded-xl border px-4 py-3 transition-colors', over ? 'border-accent bg-accent-soft' : 'border-line bg-surface-2 hover:border-line-strong')}
+      className={cn('my-3 flex cursor-pointer items-center gap-3 rounded-xl border px-4 py-3 transition-colors', over ? 'border-ink bg-surface-3' : 'border-line bg-surface-2 hover:border-line-strong')}
     >
       <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-surface text-ink-2"><Icon name="clip" className="size-[18px]" /></span>
       <span className="min-w-0 flex-1 text-left">

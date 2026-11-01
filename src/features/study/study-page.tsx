@@ -40,9 +40,9 @@ function Rail({ tool, go }: { tool: Tool; go: (t: Tool) => void }) {
     <nav aria-label="Study tools" className="-mx-4 min-w-0 overflow-x-auto px-4 [scrollbar-width:none] sm:mx-0 sm:px-0">
       <div className="flex w-max gap-1 border-b border-line sm:w-auto">
         {TOOLS.map((t) => (
-          <button key={t.id} type="button" title={t.blurb} onClick={() => go(t.id)} aria-current={tool === t.id ? 'page' : undefined} className={cn('-mb-px flex shrink-0 items-center gap-1.5 border-b-2 px-2.5 py-2 text-[14px] whitespace-nowrap transition-colors', tool === t.id ? 'border-accent font-medium text-ink' : 'border-transparent text-muted hover:text-ink')}>
-            <Icon name={t.icon} className={cn('size-4', tool === t.id ? 'text-accent' : 'text-muted')} /> {t.label}
-            {counts[t.id] && <span className={cn('rounded-md px-1.5 text-[11px] font-semibold leading-[18px]', t.id === 'practice' && due ? 'bg-accent-fill text-white' : 'bg-surface-3 text-muted')}>{counts[t.id]}</span>}
+          <button key={t.id} type="button" title={t.blurb} onClick={() => go(t.id)} aria-current={tool === t.id ? 'page' : undefined} className={cn('-mb-px flex shrink-0 items-center gap-1.5 border-b-2 px-2.5 py-2 text-[14px] whitespace-nowrap transition-colors', tool === t.id ? 'border-ink font-medium text-ink' : 'border-transparent text-muted hover:text-ink')}>
+            {t.label}
+            {counts[t.id] && <span className={cn('tnum text-[12px]', t.id === 'practice' && due ? 'text-ink' : 'text-muted')}>{counts[t.id]}</span>}
           </button>
         ))}
       </div>

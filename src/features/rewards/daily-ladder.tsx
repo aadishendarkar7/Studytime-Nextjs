@@ -27,7 +27,7 @@ export function DailyLadder({ checkInHref, className }: { checkInHref?: string; 
   return (
     <div className={className}>
       <div className="mb-2 flex items-center justify-between gap-2 px-0.5">
-        <p className="flex items-center gap-1.5 text-[13px] font-semibold"><Icon name="flame" className="size-4 text-accent" /> {r.streak ? `${r.streak} day${r.streak === 1 ? '' : 's'} in a row` : 'Daily check-in'}</p>
+        <p className="flex items-center gap-1.5 text-[13px] font-semibold">{r.streak ? `${r.streak} day${r.streak === 1 ? '' : 's'} in a row` : 'Daily check-in'}</p>
         {!r.claimed && checkInHref && <Link href={checkInHref} className="text-[13px] font-semibold text-accent-ink hover:underline">Check in</Link>}
       </div>
       <ol className="grid grid-cols-7 gap-1.5">

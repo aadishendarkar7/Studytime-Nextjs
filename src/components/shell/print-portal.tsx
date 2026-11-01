@@ -33,7 +33,7 @@ export function PrintPortal() {
   return createPortal(
     <article>
       <h1 style={{ font: '700 22pt/1.2 Helvetica, Arial, sans-serif', margin: '0 0 4mm' }}>{job.title}</h1>
-      <p style={{ font: '9pt Helvetica, Arial, sans-serif', color: '#62706a', margin: '0 0 6mm' }}>Studytime · {new Date().toLocaleDateString()}</p>
+      <p style={{ font: '9pt Helvetica, Arial, sans-serif', color: '#62706a', margin: '0 0 6mm' }}>Studytime, {new Date().toLocaleDateString()}</p>
       <Markdown>{job.markdown}</Markdown>
     </article>,
     root,

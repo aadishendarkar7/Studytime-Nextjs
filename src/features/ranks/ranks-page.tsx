@@ -113,14 +113,14 @@ function Leaderboard() {
 
   return (
     <div className="grid gap-5">
-      <div className="panel grid grid-cols-2 gap-2 p-2 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-x-4 gap-y-5 lg:grid-cols-4">
         {[
           ['Your rank', myIndex >= 0 ? `#${myIndex + 1}` : 'Unranked', myIndex >= 0 ? `of ${sorted.length} ${current?.label ? `in ${current.label}` : ''}` : 'Pick a group below'],
           ['Focus this week', fmtMinutes(myMinutes), `${p.weeklyGoal ? Math.min(100, Math.round((myMinutes / p.weeklyGoal) * 100)) : 0}% of your weekly goal`],
           ['Drops this week', <CountUp key="d" to={myDrops} duration={1} />, 'Hosted or joined'],
           ['Board resets in', resetsIn(now), 'Monday, midnight UTC'],
         ].map(([label, value, note]) => (
-          <div key={String(note)} className="well min-w-0 px-4 py-3.5">
+          <div key={String(note)} className="min-w-0 border-l-2 border-line pl-4">
             <p className="text-[12px] font-medium text-muted">{label}</p>
             <p className="tnum mt-0.5 truncate text-[22px] leading-8 font-semibold tracking-tight max-sm:text-[18px] max-sm:leading-7">{value}</p>
             <p className="truncate text-[12px] text-muted">{note}</p>
@@ -176,13 +176,13 @@ function Leaderboard() {
               {sorted.slice(0, 50).map((r, i) => (
                 // Rows slide to their new place when the ranking changes.
                 <motion.tr key={r.id} layout="position" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ type: 'spring', stiffness: 380, damping: 34, delay: Math.min(i, 12) * 0.03 }} className={cn('border-b border-line last:border-0', r.me ? 'bg-accent-soft' : 'hover:bg-surface-2')}>
-                  <td className="tnum py-2.5 pl-4 text-[13px] font-semibold text-muted">{i < 3 ? <span className={cn('grid size-6 place-items-center rounded-md text-[12px]', i === 0 ? 'bg-accent-fill text-white' : 'bg-surface-3 text-ink')}>{i + 1}</span> : i + 1}</td>
+                  <td className="tnum py-2.5 pl-4 text-[13px] font-semibold text-muted">{i < 3 ? <span className={cn('grid size-6 place-items-center rounded-md text-[12px]', i === 0 ? 'bg-ink text-bg' : 'bg-surface-3 text-ink')}>{i + 1}</span> : i + 1}</td>
                   <td className="py-2.5">
                     <span className="flex min-w-0 items-center gap-2.5">
                       <Avatar name={r.name} color={toneFor(r.id)} size={26} />
                       <span className="min-w-0">
                         <span className="block truncate font-medium">{r.name}{r.me && <span className="ml-1.5 text-[12px] font-normal text-muted">you</span>}</span>
-                        {(r.major || r.year) && <span className="block truncate text-[12px] text-muted">{[r.major, YEARS.find((y) => y.value === r.year)?.label].filter(Boolean).join(' · ')}</span>}
+                        {(r.major || r.year) && <span className="block truncate text-[12px] text-muted">{[r.major, YEARS.find((y) => y.value === r.year)?.label].filter(Boolean).join(', ')}</span>}
                       </span>
                     </span>
                   </td>

@@ -71,7 +71,7 @@ export const useLearning = create<LearningStore>()(
         if (rating === 'again') {
           const set_ = get().sets.find((s) => s.id === setId);
           const card = set_?.cards.find((c) => c.id === cardId);
-          if (card) get().addMistake({ q: card.front, a: card.back, given, source: `${source} · ${set_!.name}`, setId, cardId });
+          if (card) get().addMistake({ q: card.front, a: card.back, given, source: `${source}, ${set_!.name}`, setId, cardId });
         } else if (existing) get().markMistake(existing.id, true);
       },
       addMistake: (m) => {

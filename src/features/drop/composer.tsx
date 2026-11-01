@@ -157,7 +157,7 @@ export function DropComposer({ open, onClose, preset }: { open: boolean; onClose
       {form.when === 'now' && <Checkbox label="Start my focus timer now" checked={form.startTimer} onChange={(e) => set({ startTimer: e.target.checked })} />}
       {form.lat !== null && !x.spots.some((s) => s.name === form.spotName.trim()) && <Checkbox label="Save this place to my spots" checked={form.saveSpot} onChange={(e) => set({ saveSpot: e.target.checked })} />}
       <div className="mt-5 flex gap-2">
-        <Button onClick={submit} loading={busy}><Icon name="pin" className="size-4" /> {form.audience === 'solo' ? 'Start solo' : 'Drop it'}</Button>
+        <Button onClick={submit} loading={busy}>{form.audience === 'solo' ? 'Start solo' : 'Drop it'}</Button>
         <Button variant="ghost" onClick={onClose}>Cancel</Button>
       </div>
       <Note>Drops are for public places. Never drop a home address.</Note>

@@ -55,7 +55,7 @@ export function RecordingRow({ l, onChange, onOpenNote }: { l: Lecture; onChange
         <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-danger/10 text-danger"><Icon name={open ? 'down' : 'sound'} className="size-4" /></span>
         <span className="min-w-0 flex-1">
           <strong className="block truncate text-[15px] font-medium group-hover:underline">{l.title}</strong>
-          <small className="tnum text-[13px] text-muted">{new Date(l.at).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })} · {clock(l.seconds)}{l.course ? ` · ${l.course}` : ''}{l.marks.length ? ` · ${l.marks.length} marks` : ''}</small>
+          <small className="tnum text-[13px] text-muted">{new Date(l.at).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}, {clock(l.seconds)}{l.course ? `, ${l.course}` : ''}{l.marks.length ? `, ${l.marks.length} marks` : ''}</small>
         </span>
       </button>
       {open && (
@@ -63,7 +63,7 @@ export function RecordingRow({ l, onChange, onOpenNote }: { l: Lecture; onChange
           {url && <audio ref={audio} controls src={url} className="w-full" preload="metadata" />}
           {l.marks.length > 0 && (
             <div className="flex flex-wrap gap-1.5">
-              {l.marks.map((m, i) => <button key={i} type="button" onClick={() => seek(m.t)} className="tnum rounded-md border border-line px-2 py-1 text-[12px] hover:border-ink">{clock(m.t)} · {m.label}</button>)}
+              {l.marks.map((m, i) => <button key={i} type="button" onClick={() => seek(m.t)} className="tnum rounded-md border border-line px-2 py-1 text-[12px] hover:border-ink">{clock(m.t)}, {m.label}</button>)}
             </div>
           )}
           {done && (
@@ -74,8 +74,8 @@ export function RecordingRow({ l, onChange, onOpenNote }: { l: Lecture; onChange
             </div>
           )}
           <div className="flex flex-wrap gap-1.5">
-            {url && <a href={url} download={`${l.title.replace(/[^\w\s-]/g, '').trim() || 'lecture'}.${ext}`}><Button size="sm" variant="secondary"><Icon name="download" className="size-4" /> Download</Button></a>}
-            <Button size="sm" loading={Boolean(progress)} onClick={() => void makeNotes()}><Icon name="sparkle" className="size-4" /> {progress || 'Make notes'}</Button>
+            {url && <a href={url} download={`${l.title.replace(/[^\w\s-]/g, '').trim() || 'lecture'}.${ext}`}><Button size="sm" variant="secondary">Download</Button></a>}
+            <Button size="sm" loading={Boolean(progress)} onClick={() => void makeNotes()}>{progress || 'Make notes'}</Button>
             <Button size="sm" variant="ghost" onClick={async () => { const t = prompt('Rename recording', l.title)?.trim(); if (t) { await saveLecture({ ...l, title: t.slice(0, 80) }); onChange(); } }}>Rename</Button>
             <Button size="sm" variant="ghost" className="text-danger" onClick={async () => { if (confirm('Delete this recording?')) { await deleteLecture(l.id); onChange(); } }}>Delete</Button>
           </div>
@@ -148,7 +148,7 @@ export function Recorder({ onSaved }: { onSaved: () => void }) {
     if (!r) return;
     r.onstop = async () => {
       const blob = new Blob(chunks.current, { type: r.mimeType || 'audio/webm' });
-      const name = title.trim() || `${course || 'Lecture'} · ${new Date().toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}`;
+      const name = title.trim() || `${course || 'Lecture'}, ${new Date().toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}`;
       try {
         await saveLecture({ id: uid(), title: name.slice(0, 80), course, at: Date.now(), seconds: secs.current, mime: blob.type, blob, marks });
         toast('Recording saved in this browser.');
@@ -199,12 +199,12 @@ export function Recorder({ onSaved }: { onSaved: () => void }) {
         </div>
         {state !== 'idle' && (
           <div className="ml-auto flex gap-2">
-            <Button size="sm" variant="secondary" onClick={() => { const label = `Mark ${marks.length + 1}`; setMarks([...marks, { t: secs.current, label }]); toast(`${label} at ${clock(secs.current)}.`); }}><Icon name="flag" className="size-4" /> Mark</Button>
+            <Button size="sm" variant="secondary" onClick={() => { const label = `Mark ${marks.length + 1}`; setMarks([...marks, { t: secs.current, label }]); toast(`${label} at ${clock(secs.current)}.`); }}>Mark</Button>
             <Button size="sm" variant="ghost" onClick={pause}>{state === 'paused' ? 'Resume' : 'Pause'}</Button>
           </div>
         )}
       </div>
-      {marks.length > 0 && <div className="flex flex-wrap gap-1.5 border-t border-line px-4 py-2.5">{marks.map((m) => <span key={m.label} className="tnum rounded-md bg-surface-3 px-2 py-0.5 text-[12px]">{clock(m.t)} · {m.label}</span>)}</div>}
+      {marks.length > 0 && <div className="flex flex-wrap gap-1.5 border-t border-line px-4 py-2.5">{marks.map((m) => <span key={m.label} className="tnum rounded-md bg-surface-3 px-2 py-0.5 text-[12px]">{clock(m.t)}, {m.label}</span>)}</div>}
       <p className="border-t border-line px-4 py-2 text-[12px] text-muted">Stays in this browser. Ask your instructor before recording.</p>
     </div>
   );

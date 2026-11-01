@@ -59,7 +59,7 @@ export function ChallengesPanel() {
           {active.map((s) => (
             <div key={s.challenge.id} className="rounded-xl border border-accent/30 bg-surface p-4">
               <div className="flex items-start gap-3">
-                <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-accent-fill text-white"><Icon name="target" className="size-5" /></span>
+                <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-ink text-bg"><Icon name="target" className="size-5" /></span>
                 <div className="min-w-0 flex-1">
                   <p className="text-[15px] font-semibold">{s.challenge.title}</p>
                   <p className="text-[13px] text-muted">{s.challenge.detail}</p>

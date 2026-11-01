@@ -83,7 +83,7 @@ export function Composer({
         onDragOver={att ? (e) => (e.preventDefault(), setOver(true)) : undefined}
         onDragLeave={() => setOver(false)}
         onDrop={att ? (e) => { e.preventDefault(); setOver(false); if (e.dataTransfer.files.length) att.add(e.dataTransfer.files); } : undefined}
-        className={cn('relative rounded-2xl border bg-surface transition-colors focus-within:border-ink/35', over ? 'border-accent bg-accent-soft/50' : 'border-line-strong/50')}
+        className={cn('relative rounded-2xl border bg-surface transition-colors focus-within:border-ink/35', over ? 'border-ink bg-surface-3/50' : 'border-line-strong/50')}
       >
         {top && <div className="flex flex-wrap items-center gap-2 border-b border-line px-3 py-2">{top}</div>}
         {att && <Thumbs att={att} />}
@@ -99,13 +99,11 @@ export function Composer({
         <div className="flex flex-wrap items-center gap-1 px-2 pb-2">
           {att && (
             <>
-              <button type="button" onClick={() => file.current?.click()} className="inline-flex h-8 items-center gap-1.5 rounded-lg px-2.5 text-[13px] font-medium text-ink-2 hover:bg-surface-3 hover:text-ink">
-                <Icon name="clip" className="size-4" /> Attach
+              <button type="button" onClick={() => file.current?.click()} className="inline-flex h-8 items-center gap-1.5 rounded-lg px-2.5 text-[13px] font-medium text-ink-2 hover:bg-surface-3 hover:text-ink">Attach
               </button>
               <input ref={file} type="file" accept={accept} multiple hidden onChange={(e) => (e.target.files?.length && att.add(e.target.files), (e.target.value = ''))} />
               {camera && (
-                <label className="inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-lg px-2.5 text-[13px] font-medium text-ink-2 hover:bg-surface-3 hover:text-ink sm:hidden">
-                  <Icon name="camera" className="size-4" /> Camera
+                <label className="inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-lg px-2.5 text-[13px] font-medium text-ink-2 hover:bg-surface-3 hover:text-ink sm:hidden">Camera
                   <input type="file" accept="image/*" capture="environment" hidden onChange={(e) => e.target.files && att.add(e.target.files)} />
                 </label>
               )}
@@ -113,7 +111,7 @@ export function Composer({
             </>
           )}
           {controls}
-          <Button size="sm" className="ml-auto" loading={loading} onClick={onSubmit}>{submitLabel} <Icon name="arrow" className="size-4" /></Button>
+          <Button size="sm" className="ml-auto" loading={loading} onClick={onSubmit}>{submitLabel}</Button>
         </div>
         {over && <div className="pointer-events-none absolute inset-0 grid place-items-center rounded-2xl text-[14px] font-semibold text-accent-ink">Drop to attach</div>}
       </div>
@@ -126,7 +124,7 @@ export function Composer({
 export function SectionLabel({ children, action }: { children: ReactNode; action?: ReactNode }) {
   return (
     <div className="mb-3 flex min-h-8 items-center justify-between gap-3">
-      <h2 className="font-sans text-[12px] font-semibold tracking-[0.08em] text-muted uppercase">{children}</h2>
+      <h2 className="font-sans text-[14px] font-semibold text-ink">{children}</h2>
       {action}
     </div>
   );

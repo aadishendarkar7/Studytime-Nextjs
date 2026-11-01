@@ -389,9 +389,9 @@ export function SignInPage() {
 
                   <form onSubmit={submit} className="mt-3 grid gap-5">
                     {mode === 'signup' && <label><span className={label}>Your name</span><input autoComplete="name" required maxLength={40} value={name} onChange={(e) => setName(e.target.value)} className={line} /></label>}
-                    <label><span className={label}>Email{mode === 'signup' && domainHint ? ` · ${domainHint}` : ''}</span><input id="authEmail" type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} className={line} /></label>
+                    <label><span className={label}>Email{mode === 'signup' && domainHint ? `, ${domainHint}` : ''}</span><input id="authEmail" type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} className={line} /></label>
                     {invite && mode === 'signup' && <p className="rounded-[4px] bg-[#1f3d2f]/10 px-3 py-2 text-[14px] text-[#1f3d2f]">A friend invited you. You&rsquo;ll follow each other once you join.</p>}
-                    <label><span className={label}>Password{mode === 'signup' ? ' · at least 8 characters' : ''}</span><input id="authPassword" type="password" autoComplete={mode === 'signup' ? 'new-password' : 'current-password'} required minLength={mode === 'signup' ? 8 : 1} value={password} onChange={(e) => setPassword(e.target.value)} className={line} /></label>
+                    <label><span className={label}>Password{mode === 'signup' ? ', at least 8 characters' : ''}</span><input id="authPassword" type="password" autoComplete={mode === 'signup' ? 'new-password' : 'current-password'} required minLength={mode === 'signup' ? 8 : 1} value={password} onChange={(e) => setPassword(e.target.value)} className={line} /></label>
                     {error && <p role="alert" className="rounded-[4px] bg-[#b23a2a]/10 px-3 py-2 text-[14px] text-[#9a2f22]">{error}</p>}
                     <button type="submit" disabled={busy} className="h-12 rounded-[4px] bg-[#1f3d2f] text-[16px] font-semibold text-[#f7efdc] transition-colors hover:bg-[#295240] disabled:opacity-70">
                       {busy ? (stamped ? 'Welcome in' : 'Checking') : mode === 'signin' ? 'Sign in' : 'Get my pass'}

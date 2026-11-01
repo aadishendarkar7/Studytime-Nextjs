@@ -16,7 +16,7 @@ export const directions = (d: { lat: number | null; lng: number | null; spotName
   d.lat !== null && d.lng !== null ? `https://www.google.com/maps/dir/?api=1&destination=${d.lat},${d.lng}` : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(d.spotName)}`;
 
 export function Initial({ name, className, host }: { name: string; className?: string; host?: boolean }) {
-  return <span className={cn('grid shrink-0 place-items-center rounded-full font-semibold', host ? 'bg-accent-fill text-white' : 'bg-surface-3 text-ink-2', className)}>{name[0]?.toUpperCase() || '?'}</span>;
+  return <span className={cn('grid shrink-0 place-items-center rounded-full font-semibold', host ? 'bg-ink text-bg' : 'bg-surface-3 text-ink-2', className)}>{name[0]?.toUpperCase() || '?'}</span>;
 }
 
 /** Seats left, or null when the table has no limit. */
@@ -41,7 +41,7 @@ export function PrimaryAction({ d, size = 'sm' }: { d: DropView; size?: 'sm' | '
   };
   const full = seatsLeft(d) === 0;
   if (mine) return <Button size={size} variant="secondary" loading={busy} onClick={() => run(() => dropActions.extend(d))}>+1 hour</Button>;
-  if (joined && d.startsAt <= now && !here) return <Button size={size} loading={busy} onClick={() => run(() => dropActions.arrive(d))}><Icon name="check" className="size-4" /> I&rsquo;m here</Button>;
+  if (joined && d.startsAt <= now && !here) return <Button size={size} loading={busy} onClick={() => run(() => dropActions.arrive(d))}>I&rsquo;m here</Button>;
   if (joined) return <Button size={size} variant="secondary" disabled>{here ? 'You are here' : 'You are going'}</Button>;
   return <Button size={size} loading={busy} disabled={full} onClick={() => run(() => dropActions.join(d))}>{full ? 'Table is full' : 'I’m coming'}</Button>;
 }
@@ -74,8 +74,8 @@ function Thread({ d }: { d: DropView }) {
               return (
                 <li key={m.id} className={cn('flex gap-2', self && 'flex-row-reverse')}>
                   <Initial name={m.name} host={m.host} className="size-7 text-[12px]" />
-                  <div className={cn('max-w-[80%] rounded-xl px-3 py-2 text-[14px] leading-5', self ? 'bg-accent-fill text-white' : 'bg-surface')}>
-                    <p className={cn('mb-0.5 text-[12px] font-semibold', self ? 'opacity-70' : 'text-muted')}>{self ? 'You' : m.name}{m.host && !self ? ' · host' : ''} · {fmtTime(m.at)}</p>
+                  <div className={cn('max-w-[80%] rounded-xl px-3 py-2 text-[14px] leading-5', self ? 'bg-ink text-bg' : 'bg-surface')}>
+                    <p className={cn('mb-0.5 text-[12px] font-semibold', self ? 'opacity-70' : 'text-muted')}>{self ? 'You' : m.name}{m.host && !self ? ', host' : ''}, {fmtTime(m.at)}</p>
                     {m.text}
                   </div>
                 </li>
@@ -110,7 +110,7 @@ export function DropSheet({ d, onClose, distance }: { d: DropView | null; onClos
         <Initial name={d.name} host className="size-10 text-[16px]" />
         <div className="min-w-0">
           <p className="text-[15px] font-semibold">{role.mine ? 'Your drop' : `${d.name} ${live ? 'is studying here' : 'will study here'}`}</p>
-          <p className="tnum text-[14px] text-muted">{whenLabel(d, now)}{distance ? ` · ${distance} away` : ''}</p>
+          <p className="tnum text-[14px] text-muted">{whenLabel(d, now)}{distance ? `, ${distance} away` : ''}</p>
         </div>
       </div>
 
