@@ -111,6 +111,8 @@ export interface AiRequest {
   system?: string;
   messages: AiMessage[];
   maxTokens?: number;
+  /** Server only: cancels the upstream call when an attempt takes too long. */
+  signal?: AbortSignal;
 }
 
 export interface AiStatus {

@@ -68,6 +68,7 @@ const noAudio = (): never => {
 async function* anthropic(req: AiRequest, key: string): Stream {
   const response = await fetch(`${base('anthropic')}/v1/messages`, {
     method: 'POST',
+    signal: req.signal,
     headers: { 'content-type': 'application/json', 'x-api-key': key, 'anthropic-version': '2023-06-01' },
     body: JSON.stringify({
       model: req.model,
@@ -100,6 +101,7 @@ async function* anthropic(req: AiRequest, key: string): Stream {
 async function* gemini(req: AiRequest, key: string): Stream {
   const response = await fetch(`${base('gemini')}/v1beta/models/${encodeURIComponent(req.model)}:streamGenerateContent?alt=sse`, {
     method: 'POST',
+    signal: req.signal,
     headers: { 'content-type': 'application/json', 'x-goog-api-key': key },
     body: JSON.stringify({
       ...(req.system ? { systemInstruction: { parts: [{ text: req.system }] } } : {}),
@@ -136,6 +138,7 @@ async function* openaiCompatible(provider: 'groq' | 'openrouter', req: AiRequest
   };
   const response = await fetch(`${base(provider)}/chat/completions`, {
     method: 'POST',
+    signal: req.signal,
     headers: {
       'content-type': 'application/json',
       authorization: `Bearer ${key}`,
@@ -160,15 +163,29 @@ async function* openaiCompatible(provider: 'groq' | 'openrouter', req: AiRequest
 }
 
 /** Start a provider stream. Fetch/HTTP errors are thrown before the first chunk. */
-export async function startStream(req: AiRequest, key: string): Promise<Stream> {
-  const gen = req.provider === 'anthropic' ? anthropic(req, key) : req.provider === 'gemini' ? gemini(req, key) : openaiCompatible(req.provider, req, key);
+/**
+ * Starts a reply and waits for its first words. With `firstTokenMs`, a model that has not
+ * started answering by then is cancelled, so the caller can move on to another model
+ * instead of spending the whole request waiting.
+ */
+export async function startStream(req: AiRequest, key: string, firstTokenMs = 0): Promise<Stream> {
+  const ctrl = new AbortController();
+  const r = { ...req, signal: ctrl.signal };
+  const gen = r.provider === 'anthropic' ? anthropic(r, key) : r.provider === 'gemini' ? gemini(r, key) : openaiCompatible(r.provider, r, key);
   // Pull the first chunk now so connection/auth errors become proper HTTP errors.
+  const next = gen.next();
+  next.catch(() => undefined);
+  let timer: ReturnType<typeof setTimeout> | undefined;
   let first: IteratorResult<string>;
   try {
-    first = await gen.next();
+    first = firstTokenMs
+      ? await Promise.race([next, new Promise<never>((_, reject) => { timer = setTimeout(() => (ctrl.abort(), reject(new HttpError(504, 'The AI took too long to start answering.'))), firstTokenMs); })])
+      : await next;
   } catch (error) {
     if (error instanceof HttpError) throw error;
     throw new HttpError(502, error instanceof Error && error.message !== 'fetch failed' ? error.message : 'Could not reach the AI service. Check the internet connection.');
+  } finally {
+    clearTimeout(timer);
   }
   return (async function* () {
     if (!first.done) yield first.value;

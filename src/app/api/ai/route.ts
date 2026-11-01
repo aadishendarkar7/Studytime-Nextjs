@@ -5,7 +5,12 @@ import { sessionUserId } from '@/lib/server/accounts';
 import { rateLimit } from '@/lib/server/rate-limit';
 import { serverKey, serverProviders, startStream } from '@/lib/server/ai';
 
-export const maxDuration = 60;
+// Long answers about attached files can stream for minutes; 300 s is the most Vercel's Hobby plan allows.
+export const maxDuration = 300;
+/** How long to wait for a model to start answering, and for all attempts together. */
+const FIRST_TRY_MS = 45_000;
+const NEXT_TRY_MS = 25_000;
+const START_BUDGET_MS = 140_000;
 
 const part = z.discriminatedUnion('type', [
   z.object({ type: z.literal('text'), text: z.string().max(200_000) }),
@@ -44,15 +49,19 @@ async function startWithFallbacks(req: AiRequest, key: string, siteKeys: boolean
       attempts.push({ provider: p, model: PROVIDERS[p].defaults.main, key: serverKey(p) });
     }
   let last: unknown;
+  const started = Date.now();
   for (const [i, a] of attempts.slice(0, 6).entries()) {
+    const left = START_BUDGET_MS - (Date.now() - started);
+    if (left < 5_000) break;
     try {
-      return await startStream({ ...req, provider: a.provider, model: a.model }, a.key);
+      return await startStream({ ...req, provider: a.provider, model: a.model }, a.key, Math.min(i === 0 ? FIRST_TRY_MS : NEXT_TRY_MS, left));
     } catch (error) {
       last = error;
       if (!busy(error) && !retired(error)) throw error;
       if (i === 0 && busy(error)) await new Promise((r) => setTimeout(r, 700));
     }
   }
+  if (last instanceof HttpError && last.status === 504) throw new HttpError(503, 'The AI is slow to answer right now. Try again, or ask a shorter question.');
   if (busy(last)) throw new HttpError(503, 'The AI is very busy right now and every model we tried was overloaded. Wait a minute and try again.');
   throw last;
 }

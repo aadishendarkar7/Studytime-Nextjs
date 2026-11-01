@@ -106,9 +106,11 @@ export async function callAI({ system, messages, maxTokens = 2500, tier = 'main'
   const send = () => fetch('/api/ai', { method: 'POST', headers, signal, body: JSON.stringify({ provider: conn.provider, model, system, messages, maxTokens }) });
   let response: Response;
   try {
+    const t0 = Date.now();
     response = await send();
-    // Every model busy: wait a moment and try once more before showing an error.
-    if (response.status === 503 || response.status === 502 || response.status === 504) {
+    // Every model busy: wait a moment and try once more, but only if the server answered quickly.
+    // After a long wait (a timeout), a second try would just double the wait.
+    if ((response.status === 503 || response.status === 502) && Date.now() - t0 < 15_000) {
       await new Promise((r) => setTimeout(r, 2500));
       response = await send();
     }
@@ -119,6 +121,7 @@ export async function callAI({ system, messages, maxTokens = 2500, tier = 'main'
   if (!response.ok || !response.body) {
     const body = (await response.json().catch(() => ({}))) as { error?: string };
     if (response.status === 413) throw new AiError('Those files are too large. Use fewer or smaller pages.');
+    if (response.status === 504) throw new AiError('The AI took too long to answer. Try again, or ask a shorter question.');
     // Only point people at Settings when the AI is truly not set up, not when it is just busy.
     const setup = response.status === 401 || (response.status === 503 && /not set up/i.test(body.error ?? ''));
     throw new AiError(body.error || `AI request failed (${response.status}).`, setup);

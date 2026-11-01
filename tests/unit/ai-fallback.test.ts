@@ -48,6 +48,28 @@ describe('AI fallbacks', () => {
   });
 });
 
+describe('AI start timeout', () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  it('cancels a model that has not started answering in time', async () => {
+    let aborted = false;
+    vi.stubGlobal('fetch', vi.fn((_url: string, init: RequestInit) => new Promise<Response>((_, reject) => {
+      init.signal?.addEventListener('abort', () => ((aborted = true), reject(new DOMException('aborted', 'AbortError'))));
+    })));
+    const { startStream } = await import('@/lib/server/ai');
+    await expect(startStream({ provider: 'gemini', model: 'gemini-3.8-flash', messages: [{ role: 'user', content: 'hi' }], maxTokens: 50 }, 'k', 30)).rejects.toMatchObject({ status: 504 });
+    expect(aborted).toBe(true);
+  });
+
+  it('lets a model that answers in time through', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => sse('quick')));
+    const { startStream } = await import('@/lib/server/ai');
+    const out: string[] = [];
+    for await (const t of await startStream({ provider: 'gemini', model: 'gemini-3.8-flash', messages: [{ role: 'user', content: 'hi' }], maxTokens: 50 }, 'k', 1000)) out.push(t);
+    expect(out.join('')).toBe('quick');
+  });
+});
+
 describe('AI access', () => {
   beforeEach(() => {
     setStorage(new MemoryStorage());
