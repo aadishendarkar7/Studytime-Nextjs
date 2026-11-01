@@ -2,6 +2,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Badge, PageHeader } from '@/components/ui/card';
 import { Dialog } from '@/components/ui/dialog';
+import { Hero, HeroButton } from '@/components/ui/hero';
 import { Button } from '@/components/ui/button';
 import { Input, Select, Textarea } from '@/components/ui/field';
 import { Icon, type IconName } from '@/components/ui/icons';
@@ -313,15 +314,25 @@ export function GamesPage({ embedded = false }: { embedded?: boolean } = {}) {
       {!embedded && <PageHeader title="Flashcards" />}
       {open ? <SetView key={open.id} set={open} onBack={() => setOpenId(null)} /> : (
         <div className="grid gap-4">
+          {/* Spaced review is the point of flashcards, so what is due gets the spotlight. */}
+          {totalDue > 0 ? (
+            <Hero
+              title={`${totalDue} ${totalDue === 1 ? 'card is' : 'cards are'} due today`}
+              sub="A few minutes now and they stick for weeks. Cards you get right come back later; the ones you miss come back sooner."
+              action={<HeroButton onClick={() => { const first = shown.find((x) => dueIn(x) > 0); if (first) go(first.id); }}>Review now</HeroButton>}
+            />
+          ) : l.sets.length === 0 ? (
+            <Hero title="Make your first flashcard set" sub="Type a topic and the AI writes the cards, or pick a ready-made deck." action={<HeroButton onClick={() => setPanel('new')}>New set</HeroButton>} />
+          ) : null}
           <div className="flex flex-wrap items-center gap-2">
             <Button onClick={() => setPanel('new')}>New set</Button>
             <Button variant="secondary" onClick={() => setPanel('decks')}>Browse decks</Button>
             {l.sets.length > 0 && <Button variant="ghost" onClick={() => (setSelecting(!selecting), setPicked([]))}>{selecting ? 'Cancel' : 'Select'}</Button>}
             {selecting && <Button variant="danger" disabled={!picked.length} onClick={removePicked}>Delete {picked.length || ''}</Button>}
             {selecting && <Button variant="ghost" onClick={() => setPicked(picked.length === shown.length ? [] : shown.map((s) => s.id))}>{picked.length === shown.length ? 'Select none' : 'Select all'}</Button>}
-            {totalDue > 0 && <span className="tnum ml-auto text-[13px] text-muted"><strong className="text-ink">{totalDue}</strong> due today</span>}
+            
             {folders.length > 1 && (
-              <Select aria-label="Folder" className={cn('h-9 w-auto text-[13px]', totalDue === 0 && 'ml-auto')} value={folder} onChange={(e) => setFolder(e.target.value)}>
+              <Select aria-label="Folder" className={cn('h-9 w-auto text-[13px]', 'ml-auto')} value={folder} onChange={(e) => setFolder(e.target.value)}>
                 <option value="all">All folders</option>
                 {folders.map((f) => <option key={f}>{f}</option>)}
               </Select>

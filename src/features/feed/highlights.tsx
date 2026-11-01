@@ -6,7 +6,10 @@ import { Button } from '@/components/ui/button';
 import { Dialog } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/field';
 import { Icon, type IconName } from '@/components/ui/icons';
-import { Segmented } from '@/components/ui/segmented';
+import { Hero, HeroButton } from '@/components/ui/hero';
+import { Tabs } from '@/components/ui/segmented';
+import { weekMinutes } from '@/features/focus/logic';
+import { useProfile } from '@/lib/stores/profile';
 import { useAccount } from '@/features/auth/account';
 import { toneFor } from '@/features/chat/live';
 import { TAGLINE } from '@/features/wrapped/wrapped-page';
@@ -244,7 +247,7 @@ export function HighlightCard({ post, onChange, onOpenPerson }: { post: FeedPost
   const names = people.length === 1 ? people[0].name : `${people.slice(0, -1).map((p) => p.name).join(', ')} and ${people[people.length - 1].name}`;
   const details = [post.place, post.with.filter((w) => !(post.crew ?? []).some((c) => c.name === w)).length ? `with ${post.with.filter((w) => !(post.crew ?? []).some((c) => c.name === w)).join(', ')}` : ''].filter(Boolean).join(', ');
   return (
-    <article className="min-w-0 panel p-4">
+    <article className="min-w-0 overflow-hidden panel px-4 pt-4 pb-3">
       <header className="flex items-center gap-2.5">
         <span className="flex -space-x-2">{people.slice(0, 4).map((p) => <span key={p.id} className="rounded-full ring-2 ring-surface"><Avatar name={p.full} color={toneFor(p.id)} size={32} userId={p.id} /></span>)}</span>
         <div className="min-w-0 flex-1">
@@ -255,15 +258,26 @@ export function HighlightCard({ post, onChange, onOpenPerson }: { post: FeedPost
         {!mine && <MoreMenu post={post} onGone={() => onChange(null)} />}
         {mine && <button type="button" aria-label="Delete post" title="Delete" onClick={() => confirm('Delete this post?') && api.feed.remove(post.id).then(() => onChange(null), () => toast('Could not delete.', 'error'))} className="grid size-8 place-items-center rounded-lg text-muted hover:bg-surface-3 hover:text-danger"><Icon name="trash" className="size-4" /></button>}
       </header>
-      {post.photo && (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={`/api/feed/${post.id}/photo`} alt={post.subject ? `Photo: ${post.subject}` : 'Study photo'} loading="lazy" className="-mx-4 mt-3 block max-h-[560px] w-[calc(100%+2rem)] max-w-none bg-surface-3 object-cover" onDoubleClick={() => !mine && !inCrew && !cheered && void cheer()} />
-      )}
-      <div className="mt-3 flex min-w-0 items-baseline gap-3">
-        <p className="tnum shrink-0 font-display text-[34px] leading-10 font-semibold tracking-tight">{fmtMinutes(post.minutes)}</p>
-        <p className="min-w-0 truncate text-[15px] text-ink-2">{people.length > 1 ? 'together' : ''}{post.subject ? `${people.length > 1 ? ', ' : ''}${post.subject}` : people.length > 1 ? '' : 'studying'}</p>
+      {/* The session itself: a photo with the time on it, or a solid tile like an activity card. */}
+      <div className="relative -mx-4 mt-3 overflow-hidden" onDoubleClick={() => !mine && !inCrew && !cheered && void cheer()}>
+        {post.photo ? (
+          <>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={`/api/feed/${post.id}/photo`} alt={post.subject ? `Photo: ${post.subject}` : 'Study photo'} loading="lazy" className="block max-h-[560px] w-full bg-surface-3 object-cover" />
+            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent px-4 pt-10 pb-3 text-white">
+              <p className="tnum text-[30px] leading-9 font-semibold tracking-tight">{fmtMinutes(post.minutes)}</p>
+              <p className="truncate text-[14px] text-white/85">{post.subject || 'Study session'}{details ? `, ${details}` : ''}</p>
+            </div>
+          </>
+        ) : (
+          <div className="bg-accent-fill px-4 py-5 text-white">
+            <p className="text-[13px] font-medium text-white/75">{people.length > 1 ? 'Studied together' : 'Studied'}</p>
+            <p className="tnum text-[44px] leading-[48px] font-semibold tracking-tight">{fmtMinutes(post.minutes)}</p>
+            <p className="mt-1 truncate text-[16px] font-medium">{post.subject || 'Study session'}</p>
+            {details && <p className="mt-0.5 flex items-center gap-1 truncate text-[13px] text-white/80"><Icon name="pin" className="size-3.5 shrink-0" />{details}</p>}
+          </div>
+        )}
       </div>
-      {details && <p className="mt-0.5 flex items-center gap-1 truncate text-[13px] text-muted"><Icon name="pin" className="size-3.5 shrink-0" />{details}</p>}
       {post.topics.length > 0 && (
         <ul className="mt-3 flex flex-wrap gap-1.5" aria-label="Topics covered">
           {post.topics.map((t) => <li key={t} className="rounded-md border border-line px-2 py-0.5 text-[12px] text-ink-2">{t}</li>)}
@@ -272,7 +286,8 @@ export function HighlightCard({ post, onChange, onOpenPerson }: { post: FeedPost
       {post.note && <p className="mt-3 text-[14px] leading-5 text-ink-2">{post.note}</p>}
       <footer className="mt-3 flex items-center gap-3 border-t border-line pt-3">
         {!mine && !inCrew && (
-          <button type="button" disabled={busy} onClick={cheer} aria-pressed={cheered} className={cn('inline-flex h-8 items-center gap-1.5 rounded-lg border px-2.5 text-[13px] font-medium transition-colors', cheered ? 'border-ink bg-surface-3 text-ink' : 'border-line text-ink-2 hover:border-line-strong hover:text-ink')}>{cheered ? 'Cheered' : 'Nice work'}
+          <button type="button" disabled={busy} onClick={cheer} aria-pressed={cheered} className={cn('inline-flex h-8 items-center gap-1.5 rounded-md border px-2.5 text-[13px] font-semibold transition-colors', cheered ? 'border-accent-fill bg-accent-fill text-white' : 'border-line text-ink hover:border-accent-fill hover:text-accent-ink')}>
+            <Icon name="heart" className="size-4" />{cheered ? 'Cheered' : 'Nice work'}{post.kudos.length > 0 && <span className="tnum font-normal opacity-80">{post.kudos.length}</span>}
           </button>
         )}
         {!mine && !inCrew && (
@@ -348,11 +363,48 @@ export function FindPeople({ onOpen }: { onOpen: (id: string) => void }) {
 }
 
 /** The feed: study sessions people post. Seeing friends put in the hours is the point. */
+/** Stories-style strip: you and the people you follow, by study time this week. Tap to open a profile. */
+function WeekStrip({ onOpen }: { onOpen: (id: string) => void }) {
+  const [people, setPeople] = useState<{ id: string; name: string; minutes: number; me: boolean }[] | null>(null);
+  useEffect(() => {
+    let stop = false;
+    api.people.board().then((r) => !stop && setPeople(r.people), () => !stop && setPeople([]));
+    return () => void (stop = true);
+  }, []);
+  if (!people || people.length < 2) return null;
+  const top = people[0]?.minutes || 1;
+  return (
+    <section className="mb-5">
+      <div className="mb-2 flex items-baseline justify-between">
+        <h2 className="font-sans text-[15px] font-semibold">This week</h2>
+        <span className="text-[12px] text-muted">You and people you follow</span>
+      </div>
+      <ul className="-mx-1 flex gap-4 overflow-x-auto px-1 pb-1 [scrollbar-width:none]">
+        {people.slice(0, 20).map((p, i) => (
+          <li key={p.id} className="shrink-0">
+            <button type="button" onClick={() => onOpen(p.id)} className="flex w-[68px] flex-col items-center gap-1 text-center">
+              {/* The ring fills with your share of the leader's time this week. */}
+              <span className="relative grid size-[62px] place-items-center rounded-full" style={{ background: `conic-gradient(var(--accent-fill) ${Math.round((p.minutes / top) * 360)}deg, var(--surface-3) 0)` }}>
+                <span className="rounded-full bg-surface p-[3px]"><Avatar name={p.name} color={toneFor(p.id)} size={50} userId={p.id} /></span>
+                {i < 3 && p.minutes > 0 && <span className="absolute -right-0.5 -bottom-0.5 grid size-5 place-items-center rounded-full bg-ink text-[11px] font-semibold text-bg">{i + 1}</span>}
+              </span>
+              <span className="w-full truncate text-[12px] font-medium">{p.me ? 'You' : p.name.split(' ')[0]}</span>
+              <span className="tnum -mt-1 text-[11px] text-muted">{fmtMinutes(p.minutes)}</span>
+            </button>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
 export function HighlightsTab() {
   const [scope, setScope] = useState<Scope>('foryou');
   const [posts, setPosts] = useState<FeedPost[] | null>(null);
   const [writing, setWriting] = useState(false);
   const [person, setPerson] = useState<string | null>(null);
+  const sessions = useProfile((s) => s.sessions);
+  const week = weekMinutes(sessions);
   const load = useCallback((s: Scope) => api.feed.list(s).then((r) => setPosts(r.posts), (e) => (toast((e as Error).message, 'error'), setPosts([]))), []);
   useEffect(() => {
     void load(scope);
@@ -361,23 +413,24 @@ export function HighlightsTab() {
 
   return (
     <div className="mx-auto w-full max-w-[640px]">
-      <div>
-        <div className="mb-3 flex flex-wrap items-center gap-2">
-          <Segmented wrap={false} label="Whose posts" value={scope} onChange={setScope} options={[{ value: 'foryou', label: 'For you' }, { value: 'following', label: 'Following' }, { value: 'mine', label: 'Mine' }]} />
-          <span className="flex-1" />
-          <Button onClick={() => setWriting(true)}>Post</Button>
+      <Hero
+        className="mb-5"
+        title={week ? `You studied ${fmtMinutes(week)} this week` : 'Post your first session'}
+        sub={week ? 'Share it so your friends can see, cheer you on, or join you next time.' : 'After a focus session, share what you studied and where. Friends see it here.'}
+        action={<HeroButton onClick={() => setWriting(true)}>Post a session</HeroButton>}
+      />
+      <WeekStrip onOpen={setPerson} />
+      <Tabs className="mb-4" label="Whose posts" value={scope} onChange={setScope} options={[{ value: 'foryou', label: 'For you' }, { value: 'following', label: 'Following' }, { value: 'mine', label: 'Your posts' }]} />
+      {posts === null ? (
+        <p className="py-6 text-[13px] text-muted">Loading</p>
+      ) : posts.length ? (
+        <div className="grid gap-4 [&>*]:min-w-0">{posts.map((p) => <HighlightCard key={p.id} post={p} onChange={(np) => replace(p.id, np)} onOpenPerson={setPerson} />)}</div>
+      ) : (
+        <div className="py-8">
+          <p className="text-[15px] font-semibold">{scope === 'mine' ? 'You have not posted yet' : scope === 'following' ? 'Nobody you follow has posted yet' : 'No posts yet'}</p>
+          <p className="mt-0.5 text-[14px] text-muted">{scope === 'following' ? 'Follow classmates from the Friends tab to fill this up.' : 'Posts from your school show up here.'}</p>
         </div>
-        {posts === null ? (
-          <p className="py-6 text-[13px] text-muted">Loading</p>
-        ) : posts.length ? (
-          <div className="grid gap-3 [&>*]:min-w-0">{posts.map((p) => <HighlightCard key={p.id} post={p} onChange={(np) => replace(p.id, np)} onOpenPerson={setPerson} />)}</div>
-        ) : (
-          <div className="border-t border-line py-6">
-            <p className="text-[15px] font-semibold">{scope === 'mine' ? 'You have not posted yet' : scope === 'following' ? 'Nobody you follow has posted yet' : 'No posts yet'}</p>
-            <p className="mt-0.5 text-[14px] text-muted">After a focus session, post what you studied and where. Friends see it here.</p>
-          </div>
-        )}
-      </div>
+      )}
       <Dialog open={writing} onClose={() => setWriting(false)} title="Post a study session">
         {writing && <ShareForm onDone={(p) => { setWriting(false); if (p) setPosts((l) => [p, ...(l ?? [])]); }} />}
       </Dialog>

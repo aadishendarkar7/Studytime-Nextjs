@@ -1,19 +1,16 @@
 'use client';
 import Link from 'next/link';
-import { useMemo, useState, type ReactNode } from 'react';
-import CountUp from '@/components/bits/CountUp';
+import { useMemo, useState } from 'react';
 import { Card, CardHeader, Empty, PageHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Field, FieldRow, Input, Note, Select } from '@/components/ui/field';
 import { Icon } from '@/components/ui/icons';
-import { streaks } from '@/features/focus/logic';
 import { MAJORS, YEARS } from '@/lib/constants';
 import { PictureCard } from './picture-card';
 import { PromptsCard } from './style-cards';
-import { useExtras } from '@/lib/stores/extras';
 import { useProfile } from '@/lib/stores/profile';
 import { toast } from '@/lib/stores/ui';
-import { fmtMinutes, plural } from '@/lib/utils';
+import { fmtMinutes } from '@/lib/utils';
 
 function AboutCard() {
   const p = useProfile();
@@ -81,24 +78,8 @@ function CoursesCard() {
   );
 }
 
-function Stat({ label, value, note }: { label: string; value: ReactNode; note?: string }) {
-  return (
-    <div className="border-l-2 border-line pl-4">
-      <p className="text-[14px] text-muted">{label}</p>
-      <p className="tnum mt-0.5 text-[26px] leading-8 font-semibold tracking-tight">{value}</p>
-      {note && <p className="mt-1 text-[13px] text-muted">{note}</p>}
-    </div>
-  );
-}
-
 export function StatsCard() {
   const p = useProfile();
-  const x = useExtras();
-  const restDays = useExtras((x) => x.restDays);
-  const s = streaks(p.sessions, undefined, restDays);
-  const total = p.sessions.reduce((a, b) => a + b.minutes, 0);
-  const spots = x.dropLog.length;
-  const people = new Set(x.dropLog.flatMap((d) => d.with)).size;
   const bySubject = useMemo(() => {
     const m = new Map<string, number>();
     for (const ses of p.sessions) if (ses.subject) m.set(ses.subject, (m.get(ses.subject) ?? 0) + ses.minutes);
@@ -107,14 +88,7 @@ export function StatsCard() {
   const topMinutes = bySubject[0]?.[1] ?? 1;
   return (
     <Card className="lg:col-span-12">
-      <CardHeader title="Your study record" description="Counted from the sessions saved in this browser." />
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <Stat label="Total focus time" value={fmtMinutes(total)} note={plural(p.sessions.length, 'session')} />
-        <Stat label="Current streak" value={plural(s.current, 'day')} note={`Best: ${plural(s.best, 'day')}`} />
-        <Stat label="Points" value={<CountUp to={p.points} duration={1.2} separator="," />} />
-        <Stat label="Drops" value={<CountUp to={spots} duration={1} />} note={people ? `Studied with ${plural(people, 'person', 'people')}` : 'From Drop a Spot'} />
-      </div>
-      <h3 className="mt-6 mb-3 text-[18px]">Time by subject</h3>
+      <h3 className="mb-3 text-[18px]">Time by subject</h3>
       {bySubject.length ? (
         <ul className="grid gap-2.5">
           {bySubject.map(([subject, minutes]) => (

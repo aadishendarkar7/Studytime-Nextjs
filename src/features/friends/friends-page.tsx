@@ -2,7 +2,9 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Avatar } from '@/components/ui/avatar';
 import { Tabs } from '@/components/ui/segmented';
-import { InviteCard } from '@/features/auth/invite-card';
+import { shareInvite } from '@/features/auth/invite-card';
+import { Hero, HeroButton, HeroGhost } from '@/components/ui/hero';
+import { useAccount } from '@/features/auth/account';
 import { SignInGate } from '@/features/auth/sign-in-gate';
 import { ChatPage } from '@/features/chat/chat-page';
 import { toneFor, useUnreadDms } from '@/features/chat/live';
@@ -52,10 +54,23 @@ function YourFriends({ onOpen }: { onOpen: (id: string) => void }) {
         )}
       </div>
       <aside className="grid content-start gap-4">
-        <InviteCard />
         <YourClasses />
       </aside>
     </div>
+  );
+}
+
+/** Top of Friends: invite people, since studying with friends is the point. */
+function FriendsHero({ onFind }: { onFind: () => void }) {
+  const user = useAccount((s) => s.user);
+  if (!user) return null;
+  return (
+    <Hero
+      className="mb-5"
+      title="Studying is better with your people"
+      sub={`Friends who join from your link follow you right away and see when you drop a spot.${user.invites ? ` ${user.invites} joined so far.` : ''}`}
+      action={<><HeroGhost onClick={onFind}>Find classmates</HeroGhost><HeroButton onClick={() => void shareInvite(user.id, user.name)}>Invite friends</HeroButton></>}
+    />
   );
 }
 
@@ -74,6 +89,7 @@ export function FriendsPage() {
         <h1 className="text-[26px] leading-8 max-sm:text-[22px]">Friends</h1>
       </header>
       <SignInGate title="Sign in to add friends" icon="friends">
+        <FriendsHero onFind={() => go('find')} />
         <Tabs className="mb-5" label="Friends" value={tab} onChange={go} options={[{ value: 'friends', label: 'Your friends' }, { value: 'find', label: 'Find classmates' }, { value: 'messages', label: 'Messages', count: unread }]} />
         {tab === 'friends' && <YourFriends onOpen={setPerson} />}
         {tab === 'find' && <div className="max-w-2xl"><FindPeople onOpen={setPerson} /></div>}

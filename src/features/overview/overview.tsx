@@ -26,32 +26,32 @@ function OutNow() {
   const show = useDropComposer.getState().show;
   const list = [...live, ...drops.filter((d) => d.startsAt > now)].slice(0, 3);
   return (
-    <section className="flex flex-col p-5 max-sm:p-4">
+    <section className="flex flex-col bg-accent-fill p-5 text-white max-sm:p-4">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <h2 className="font-sans text-[15px] leading-6 font-semibold">Out studying now</h2>
-          <p className="truncate text-[12px] text-muted">{live.length ? <><span className="mr-1 inline-block size-1.5 rounded-full bg-ok align-middle" />{plural(people, 'person', 'people')} at {plural(live.length, 'spot')}{hot && hot.people > 1 ? `, busiest: ${hot.name}` : ''}</> : 'No one is out yet. Be the first.'}</p>
+          <h2 className="font-sans text-[17px] leading-6 font-semibold">Out studying now</h2>
+          {live.length > 0 && <p className="truncate text-[13px] text-white/80"><span className="mr-1 inline-block size-1.5 rounded-full bg-white align-middle" />{plural(people, 'person', 'people')} at {plural(live.length, 'spot')}{hot && hot.people > 1 ? `, busiest: ${hot.name}` : ''}</p>}
         </div>
         <span className="flex shrink-0 gap-1">
-          <Link href="/drop"><Button size="sm" variant="ghost">Map</Button></Link>
-          <Button size="sm" variant="secondary" onClick={() => show()}>Drop</Button>
+          <Link href="/drop" className="inline-flex h-8 items-center rounded-md px-2.5 text-[13px] font-medium text-white/90 hover:bg-white/10">Map</Link>
+          <button type="button" onClick={() => show()} className="h-8 rounded-md bg-white px-3 text-[13px] font-semibold text-[#14301f] hover:bg-white/90">Drop a spot</button>
         </span>
       </div>
       {list.length ? (
-        <ul className="mt-2 flex-1 divide-y divide-line">
+        <ul className="mt-2 flex-1 divide-y divide-white/15">
           {list.map((d) => (
             <li key={d.id} className="flex items-center gap-3 py-2.5">
               <Avatar name={d.name} size={30} />
               <Link href={`/drop?d=${d.id}`} className="min-w-0 flex-1">
-                <span className="block truncate text-[14px]"><span className="font-semibold">{d.name}</span> <span className="text-muted">at</span> {d.spotName}</span>
-                <span className="tnum block truncate text-[12px] text-muted">{d.startsAt <= now ? <span className="font-medium text-ok">Live, </span> : null}{whenLabel(d, now)}</span>
+                <span className="block truncate text-[14px]"><span className="font-semibold">{d.name}</span> <span className="text-white/70">at</span> {d.spotName}</span>
+                <span className="tnum block truncate text-[12px] text-white/75">{d.startsAt <= now ? <span className="font-semibold text-white">Live, </span> : null}{whenLabel(d, now)}</span>
               </Link>
               <PrimaryAction d={d} />
             </li>
           ))}
         </ul>
       ) : (
-        <p className="flex-1 pt-2 text-[13px] leading-5 text-muted">Drop where you are studying and classmates can pull up a chair.</p>
+        <p className="flex-1 pt-2 text-[14px] leading-5 text-white/85">Nobody is out yet. Drop where you are studying and classmates can pull up a chair.</p>
       )}
     </section>
   );

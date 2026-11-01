@@ -235,7 +235,7 @@ export function BottomTabs() {
           if (item.href === '/drop')
             return (
               <Link key={item.href} href={item.href} aria-current={active ? 'page' : undefined} className="flex min-h-14 flex-col items-center justify-center gap-0.5 text-[11px] font-medium text-ink">
-                <span className="relative grid h-8 w-12 place-items-center rounded-xl bg-ink text-bg">{badges.unread > 0 && <span className="absolute -top-1 -left-1 size-2.5 rounded-full border-2 border-surface bg-ink" />}
+                <span className="relative grid h-8 w-12 place-items-center rounded-xl bg-accent-fill text-white">{badges.unread > 0 && <span className="absolute -top-1 -left-1 size-2.5 rounded-full border-2 border-surface bg-ink" />}
                   {badges.live > 0 && <span className="tnum absolute -top-1.5 -right-1.5 grid h-4 min-w-4 place-items-center rounded-full border-2 border-surface bg-ok px-0.5 text-[10px] leading-none text-white">{badges.live}</span>}
                 </span>
                 Drop

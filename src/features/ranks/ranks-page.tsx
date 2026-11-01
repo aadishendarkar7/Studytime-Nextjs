@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import { motion, MotionConfig } from 'motion/react';
 import CountUp from '@/components/bits/CountUp';
+import { Hero, HeroStat } from '@/components/ui/hero';
 import { Avatar } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Dialog } from '@/components/ui/dialog';
@@ -113,20 +114,17 @@ function Leaderboard() {
 
   return (
     <div className="grid gap-5">
-      <div className="grid grid-cols-2 gap-x-4 gap-y-5 lg:grid-cols-4">
-        {[
-          ['Your rank', myIndex >= 0 ? `#${myIndex + 1}` : 'Unranked', myIndex >= 0 ? `of ${sorted.length} ${current?.label ? `in ${current.label}` : ''}` : 'Pick a group below'],
-          ['Focus this week', fmtMinutes(myMinutes), `${p.weeklyGoal ? Math.min(100, Math.round((myMinutes / p.weeklyGoal) * 100)) : 0}% of your weekly goal`],
-          ['Drops this week', <CountUp key="d" to={myDrops} duration={1} />, 'Hosted or joined'],
-          ['Board resets in', resetsIn(now), 'Monday, midnight UTC'],
-        ].map(([label, value, note]) => (
-          <div key={String(note)} className="min-w-0 border-l-2 border-line pl-4">
-            <p className="text-[12px] font-medium text-muted">{label}</p>
-            <p className="tnum mt-0.5 truncate text-[22px] leading-8 font-semibold tracking-tight max-sm:text-[18px] max-sm:leading-7">{value}</p>
-            <p className="truncate text-[12px] text-muted">{note}</p>
-          </div>
-        ))}
-      </div>
+      <Hero
+        title={myIndex === 0 && sorted.length > 1 ? 'You are in first place' : myIndex > 0 ? `You are #${myIndex + 1} of ${sorted.length}` : 'Get on the board'}
+        sub={myIndex >= 0 ? `${current?.label ? `In ${current.label}, ` : ''}this week. ${gap ? `${gap}.` : ''}` : 'Finish a focus session this week to show up here.'}
+      >
+        <div className="mt-4 grid grid-cols-2 gap-4 border-t border-white/20 pt-4 sm:grid-cols-4">
+          <HeroStat value={myIndex >= 0 ? `#${myIndex + 1}` : 'None'} label="your rank" />
+          <HeroStat value={fmtMinutes(myMinutes)} label={`${p.weeklyGoal ? Math.min(100, Math.round((myMinutes / p.weeklyGoal) * 100)) : 0}% of weekly goal`} />
+          <HeroStat value={<CountUp to={myDrops} duration={1} />} label="drops this week" />
+          <HeroStat value={resetsIn(now)} label="until the board resets" />
+        </div>
+      </Hero>
 
       <section className="overflow-hidden panel">
         <div className="flex flex-wrap items-center gap-2 border-b border-line px-4 py-3">

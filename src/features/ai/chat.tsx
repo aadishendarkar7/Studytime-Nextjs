@@ -2,7 +2,9 @@
 import { useEffect, useEffectEvent, useRef, useState } from 'react';
 import { FileTray, useAttachments } from '@/components/ui/attachments';
 import { Button } from '@/components/ui/button';
-import { Icon } from '@/components/ui/icons';
+import Link from 'next/link';
+import { Icon, Logo } from '@/components/ui/icons';
+import { isDue } from '@/features/games/srs';
 import { Markdown } from '@/components/ui/markdown';
 import { Thinking } from '@/components/ui/progress';
 import { toParts } from '@/lib/ai/files';
@@ -49,9 +51,9 @@ function QuizBlock({ quiz, title, onAgain }: { quiz: QuizQ[]; title: string; onA
   const misses = quiz.filter((q, i) => picks[i] !== null && picks[i] !== q.answer);
   return (
     <div className="rounded-lg border border-line">
-      <div className="flex items-center justify-between gap-3 border-b border-line px-4 py-2.5">
-        <p className="text-[14px] font-semibold">Quiz</p>
-        <p className="tnum text-[13px] text-muted">{picks.filter((p) => p !== null).length} of {quiz.length} answered{done ? `, ${score} right` : ''}</p>
+      <div className="flex items-center justify-between gap-3 rounded-t-lg bg-accent-fill px-4 py-3 text-white">
+        <p className="text-[15px] font-semibold">Quiz</p>
+        <p className="tnum text-[13px] text-white/80">{picks.filter((p) => p !== null).length} of {quiz.length} answered{done ? `, ${score} right` : ''}</p>
       </div>
       <ol className="divide-y divide-line">
         {quiz.map((q, qi) => {
@@ -143,7 +145,8 @@ export function ChatTool({ compact = false, initialAction = '', onHide }: { comp
   }, [run.text, chat?.messages.length]);
   useEffect(() => {
     scroller.current?.scrollTo({ top: scroller.current.scrollHeight });
-    inputRef.current?.focus();
+    // On phones, focusing would scroll past the mode picker and pop the keyboard up.
+    if (window.matchMedia('(min-width: 640px)').matches) inputRef.current?.focus();
   }, [ai.activeChat]);
 
   const send = async (textArg?: string, forceAction?: string) => {
@@ -223,7 +226,7 @@ export function ChatTool({ compact = false, initialAction = '', onHide }: { comp
   const composer = (
     <div className="mx-auto w-full max-w-[720px]">
       <FileTray files={att.files} onRemove={att.remove} reading={att.reading} />
-      {mode === 'tutor' && (
+      {mode === 'tutor' && !empty && (
         <div className="mb-2">
           <div className="flex gap-1.5 overflow-x-auto [scrollbar-width:none]" role="radiogroup" aria-label="Study mode">
             {[...MODES, ...(MODES.some((m) => m.id === action) ? [] : ACTIONS.filter((a) => a.id === action).map((a) => ({ id: a.id, label: a.label })))].map((a) => (
@@ -237,7 +240,7 @@ export function ChatTool({ compact = false, initialAction = '', onHide }: { comp
         onSubmit={(e) => (e.preventDefault(), send())}
         onDragOver={(e) => e.preventDefault()}
         onDrop={(e) => { e.preventDefault(); if (e.dataTransfer.files.length) att.add(e.dataTransfer.files); }}
-        className="rounded-2xl border border-line bg-surface shadow-sm transition-colors focus-within:border-line-strong"
+        className={cn('bg-surface transition-colors', empty ? 'rounded-lg' : 'rounded-2xl border border-line focus-within:border-line-strong')}
       >
         <textarea
           ref={inputRef}
@@ -263,13 +266,13 @@ export function ChatTool({ compact = false, initialAction = '', onHide }: { comp
         <div className="flex items-center gap-1 px-2 pb-2">
           <button type="button" onClick={() => fileRef.current?.click()} aria-label="Attach a photo or file" title="Attach a photo or file" className="grid size-8 place-items-center rounded-lg text-muted hover:bg-surface-3 hover:text-ink"><Icon name="clip" className="size-[18px]" /></button>
           <input ref={fileRef} type="file" accept="image/*,.pdf,.txt,.md,.docx" multiple hidden onChange={(e) => (e.target.files && att.add(e.target.files), (e.target.value = ''))} />
-          <span className="relative inline-flex items-center">
+          {!empty && <span className="relative inline-flex items-center">
             <select aria-label="Mode" value={mode} onChange={(e) => setMode(e.target.value as Chat['mode'])} className="h-8 cursor-pointer appearance-none rounded-lg bg-transparent pr-7 pl-2 text-[13px] font-medium text-ink-2 outline-none hover:bg-surface-3">
               <option value="tutor">Tutor</option>
               <option value="support">Talk it through</option>
             </select>
             <Icon name="down" className="pointer-events-none absolute right-2 size-3.5 text-muted" />
-          </span>
+          </span>}
           <button type="submit" id="chatSend" aria-label={run.running ? 'Stop' : 'Send'} disabled={!run.running && !input.trim() && !att.files.length} className="ml-auto grid size-8 place-items-center rounded-full bg-ink text-bg transition-opacity hover:opacity-85 disabled:opacity-25">
             <Icon name={run.running ? 'stop' : 'up'} className="size-4" />
           </button>
@@ -285,14 +288,15 @@ export function ChatTool({ compact = false, initialAction = '', onHide }: { comp
         {chat?.messages.map((m, i) => (
           m.role === 'user' ? (
             <div key={i} className="flex justify-end">
-              <div className="max-w-[85%] rounded-2xl bg-surface-3 px-4 py-2.5 text-[15px] leading-6 whitespace-pre-wrap text-ink">
-                {m.action && <span className="mb-1 block text-[12px] font-medium text-muted">{actionById(m.action)?.label ?? 'Custom'}</span>}
+              <div className="max-w-[85%] rounded-2xl rounded-br-md bg-accent-fill px-4 py-2.5 text-[15px] leading-6 whitespace-pre-wrap text-white">
+                {m.action && <span className="mb-1 block text-[12px] font-medium text-white/75">{actionById(m.action)?.label ?? 'Custom'}</span>}
                 {m.content}
-                {m.files?.length ? <small className="mt-1 block text-[12px] text-muted">Attached: {m.files.join(', ')}</small> : null}
+                {m.files?.length ? <small className="mt-1 block text-[12px] text-white/75">Attached: {m.files.join(', ')}</small> : null}
               </div>
             </div>
           ) : (
             <div key={i} className="min-w-0">
+              <p className="mb-2 flex items-center gap-2 text-[13px] font-semibold"><Logo className="size-6 rounded-md" /> Studytime tutor{m.action && actionById(m.action) ? <span className="font-normal text-muted">{actionById(m.action)!.label}</span> : null}</p>
               {readQuiz(m.content) ? (
                 <QuizBlock quiz={readQuiz(m.content)!} title={chat.title} onAgain={() => send(`Another quiz on the same topic: ${chat.title}. Different questions.`, 'quiz')} />
               ) : (
@@ -313,7 +317,7 @@ export function ChatTool({ compact = false, initialAction = '', onHide }: { comp
           )
         ))}
         {pendingId && pendingId === chat?.id && (
-          <div className="min-w-0">{run.text ? <Markdown streaming>{run.text}</Markdown> : <Thinking label="Thinking" />}</div>
+          <div className="min-w-0"><p className="mb-2 flex items-center gap-2 text-[13px] font-semibold"><Logo className="size-6 rounded-md" /> Studytime tutor</p>{run.text ? <Markdown streaming>{run.text}</Markdown> : <Thinking label="Working it out" />}</div>
         )}
         {run.error && <AiErrorBox error={run.error} />}
       </div>
@@ -321,44 +325,83 @@ export function ChatTool({ compact = false, initialAction = '', onHide }: { comp
   );
 
   const starters = mode === 'support' ? SUPPORT_STARTERS : mode0.starters;
+  const due = useLearning((st) => st.sets.reduce((n, set) => n + set.cards.filter((c) => isDue(c)).length, 0));
   const welcome = (
-    <div className={cn('flex min-h-0 flex-1 flex-col overflow-y-auto', compact ? 'px-3 py-5' : 'px-5 py-8 sm:py-12')}>
-      <div className="mx-auto w-full max-w-[720px]">
-        <h2 className={cn('font-sans font-semibold tracking-tight', compact ? 'text-[18px]' : 'text-[28px] leading-9')}>
-          {mode === 'support' ? 'How are you doing?' : course ? `What are we studying in ${course}?` : 'What are we studying?'}
-        </h2>
-        {mode === 'support' ? (
-          <p className="mt-1 text-[14px] text-muted">Talk through stress or motivation. This is not a replacement for a counselor.</p>
-        ) : (
-          <>
-            {courses.length > 0 && (
-              <div className="mt-3 flex flex-wrap gap-1.5" role="radiogroup" aria-label="Course">
-                {['', ...courses].map((c) => (
-                  <button key={c || 'any'} type="button" role="radio" aria-checked={course === c} onClick={() => setCourse(c)} className={cn('rounded-md border px-2.5 py-1 text-[13px] font-medium transition-colors', course === c ? 'border-ink bg-ink text-bg' : 'border-line text-ink-2 hover:border-line-strong hover:text-ink')}>{c || 'Any class'}</button>
+    <div className={cn('flex min-h-0 flex-1 flex-col overflow-y-auto', compact ? 'px-3 py-4' : 'px-5 py-6 sm:py-8')}>
+      <div className="mx-auto w-full max-w-[760px]">
+        {/* The study desk: pick a class and a way to study, then type below. */}
+        <section className="rounded-t-[12px] bg-accent-fill px-5 pt-5 pb-6 text-white max-sm:px-4">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div className="min-w-0">
+              <p className="flex items-center gap-2 text-[13px] font-medium text-white/80"><Logo className="size-5 rounded" /> Studytime tutor</p>
+              <h2 className={cn('mt-1 font-sans font-semibold tracking-tight', compact ? 'text-[20px] leading-7' : 'text-[28px] leading-9')}>
+                {mode === 'support' ? 'How are you doing?' : course ? `What are we studying in ${course}?` : 'What are we studying today?'}
+              </h2>
+            </div>
+            <div className="flex overflow-hidden rounded-md border border-white/30 text-[12px] font-medium" role="radiogroup" aria-label="Kind of help">
+              {(['tutor', 'support'] as const).map((m) => (
+                <button key={m} type="button" role="radio" aria-checked={mode === m} onClick={() => setMode(m)} className={cn('px-2.5 py-1.5', mode === m ? 'bg-white text-[#14301f]' : 'text-white/85 hover:bg-white/10')}>{m === 'tutor' ? 'Study' : 'Talk it through'}</button>
+              ))}
+            </div>
+          </div>
+          {mode === 'support' ? (
+            <p className="mt-2 text-[14px] text-white/80">Talk through stress or motivation. This is not a replacement for a counselor.</p>
+          ) : (
+            <>
+              {courses.length > 0 && (
+                <div className="mt-4 flex flex-wrap gap-1.5" role="radiogroup" aria-label="Class">
+                  {['', ...courses].map((c) => (
+                    <button key={c || 'any'} type="button" role="radio" aria-checked={course === c} onClick={() => setCourse(c)} className={cn('rounded-md border px-2.5 py-1 text-[13px] font-medium transition-colors', course === c ? 'border-white bg-white text-[#14301f]' : 'border-white/35 text-white hover:bg-white/10')}>{c || 'Any class'}</button>
+                  ))}
+                </div>
+              )}
+              <div className={cn('mt-4 grid gap-2', compact ? 'grid-cols-2' : 'grid-cols-2 sm:grid-cols-3')} role="radiogroup" aria-label="How to study">
+                {MODES.map((m) => (
+                  <button key={m.id} type="button" role="radio" aria-checked={action === m.id} onClick={() => (setAction(m.id), inputRef.current?.focus())} className={cn('rounded-lg px-3 py-2.5 text-left transition-colors', action === m.id ? 'bg-white text-[#14301f]' : 'bg-white/10 text-white hover:bg-white/15')}>
+                    <span className="block text-[14px] font-semibold">{m.label}</span>
+                    {!compact && <span className={cn('mt-0.5 line-clamp-2 block text-[12px] leading-4 max-sm:hidden', action === m.id ? 'text-[#14301f]/70' : 'text-white/70')}>{m.note}</span>}
+                  </button>
                 ))}
               </div>
-            )}
+            </>
+          )}
+        </section>
+        <div className="-mt-2 rounded-b-[12px] border border-t-0 border-line bg-surface p-3 max-sm:p-2">{composer}</div>
+
+        {mode === 'tutor' && (soon || due > 0) && (
+          <div className="mt-4 grid gap-2 sm:grid-cols-2">
             {soon && (
-              <div className="mt-4 flex flex-wrap items-center gap-2 border-l-2 border-ink pl-3">
-                <p className="mr-auto text-[14px]"><strong className="font-semibold">{soon.title}</strong> <span className="text-muted">in {soonDays} {soonDays === 1 ? 'day' : 'days'}</span></p>
-                <Button size="sm" variant="secondary" onClick={() => send(`Make me a day-by-day study plan for ${soon.title}, which is due ${new Date(soon.dueAt).toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' })}.`)}>Plan for it</Button>
-                <Button size="sm" variant="secondary" onClick={() => send(`Quiz me on what is likely to be on ${soon.title}.`, 'quiz')}>Quiz me for it</Button>
+              <div className="panel p-3.5">
+                <p className="text-[13px] text-muted">Coming up in {soonDays} {soonDays === 1 ? 'day' : 'days'}</p>
+                <p className="truncate text-[15px] font-semibold">{soon.title}</p>
+                <div className="mt-2 flex gap-2">
+                  <Button size="sm" variant="secondary" onClick={() => send(`Make me a day-by-day study plan for ${soon.title}, which is due ${new Date(soon.dueAt).toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' })}.`)}>Plan for it</Button>
+                  <Button size="sm" variant="secondary" onClick={() => send(`Quiz me on what is likely to be on ${soon.title}.`, 'quiz')}>Quiz me</Button>
+                </div>
               </div>
             )}
-          </>
+            {due > 0 && (
+              <div className="panel p-3.5">
+                <p className="text-[13px] text-muted">Flashcards</p>
+                <p className="text-[15px] font-semibold"><span className="tnum">{due}</span> {due === 1 ? 'card is' : 'cards are'} due for review</p>
+                <Link href="/study?tool=practice"><Button size="sm" variant="secondary" className="mt-2">Review now</Button></Link>
+              </div>
+            )}
+          </div>
+        )}
+        {starters.length > 0 && (
+          <div className="mt-5">
+            <p className="mb-1 text-[13px] font-semibold text-muted">Try one</p>
+            <ul className="divide-y divide-line border-t border-line">
+              {starters.map((st) => (
+                <li key={st}>
+                  <button type="button" onClick={() => send(st, mode === 'tutor' ? action : undefined)} className="w-full py-2.5 text-left text-[14px] text-ink-2 hover:text-ink">{st}</button>
+                </li>
+              ))}
+            </ul>
+          </div>
         )}
       </div>
-      <div className="mt-6 w-full">{composer}</div>
-      {mode === 'tutor' && <p className="mx-auto mt-3 w-full max-w-[720px] text-[13px] text-ink-2"><strong className="font-semibold">{mode0.label}.</strong> <span className="text-muted">{mode0.note}</span></p>}
-      {starters.length > 0 && (
-        <ul className="mx-auto mt-4 w-full max-w-[720px] divide-y divide-line border-t border-line">
-          {starters.map((st) => (
-            <li key={st}>
-              <button type="button" onClick={() => send(st, mode === 'tutor' ? action : undefined)} className="w-full py-2.5 text-left text-[13px] text-ink-2 hover:text-ink">{st}</button>
-            </li>
-          ))}
-        </ul>
-      )}
     </div>
   );
 
