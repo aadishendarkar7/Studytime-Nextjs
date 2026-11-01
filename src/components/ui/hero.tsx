@@ -9,7 +9,7 @@ export function Hero({ title, sub, action, children, className }: { title: React
   return (
     <section className={cn('rounded-[10px] bg-accent-fill px-5 py-5 text-white max-sm:px-4 max-sm:py-4', className)}>
       <div className="flex flex-wrap items-center gap-4">
-        <div className="min-w-0 flex-1">
+        <div className="min-w-[min(100%,15rem)] flex-1">
           <h2 className="text-[20px] leading-7 font-semibold tracking-tight max-sm:text-[18px]">{title}</h2>
           {sub && <p className="mt-0.5 text-[14px] leading-5 text-white/80">{sub}</p>}
         </div>

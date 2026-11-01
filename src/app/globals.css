@@ -313,3 +313,17 @@ html.color-ripple::view-transition-new(root) { animation: color-ripple 700ms cub
   .well-on { color: var(--ink); border-color: var(--ink); background: var(--surface); }
   .well-done { color: var(--bg); border-color: transparent; background: var(--ink); }
 }
+
+/* Notes: items arrive one after another, quickly; panels open by height. */
+@keyframes st-rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.st-rise { animation: st-rise 280ms cubic-bezier(0.2, 0.7, 0.2, 1) both; animation-delay: calc(min(var(--i, 0), 12) * 30ms); }
+.st-open { display: grid; grid-template-rows: 0fr; opacity: 0; transition: grid-template-rows 260ms cubic-bezier(0.2, 0.7, 0.2, 1), opacity 200ms ease; }
+.st-open[data-open='true'] { grid-template-rows: 1fr; opacity: 1; }
+.st-open > * { min-height: 0; overflow: hidden; }
+@keyframes st-pop { 0% { transform: translateX(-50%) scale(1); } 40% { transform: translateX(-50%) scale(1.5); } 100% { transform: translateX(-50%) scale(1); } }
+.st-pop { animation: st-pop 380ms ease-out; }
+/* Self-test: key terms hidden until you tap them. */
+.md-recall strong { cursor: pointer; border-radius: 3px; background: var(--surface-3); color: transparent; transition: color 180ms ease, background-color 180ms ease; }
+.md-recall strong.shown { color: inherit; background: var(--accent-soft); }
+.md-recall strong * { visibility: hidden; }
+.md-recall strong.shown * { visibility: visible; }

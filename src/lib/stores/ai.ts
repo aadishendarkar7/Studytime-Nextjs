@@ -9,7 +9,7 @@ export const AI_KEY = 'studytime:ai';
 export interface ChatMessage { role: 'user' | 'assistant'; content: string; files?: string[]; /** Tutor action used, like a cheat sheet or summary. */ action?: string }
 export interface Chat { id: string; title: string; mode: 'tutor' | 'support'; messages: ChatMessage[]; updatedAt: number }
 export interface Concept { id: string; name: string; subject: string; summary: string; example: string; mastery: number; seen: number; source: string; createdAt: number; updatedAt: number }
-export interface Note { id: string; title: string; folder: string; kind: NoteKind; content: string; createdAt: number }
+export interface Note { id: string; title: string; folder: string; kind: NoteKind; content: string; createdAt: number; pinned?: boolean; updatedAt?: number }
 export type NoteKind = 'notes' | 'cheatsheet' | 'summary' | 'quiz' | 'guide' | 'solution' | 'writing';
 export interface Solve { id: string; at: number; mode: 'full' | 'hint' | 'check'; question: string; answer: string; verdict: { agree: boolean; note: string; finalAnswer: string } | null; concepts: string[] }
 
