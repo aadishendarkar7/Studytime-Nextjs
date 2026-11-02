@@ -71,5 +71,5 @@ export function Icon({ name, className = 'size-5', ...props }: { name: IconName 
   );
 }
 
-/** The Studytime mark: a brain and two leaves. Fixed colors, so it never follows the theme color. */
+/** The Brainwick mark: half brain, half gear. Fixed colors, so it never follows the theme color. */
 export { Logo } from './logo';

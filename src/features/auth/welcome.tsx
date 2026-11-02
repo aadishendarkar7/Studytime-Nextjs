@@ -41,7 +41,7 @@ export function Welcome() {
   return (
     <div className="grid min-h-dvh place-items-center bg-bg px-5 py-10">
       <div className="w-full max-w-[460px]">
-        <div className="mb-6 flex items-center gap-2 text-[17px] font-semibold tracking-tight"><Logo className="size-7" /> Studytime</div>
+        <div className="mb-6 flex items-center gap-2 text-[17px] font-semibold tracking-tight"><Logo className="size-7" /> Brainwick</div>
         <h1 className="font-sans text-[26px] leading-8 font-semibold tracking-tight">Set up your profile</h1>
         <p className="mt-1 text-[14px] text-muted">Your school and classes connect you with classmates on Drop a Spot, chat and the leaderboard.</p>
         <form className="mt-4" onSubmit={(e) => (e.preventDefault(), void save())}>

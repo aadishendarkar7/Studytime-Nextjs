@@ -19,7 +19,7 @@ export function HelpPage() {
   const search = `https://www.google.com/search?q=${encodeURIComponent(`${school || 'my college'} counseling center`)}`;
   return (
     <>
-      <PageHeader title="Support and resources" description="Studytime can help with habits, but it is not a counselor. If school stress is getting heavy, talking to a person helps." />
+      <PageHeader title="Support and resources" description="Brainwick can help with habits, but it is not a counselor. If school stress is getting heavy, talking to a person helps." />
       <div className="grid gap-5 lg:grid-cols-12 [&>*]:min-w-0">
         <Card className="lg:col-span-7">
           <CardHeader title="If you need someone right now" description="Free and confidential in the United States, available 24 hours a day." />
@@ -40,7 +40,7 @@ export function HelpPage() {
             <li>Tell a friend or a professor when you are falling behind. Extensions are more common than people think.</li>
             <li>Take the rest day. Rest is part of studying well.</li>
           </ul>
-          <Note>Studytime does not share your check-ins with anyone. They stay in this browser.</Note>
+          <Note>Brainwick does not share your check-ins with anyone. They stay in this browser.</Note>
         </Card>
       </div>
     </>

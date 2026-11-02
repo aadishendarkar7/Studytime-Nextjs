@@ -10,7 +10,7 @@ import { useNow } from '@/lib/use-now';
 import { fmtMinutes } from '@/lib/utils';
 import { hourLabel, PERIOD_LABEL, periodStart, wrap, type Period, type Wrapped } from './logic';
 
-export const TAGLINE = 'If it’s not on Studytime, it didn’t happen.';
+export const TAGLINE = 'If it’s not on Brainwick, it didn’t happen.';
 
 function Tile({ label, value, note, big }: { label: string; value: string; note?: string; big?: boolean }) {
   return (
@@ -37,7 +37,7 @@ async function shareImage(w: Wrapped, period: Period, name: string, style: strin
   const font = (size: number, weight = 600) => `${weight} ${size}px -apple-system, BlinkMacSystemFont, system-ui, "Segoe UI", Roboto, sans-serif`;
   g.fillStyle = '#a1a1aa';
   g.font = font(34, 500);
-  g.fillText(`Studytime Wrapped, ${PERIOD_LABEL[period]}`, 80, 200);
+  g.fillText(`Brainwick Wrapped, ${PERIOD_LABEL[period]}`, 80, 200);
   g.fillStyle = '#fafafa';
   g.font = font(64, 700);
   g.fillText(name || 'My study recap', 80, 280);
@@ -65,10 +65,10 @@ async function shareImage(w: Wrapped, period: Period, name: string, style: strin
   g.fillText(TAGLINE, 80, 1270);
   const blob = await new Promise<Blob | null>((r) => c.toBlob(r, 'image/png'));
   if (!blob) return toast('Could not make the image.', 'error');
-  const file = new File([blob], 'studytime-wrapped.png', { type: 'image/png' });
+  const file = new File([blob], 'brainwick-wrapped.png', { type: 'image/png' });
   if (navigator.canShare?.({ files: [file] })) {
     try {
-      await navigator.share({ files: [file], title: 'Studytime Wrapped', text: TAGLINE });
+      await navigator.share({ files: [file], title: 'Brainwick Wrapped', text: TAGLINE });
       return;
     } catch {
       /* closed the share sheet */
@@ -76,7 +76,7 @@ async function shareImage(w: Wrapped, period: Period, name: string, style: strin
   }
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = 'studytime-wrapped.png';
+  a.download = 'brainwick-wrapped.png';
   a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 5000);
 }

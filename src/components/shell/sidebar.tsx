@@ -18,7 +18,7 @@ import { GROUP_LABEL, isActive, MOBILE_TABS, NAV, type NavItem } from './nav';
 function Wordmark({ className }: { className?: string }) {
   return (
     <Link href="/" className={cn('flex items-center gap-3 text-[23px] font-semibold tracking-tight text-ink', className)}>
-      <Logo className="size-11" /> Studytime
+      <Logo className="size-11" /> Brainwick
     </Link>
   );
 }
@@ -139,7 +139,7 @@ export function Sidebar() {
       {collapse}
       {mini ? (
         <div className="mb-6 grid h-12 justify-items-center">
-          <Link href="/" aria-label="Studytime home" className="self-center"><Logo className="size-10" /></Link>
+          <Link href="/" aria-label="Brainwick home" className="self-center"><Logo className="size-10" /></Link>
         </div>
       ) : (
         <Wordmark className="mx-1.5 mb-6 h-12" />

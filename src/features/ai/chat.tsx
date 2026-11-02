@@ -297,7 +297,7 @@ export function ChatTool({ compact = false, initialAction = '', onHide }: { comp
             </div>
           ) : (
             <div key={i} className="min-w-0">
-              <p className="mb-2 flex items-center gap-2 text-[13px] font-semibold"><Logo className="size-6 rounded-md" /> Studytime tutor{m.action && actionById(m.action) ? <span className="font-normal text-muted">{actionById(m.action)!.label}</span> : null}</p>
+              <p className="mb-2 flex items-center gap-2 text-[13px] font-semibold"><Logo className="size-6 rounded-md" /> Brainwick tutor{m.action && actionById(m.action) ? <span className="font-normal text-muted">{actionById(m.action)!.label}</span> : null}</p>
               {readQuiz(m.content) ? (
                 <QuizBlock quiz={readQuiz(m.content)!} title={chat.title} onAgain={() => send(`Another quiz on the same topic: ${chat.title}. Different questions.`, 'quiz')} />
               ) : (
@@ -318,7 +318,7 @@ export function ChatTool({ compact = false, initialAction = '', onHide }: { comp
           )
         ))}
         {pendingId && pendingId === chat?.id && (
-          <div className="min-w-0"><p className="mb-2 flex items-center gap-2 text-[13px] font-semibold"><Logo className="size-6 rounded-md" /> Studytime tutor</p>{run.text ? <Markdown streaming>{run.text}</Markdown> : <Thinking label="Working it out" />}</div>
+          <div className="min-w-0"><p className="mb-2 flex items-center gap-2 text-[13px] font-semibold"><Logo className="size-6 rounded-md" /> Brainwick tutor</p>{run.text ? <Markdown streaming>{run.text}</Markdown> : <Thinking label="Working it out" />}</div>
         )}
         {run.error && <AiErrorBox error={run.error} />}
       </div>
@@ -334,7 +334,7 @@ export function ChatTool({ compact = false, initialAction = '', onHide }: { comp
         <section className="rounded-t-[12px] bg-accent-fill px-5 pt-5 pb-6 text-white max-sm:px-4">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div className="min-w-0">
-              <p className="flex items-center gap-2 text-[13px] font-medium text-white/80"><Logo className="size-5 rounded" /> Studytime tutor</p>
+              <p className="flex items-center gap-2 text-[13px] font-medium text-white/80"><Logo className="size-5 rounded" /> Brainwick tutor</p>
               <h2 className={cn('mt-1 font-sans font-semibold tracking-tight', compact ? 'text-[20px] leading-7' : 'text-[28px] leading-9')}>
                 {mode === 'support' ? 'How are you doing?' : course ? `What are we studying in ${course}?` : 'What are we studying today?'}
               </h2>

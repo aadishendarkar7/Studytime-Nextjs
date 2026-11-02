@@ -27,7 +27,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     return (
       <div className="grid min-h-dvh place-items-center" aria-busy="true">
         <div className="flex items-center gap-2 text-[15px] font-semibold tracking-tight text-ink">
-          <Logo className="size-9" /> Studytime
+          <Logo className="size-9" /> Brainwick
         </div>
       </div>
     );

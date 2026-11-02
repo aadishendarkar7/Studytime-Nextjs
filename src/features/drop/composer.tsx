@@ -23,7 +23,7 @@ type Audience = 'circle' | 'school' | 'everyone' | 'solo';
 
 const AUDIENCE: { value: Audience; label: string; note: string }[] = [
   { value: 'school', label: 'My school', note: 'Students at your school can see it, and people who follow you get an alert.' },
-  { value: 'everyone', label: 'Everyone', note: 'Anyone on Studytime can see it, and people who follow you get an alert.' },
+  { value: 'everyone', label: 'Everyone', note: 'Anyone on Brainwick can see it, and people who follow you get an alert.' },
   { value: 'solo', label: 'Just me', note: 'Nobody is notified. Good for heads-down days.' },
 ];
 

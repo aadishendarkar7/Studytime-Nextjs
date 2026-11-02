@@ -5,9 +5,9 @@ import './globals.css';
 import { APPEARANCE_SCRIPT } from '@/lib/appearance';
 
 export const metadata: Metadata = {
-  title: { default: 'Studytime | Focus timer, planner and AI tutor', template: '%s | Studytime' },
+  title: { default: 'Brainwick | Focus timer, planner and AI tutor', template: '%s | Brainwick' },
   description: 'Drop where you are studying and friends can join you. Plus a focus timer with ambient sounds, a calendar that plans study time, an AI tutor and flashcards.',
-  applicationName: 'Studytime',
+  applicationName: 'Brainwick',
 };
 
 export const viewport: Viewport = {

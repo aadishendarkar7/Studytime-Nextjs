@@ -9,15 +9,15 @@ export default function TermsPage() {
   return (
     <LegalPage title="Terms and conditions">
       <p>
-        These terms cover your use of Studytime, an independent student project run by <Operator />. Studytime is not affiliated with or endorsed by any university. By using the app you agree to these terms and the <Link href="/privacy" className="text-accent underline underline-offset-4">privacy policy</Link>. If you do not agree, do not use it.
+        These terms cover your use of Brainwick, an independent student project run by <Operator />. Brainwick is not affiliated with or endorsed by any university. By using the app you agree to these terms and the <Link href="/privacy" className="text-accent underline underline-offset-4">privacy policy</Link>. If you do not agree, do not use it.
       </p>
 
-      <Section title="What Studytime is">
-        <p>Studytime is a free study tool for students: a focus timer, a calendar and planner, flashcards, notes and lecture recordings, an AI tutor and AI-made courses, Drop a Spot for studying with others, a Feed for sharing study sessions, challenges, and leaderboards.</p>
+      <Section title="What Brainwick is">
+        <p>Brainwick is a free study tool for students: a focus timer, a calendar and planner, flashcards, notes and lecture recordings, an AI tutor and AI-made courses, Drop a Spot for studying with others, a Feed for sharing study sessions, challenges, and leaderboards.</p>
       </Section>
 
       <Section title="Who can use it">
-        <p>You must be at least 13 years old to use Studytime. If you are under 18, use it with the permission of a parent or guardian. You can use most of the app without an account; posting, following people and saving progress across devices need one.</p>
+        <p>You must be at least 13 years old to use Brainwick. If you are under 18, use it with the permission of a parent or guardian. You can use most of the app without an account; posting, following people and saving progress across devices need one.</p>
       </Section>
 
       <Section title="Your account">
@@ -29,7 +29,7 @@ export default function TermsPage() {
       </Section>
 
       <Section title="Your content">
-        <p>You keep ownership of what you write, upload, and share, including posts and photos. You give the operator a free, non-exclusive permission to store, display and resize that content only as needed to run Studytime, for example showing your post to the people you chose. This permission ends when you delete the content, except for copies kept briefly in backups or for a report under review.</p>
+        <p>You keep ownership of what you write, upload, and share, including posts and photos. You give the operator a free, non-exclusive permission to store, display and resize that content only as needed to run Brainwick, for example showing your post to the people you chose. This permission ends when you delete the content, except for copies kept briefly in backups or for a report under review.</p>
       </Section>
 
       <Section title="Posts and photos">
@@ -57,7 +57,7 @@ export default function TermsPage() {
       </Section>
 
       <Section title="Meeting study partners">
-        <p>Studytime does not check who students are. You decide whether to contact or meet someone. Meet in a public place, tell someone where you are going, and leave if anything feels wrong. Studytime is not responsible for what happens between students who meet through it.</p>
+        <p>Brainwick does not check who students are. You decide whether to contact or meet someone. Meet in a public place, tell someone where you are going, and leave if anything feels wrong. Brainwick is not responsible for what happens between students who meet through it.</p>
       </Section>
 
       <Section title="Wellbeing features">
@@ -65,7 +65,7 @@ export default function TermsPage() {
       </Section>
 
       <Section title="Connected calendars">
-        <p>Only connect calendars you have the right to use. Studytime reads them to show your schedule and plan study time, and is not responsible for mistakes in the calendars themselves, such as a due date your instructor changed.</p>
+        <p>Only connect calendars you have the right to use. Brainwick reads them to show your schedule and plan study time, and is not responsible for mistakes in the calendars themselves, such as a due date your instructor changed.</p>
       </Section>
 
       <Section title="Points, levels and achievements">
@@ -77,11 +77,11 @@ export default function TermsPage() {
       </Section>
 
       <Section title="No warranty">
-        <p>Studytime is provided as is and as available, without warranties of any kind. The service may change, be interrupted, or be discontinued. To the extent the law allows, the operator is not liable for indirect or consequential losses, or for any loss of data, grades, or study time arising from use of the app.</p>
+        <p>Brainwick is provided as is and as available, without warranties of any kind. The service may change, be interrupted, or be discontinued. To the extent the law allows, the operator is not liable for indirect or consequential losses, or for any loss of data, grades, or study time arising from use of the app.</p>
       </Section>
 
       <Section title="Ending access">
-        <p>You can stop using Studytime and delete your account at any time from Settings. The operator can remove content or restrict access for anyone who breaks these terms.</p>
+        <p>You can stop using Brainwick and delete your account at any time from Settings. The operator can remove content or restrict access for anyone who breaks these terms.</p>
       </Section>
 
       <Section title="Governing law">

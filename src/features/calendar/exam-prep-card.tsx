@@ -53,7 +53,7 @@ export function ExamPrepCard({ initial }: { initial?: string | null }) {
   const [busy, setBusy] = useState(false);
   const [proposals, setProposals] = useState<Proposal[] | null>(null);
 
-  if (!exams.length) return <Card><CardHeader title="Exam prep" description="Tell Studytime what is on an exam and it plans every session you need, finishing the day before." /><Empty>No upcoming exams. Add one under Deadlines, or connect Canvas or your class calendar.</Empty></Card>;
+  if (!exams.length) return <Card><CardHeader title="Exam prep" description="Tell Brainwick what is on an exam and it plans every session you need, finishing the day before." /><Empty>No upcoming exams. Add one under Deadlines, or connect Canvas or your class calendar.</Empty></Card>;
   if (!exam) return null;
 
   const prep = x.examPreps[exam.key] ?? { topics: [] };

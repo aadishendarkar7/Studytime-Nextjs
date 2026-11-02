@@ -1,5 +1,5 @@
 @echo off
-rem Double-click to run Studytime on this computer (Windows).
+rem Double-click to run Brainwick on this computer (Windows).
 cd /d "%~dp0"
 where node >nul 2>nul
 if errorlevel 1 (
@@ -8,15 +8,15 @@ if errorlevel 1 (
   exit /b 1
 )
 if not exist node_modules (
-  echo Installing Studytime for the first time. This takes a minute...
+  echo Installing Brainwick for the first time. This takes a minute...
   call npm install || (pause & exit /b 1)
 )
 if not exist .next\BUILD_ID (
-  echo Building Studytime...
+  echo Building Brainwick...
   call npm run build || (pause & exit /b 1)
 )
 echo.
-echo Studytime is running at http://localhost:3000  -  keep this window open.
+echo Brainwick is running at http://localhost:3000  -  keep this window open.
 echo Friends on the same Wi-Fi can open http://YOUR-COMPUTER-IP:3000
 start "" http://localhost:3000
 call npm start -- -H 0.0.0.0

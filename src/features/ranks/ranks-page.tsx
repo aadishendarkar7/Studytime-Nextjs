@@ -194,7 +194,7 @@ function Leaderboard() {
           </table>
           </MotionConfig>
         ) : (
-          <p className="px-4 py-10 text-center text-[13px] text-muted">No one else on this board yet. Share Studytime with classmates.</p>
+          <p className="px-4 py-10 text-center text-[13px] text-muted">No one else on this board yet. Share Brainwick with classmates.</p>
         )}
       </section>
       {editing && <GroupsDialog onClose={() => setEditing(false)} />}

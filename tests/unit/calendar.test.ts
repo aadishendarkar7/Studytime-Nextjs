@@ -49,7 +49,7 @@ describe('calendar import', () => {
     expect(hw.allDay).toBe(true);
   });
 
-  it('serves the Studytime plan as a subscribable calendar', async () => {
+  it('serves the Brainwick plan as a subscribable calendar', async () => {
     const { token } = await saveFeed(null, [{ uid: 'b1', title: 'Prep: STAT400, midterm', start: Date.UTC(2026, 10, 2, 14), end: Date.UTC(2026, 10, 2, 15), allDay: false, description: '' }]);
     const ics = (await renderFeed(token))!;
     expect(ics).toContain('BEGIN:VCALENDAR');

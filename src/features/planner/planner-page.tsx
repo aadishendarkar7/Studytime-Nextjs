@@ -67,7 +67,7 @@ export function ReminderList() {
     const stamp = (ms: number) => new Date(ms).toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
     const esc = (s: string) => s.replace(/[,;\\]/g, (c) => `\\${c}`);
     const events = upcoming.flatMap((r) => ['BEGIN:VEVENT', `UID:${r.id}@studytime`, `DTSTAMP:${stamp(Date.now())}`, `DTSTART:${stamp(r.dueAt - 3_600_000)}`, `DTEND:${stamp(r.dueAt)}`, `SUMMARY:${esc(`${REMINDER_TYPES[r.type]}: ${r.title}`)}`, 'BEGIN:VALARM', `TRIGGER:-PT${Math.max(0, r.lead)}M`, 'ACTION:DISPLAY', `DESCRIPTION:${esc(r.title)}`, 'END:VALARM', 'END:VEVENT']);
-    downloadFile('Studytime deadlines.ics', ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Studytime//Deadlines//EN', ...events, 'END:VCALENDAR'].join('\r\n'), 'text/calendar');
+    downloadFile('Brainwick deadlines.ics', ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Brainwick//Deadlines//EN', ...events, 'END:VCALENDAR'].join('\r\n'), 'text/calendar');
     toast(`Exported ${upcoming.length} deadlines. Open the file to add them to your calendar.`);
   };
   const actions = (id: string, isDone: boolean) => (

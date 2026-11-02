@@ -122,18 +122,18 @@ export function isPastWindDown(windDown: string, now = new Date()) {
   return mins >= wd || mins < 4 * 60;
 }
 
-/** Sends the plan to the Studytime subscribe link, if the student made one. */
+/** Sends the plan to the Brainwick subscribe link, if the student made one. */
 export async function syncOutgoing() {
   const x = useExtras.getState();
   if (!x.outgoingFeed) return;
   const now = Date.now();
   const from = now - 7 * 86_400_000;
-  const blocks = x.studyBlocks.filter((b) => b.end > from).slice(0, 400).map((b) => ({ uid: `block-${b.id}`, title: b.title, start: b.start, end: b.end, allDay: false, description: 'Study block planned in Studytime' }));
+  const blocks = x.studyBlocks.filter((b) => b.end > from).slice(0, 400).map((b) => ({ uid: `block-${b.id}`, title: b.title, start: b.start, end: b.end, allDay: false, description: 'Study block planned in Brainwick' }));
   const deadlines = useProfile
     .getState()
     .reminders.filter((r) => !r.done && r.dueAt > from)
     .slice(0, 200)
-    .map((r) => ({ uid: `due-${r.id}`, title: `Due: ${r.title}`, start: r.dueAt - 15 * 60_000, end: r.dueAt, allDay: false, description: `${r.type[0].toUpperCase()}${r.type.slice(1)} from your Studytime planner` }));
+    .map((r) => ({ uid: `due-${r.id}`, title: `Due: ${r.title}`, start: r.dueAt - 15 * 60_000, end: r.dueAt, allDay: false, description: `${r.type[0].toUpperCase()}${r.type.slice(1)} from your Brainwick planner` }));
   const { token } = await api.calendar.saveFeed(x.outgoingFeed.token, [...blocks, ...deadlines]);
   if (token !== x.outgoingFeed.token) x.update({ outgoingFeed: { token } });
 }

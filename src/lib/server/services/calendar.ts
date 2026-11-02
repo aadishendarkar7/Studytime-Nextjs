@@ -56,7 +56,7 @@ export function checkFeedUrl(raw: string): { url: URL; kind: FeedKind; needsChec
   const lms = LMS_PATHS.find((l) => l.test(url));
   if (lms && !host.endsWith('instructure.com')) return { url, kind: lms.kind, needsCheck: true };
   if (!ALLOWED_HOSTS.some((h) => host === h || host.endsWith(`.${h}`))) {
-    throw new HttpError(400, 'Studytime can import Google Calendar, Canvas, Moodle, Brightspace, Blackboard, Outlook and iCloud calendar links.');
+    throw new HttpError(400, 'Brainwick can import Google Calendar, Canvas, Moodle, Brightspace, Blackboard, Outlook and iCloud calendar links.');
   }
   const kind: FeedKind = host.endsWith('google.com') ? 'google' : host.endsWith('instructure.com') ? 'canvas' : host.includes('outlook') ? 'outlook' : host.endsWith('icloud.com') ? 'apple' : 'other';
   return { url, kind, needsCheck: false };
@@ -153,7 +153,7 @@ export async function importCalendar(raw: string) {
   return { kind, ...parsed };
 }
 
-// ---------- Studytime's own subscribe link ----------
+// ---------- Brainwick's own subscribe link ----------
 
 export interface FeedEvent { uid: string; title: string; start: number; end: number; allDay: boolean; description: string }
 const FEED_TTL = 180 * 86_400;
@@ -183,7 +183,7 @@ export async function renderFeed(token: string): Promise<string | null> {
   const feed = await getStorage().get<{ events: FeedEvent[]; updatedAt: number }>(`calfeed:${token}`);
   if (!feed) return null;
   const stamp = icsTime(feed.updatedAt);
-  const lines = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Studytime//Study plan//EN', 'CALSCALE:GREGORIAN', 'METHOD:PUBLISH', 'X-WR-CALNAME:Studytime', 'REFRESH-INTERVAL;VALUE=DURATION:PT1H', 'X-PUBLISHED-TTL:PT1H'];
+  const lines = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Brainwick//Study plan//EN', 'CALSCALE:GREGORIAN', 'METHOD:PUBLISH', 'X-WR-CALNAME:Brainwick', 'REFRESH-INTERVAL;VALUE=DURATION:PT1H', 'X-PUBLISHED-TTL:PT1H'];
   for (const e of feed.events) {
     lines.push('BEGIN:VEVENT', `UID:${e.uid}@studytime`, `DTSTAMP:${stamp}`);
     if (e.allDay) lines.push(`DTSTART;VALUE=DATE:${icsDate(e.start)}`, `DTEND;VALUE=DATE:${icsDate(e.end)}`);

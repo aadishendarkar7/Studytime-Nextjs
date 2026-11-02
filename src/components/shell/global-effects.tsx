@@ -90,7 +90,7 @@ export function GlobalEffects() {
     return () => clearInterval(id);
   }, []);
 
-  // Keep the Studytime subscribe link up to date when the plan changes.
+  // Keep the Brainwick subscribe link up to date when the plan changes.
   useEffect(() => {
     let timer: ReturnType<typeof setTimeout> | undefined;
     const schedule = () => {
@@ -141,7 +141,7 @@ export function GlobalEffects() {
         p.markNotified(due.map((r) => r.id));
         for (const r of due) {
           toast(`${REMINDER_LABEL[r.type]} reminder: ${r.title}`);
-          sendBrowserAlert('Studytime reminder', `${REMINDER_LABEL[r.type]}: ${r.title} is due ${new Date(r.dueAt).toLocaleString()}.`, true);
+          sendBrowserAlert('Brainwick reminder', `${REMINDER_LABEL[r.type]}: ${r.title} is due ${new Date(r.dueAt).toLocaleString()}.`, true);
         }
       }
       // Planned study blocks: one alert as each starts.
@@ -154,7 +154,7 @@ export function GlobalEffects() {
       if (p.nextPlanAt && !p.nextPlanNotified && now >= p.nextPlanAt) {
         p.update({ nextPlanNotified: true });
         toast('Your planned study time is now.');
-        sendBrowserAlert('Time to study', 'Open Studytime to start your planned focus session.');
+        sendBrowserAlert('Time to study', 'Open Brainwick to start your planned focus session.');
       }
     };
     check();

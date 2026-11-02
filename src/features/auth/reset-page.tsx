@@ -33,7 +33,7 @@ export function ResetPage() {
   return (
     <div className="grid min-h-dvh place-items-center bg-bg px-5">
       <div className="w-full max-w-[380px]">
-        <div className="mb-8 flex items-center gap-2 text-[17px] font-semibold tracking-tight"><Logo className="size-7" /> Studytime</div>
+        <div className="mb-8 flex items-center gap-2 text-[17px] font-semibold tracking-tight"><Logo className="size-7" /> Brainwick</div>
         <h1 className="font-sans text-[24px] leading-8 font-semibold tracking-tight">Choose a new password</h1>
         <p className="mt-1 text-[14px] text-muted">You will be signed out on your other devices.</p>
         <form onSubmit={submit}>

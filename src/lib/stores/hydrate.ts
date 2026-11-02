@@ -21,7 +21,7 @@ function write(key: string, state: unknown) {
   }
 }
 
-/** Import data saved by the original single-file Studytime app (one time). */
+/** Import data saved by the original single-file Brainwick app (one time). */
 export function migrateLegacy() {
   try {
     if (!localStorage.getItem(PROFILE_KEY)) {
@@ -77,7 +77,7 @@ export function exportBackup() {
 
 export async function importBackup(text: string) {
   const data = JSON.parse(text);
-  if (data?.app !== 'studytime' || !data.profile) throw new Error('This file is not a Studytime backup.');
+  if (data?.app !== 'studytime' || !data.profile) throw new Error('This file is not a Brainwick backup.');
   const keys = useAi.getState().keys;
   write(PROFILE_KEY, data.profile);
   if (data.learning) write(LEARNING_KEY, data.learning);

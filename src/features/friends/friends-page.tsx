@@ -22,7 +22,7 @@ function PersonRow({ p, onOpen, onChange }: { p: PersonView; onOpen: (id: string
       <Avatar name={p.name} color={toneFor(p.id)} size={40} userId={p.id} />
       <button type="button" onClick={() => onOpen(p.id)} className="min-w-0 flex-1 text-left">
         <span className="block truncate text-[15px] font-medium hover:underline">{p.name}</span>
-        <span className="block truncate text-[13px] text-muted">{[p.major, p.school].filter(Boolean).join(', ') || 'Studytime'}{p.followsYou && p.following ? ', Friends' : p.followsYou ? ', Follows you' : ''}</span>
+        <span className="block truncate text-[13px] text-muted">{[p.major, p.school].filter(Boolean).join(', ') || 'Brainwick'}{p.followsYou && p.following ? ', Friends' : p.followsYou ? ', Follows you' : ''}</span>
       </button>
       <span className="tnum hidden text-[13px] text-muted sm:block">{fmtMinutes(p.weekMinutes)} this week</span>
       <FollowButton person={p} onChange={onChange} />

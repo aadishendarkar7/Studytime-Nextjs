@@ -30,7 +30,7 @@ export class FileStorage extends MemoryStorage {
         for (const [key, entry] of this.data) if (!entry.expiresAt || entry.expiresAt > now) out[key] = entry;
         fs.writeFileSync(this.file, JSON.stringify(out));
       } catch (error) {
-        console.error('Could not save Studytime data:', error);
+        console.error('Could not save Brainwick data:', error);
       }
     }, 250);
   }

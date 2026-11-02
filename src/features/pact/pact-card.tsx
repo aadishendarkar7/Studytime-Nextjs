@@ -155,7 +155,7 @@ export function PactCard({ className }: { className?: string }) {
             <div className="flex flex-wrap items-center gap-2 rounded-lg bg-surface-2 px-3 py-2.5 text-[13px]">
               <span className="text-ink-2">Waiting for your partner. Code</span>
               <strong className="tnum tracking-wider">{pact.code}</strong>
-              <Button size="sm" variant="secondary" className="ml-auto" onClick={async () => toast((await copyText(`Join my Studytime pact: ${fmtMinutes(pact.goal)} each this week. ${location.origin}/drop?tab=friends&view=pact&pact=${pact.code} (code ${pact.code})`)) ? 'Invite copied.' : 'Could not copy.')}>Copy invite</Button>
+              <Button size="sm" variant="secondary" className="ml-auto" onClick={async () => toast((await copyText(`Join my Brainwick pact: ${fmtMinutes(pact.goal)} each this week. ${location.origin}/drop?tab=friends&view=pact&pact=${pact.code} (code ${pact.code})`)) ? 'Invite copied.' : 'Could not copy.')}>Copy invite</Button>
             </div>
           )}
         </div>

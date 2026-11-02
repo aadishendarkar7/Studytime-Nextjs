@@ -9,7 +9,7 @@ export function LegalPage({ title, children }: { title: string; children: ReactN
     <div className="mx-auto min-h-dvh max-w-[1200px] px-4 pb-16 sm:px-6 lg:px-10">
       <header className="flex h-16 items-center justify-between border-b border-line">
         <Link href="/" className="flex items-center gap-2 text-[15px] font-semibold tracking-tight text-ink">
-          <Logo className="size-6" /> Studytime
+          <Logo className="size-6" /> Brainwick
         </Link>
         <Link href="/" className="text-[13px] text-accent underline underline-offset-4">Back to the app</Link>
       </header>

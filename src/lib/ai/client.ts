@@ -116,7 +116,7 @@ export async function callAI({ system, messages, maxTokens = 2500, tier = 'main'
     }
   } catch (error) {
     if ((error as Error).name === 'AbortError') throw error;
-    throw new AiError('Could not reach Studytime. Check your internet connection.');
+    throw new AiError('Could not reach Brainwick. Check your internet connection.');
   }
   if (!response.ok || !response.body) {
     const body = (await response.json().catch(() => ({}))) as { error?: string };

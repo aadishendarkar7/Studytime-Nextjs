@@ -37,7 +37,7 @@ const shareText = (p: FeedPost, me: string | undefined) => {
   const who = p.userId === me ? 'I' : p.name.split(' ')[0];
   const crew = (p.crew ?? []).filter((c) => c.id !== me).map((c) => c.name.split(' ')[0]);
   const withWho = crew.length ? ` with ${crew.join(' and ')}` : '';
-  return `${who} studied ${fmtMinutes(p.minutes)}${p.subject ? ` of ${p.subject}` : ''}${withWho} on Studytime.`;
+  return `${who} studied ${fmtMinutes(p.minutes)}${p.subject ? ` of ${p.subject}` : ''}${withWho} on Brainwick.`;
 };
 
 /** The post as a 1080×1350 image: the photo on top if there is one, then the time and what was studied. */
@@ -124,7 +124,7 @@ function ShareMenu({ post }: { post: FeedPost }) {
     try {
       const blob = await highlightImage(post);
       if (!blob) return toast('Could not make the image.', 'error');
-      const file = new File([blob], 'studytime.png', { type: 'image/png' });
+      const file = new File([blob], 'brainwick.png', { type: 'image/png' });
       if (navigator.canShare?.({ files: [file] })) {
         try {
           await navigator.share({ files: [file], text });
@@ -135,7 +135,7 @@ function ShareMenu({ post }: { post: FeedPost }) {
       }
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
-      a.download = 'studytime.png';
+      a.download = 'brainwick.png';
       a.click();
       setTimeout(() => URL.revokeObjectURL(a.href), 5000);
       toast('Image saved. Post it from your photos.');
@@ -189,7 +189,7 @@ function MoreMenu({ post, onGone }: { post: FeedPost; onGone: () => void }) {
     }
   };
   const blockIt = async () => {
-    if (!await askConfirm(`Block ${post.name}? You will stop seeing each other on Studytime.`)) return;
+    if (!await askConfirm(`Block ${post.name}? You will stop seeing each other on Brainwick.`)) return;
     try {
       await api.people.block(post.userId, true);
       toast(`${post.name} is blocked. You can undo this in Settings.`);
@@ -352,7 +352,7 @@ export function FindPeople({ onOpen }: { onOpen: (id: string) => void }) {
             <Avatar name={p.name} color={toneFor(p.id)} size={28} userId={p.id} />
             <button type="button" onClick={() => onOpen(p.id)} className="min-w-0 flex-1 text-left">
               <span className="block truncate text-[13px] font-medium hover:underline">{p.name}</span>
-              <span className="block truncate text-[11px] text-muted">{[p.major, p.school].filter(Boolean).join(', ') || 'Studytime'}</span>
+              <span className="block truncate text-[11px] text-muted">{[p.major, p.school].filter(Boolean).join(', ') || 'Brainwick'}</span>
             </button>
             <FollowButton person={p} onChange={(np) => setPeople((l) => (l ?? []).map((x) => (x.id === np.id ? np : x)))} />
           </li>

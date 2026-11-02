@@ -7,10 +7,10 @@ import { toast } from '@/lib/stores/ui';
 export function NotificationSettings() {
   const [permission, setPermission] = useState<NotificationPermission | 'unsupported'>(() => (typeof Notification === 'undefined' ? 'unsupported' : Notification.permission));
   const status =
-    permission === 'unsupported' ? 'Browser alerts are unavailable here. In-app reminders still work while Studytime is open.'
-    : permission === 'granted' ? 'Browser alerts are on while Studytime is open.'
+    permission === 'unsupported' ? 'Browser alerts are unavailable here. In-app reminders still work while Brainwick is open.'
+    : permission === 'granted' ? 'Browser alerts are on while Brainwick is open.'
     : permission === 'denied' ? 'Browser alerts are blocked in your browser settings.'
-    : 'Browser alerts are off. Turn them on to get desktop reminders while Studytime is open.';
+    : 'Browser alerts are off. Turn them on to get desktop reminders while Brainwick is open.';
   return (
     <details className="mt-5 border border-line bg-surface px-6 py-4 rounded-xl">
       <summary className="text-sm font-semibold">Notification settings</summary>
@@ -19,7 +19,7 @@ export function NotificationSettings() {
         <Button variant="secondary" disabled={permission !== 'default'} onClick={async () => setPermission(await Notification.requestPermission())}>
           {permission === 'granted' ? 'Browser alerts enabled' : 'Enable browser alerts'}
         </Button>
-        <Button variant="ghost" onClick={() => (toast('Test reminder: Studytime is ready.'), sendBrowserAlert('Studytime test', 'Your study reminders are ready.', true))}>Send a test alert</Button>
+        <Button variant="ghost" onClick={() => (toast('Test reminder: Brainwick is ready.'), sendBrowserAlert('Brainwick test', 'Your study reminders are ready.', true))}>Send a test alert</Button>
       </div>
     </details>
   );

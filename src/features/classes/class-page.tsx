@@ -59,7 +59,7 @@ function ClassPageBody() {
         <div>
           <Link href="/feed" className="text-[12px] font-medium text-muted hover:text-ink">Classes</Link>
           <h1 className="text-[28px] leading-9 max-sm:text-[22px]">{key}</h1>
-          <p className="text-[13px] text-muted">{data ? `${plural(others.length, 'classmate')} on Studytime${p.school ? ` at ${p.school}` : ''}` : 'Loading'}</p>
+          <p className="text-[13px] text-muted">{data ? `${plural(others.length, 'classmate')} on Brainwick${p.school ? ` at ${p.school}` : ''}` : 'Loading'}</p>
         </div>
         <div className="flex flex-wrap gap-2">
           {!onProfile && <Button variant="secondary" onClick={() => (p.update({ courses: [...p.courses, key].slice(0, 12) }), toast(`${key} added to your classes.`))}>Add to my classes</Button>}

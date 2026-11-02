@@ -28,7 +28,7 @@ export function AiSettings() {
   if (conn.mode === 'server' && !ownKey && !advanced)
     return (
       <Card id="ai" className="scroll-mt-6 self-start">
-        <CardHeader title="AI tutor" description="The AI is included with Studytime. Nothing to set up." action={<ConnectionPill />} />
+        <CardHeader title="AI tutor" description="The AI is included with Brainwick. Nothing to set up." action={<ConnectionPill />} />
         <p className="text-[14px] text-ink-2">Ask the tutor anything, upload slides or a PDF, and make cheat sheets, practice tests and flashcards. There is a fair-use limit per day so it stays free for everyone.</p>
         <Button variant="link" size="sm" className="mt-3" onClick={() => setAdvanced(true)}>Use my own API key instead</Button>
       </Card>
@@ -61,7 +61,7 @@ function AdvancedAiSettings() {
       </div>
       <p className="mt-3 text-[13px] text-muted">{provider.note}</p>
       <ProviderForm key={ai.provider} />
-      <Note>Your key is saved only in this browser. It’s sent through this Studytime server to {provider.label} for each request and is never stored on the server. Free tiers have per-minute and daily limits; a solve with cross-check uses about 3 requests.</Note>
+      <Note>Your key is saved only in this browser. It’s sent through this Brainwick server to {provider.label} for each request and is never stored on the server. Free tiers have per-minute and daily limits; a solve with cross-check uses about 3 requests.</Note>
       <Button variant="link" size="sm" className="mt-1" onClick={() => loadAiStatus(true).then(() => toast('Refreshed.'))}>Refresh connection status</Button>
     </Card>
   );

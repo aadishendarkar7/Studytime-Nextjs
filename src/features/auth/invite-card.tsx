@@ -8,10 +8,10 @@ export const inviteLink = (id: string) => `${location.origin}/invite/${id}`;
 
 export async function shareInvite(id: string, name: string) {
   const url = inviteLink(id);
-  const text = `${name} invited you to Studytime. See where friends are studying and study together.`;
+  const text = `${name} invited you to Brainwick. See where friends are studying and study together.`;
   if (navigator.share) {
     try {
-      await navigator.share({ title: 'Join me on Studytime', text, url });
+      await navigator.share({ title: 'Join me on Brainwick', text, url });
       return;
     } catch {
       /* closed the share sheet */

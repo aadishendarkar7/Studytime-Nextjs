@@ -7,12 +7,12 @@ export default function PrivacyPage() {
   return (
     <LegalPage title="Privacy policy">
       <p>
-        Studytime is an independent student project run by <Operator />. It is not affiliated with or endorsed by any university. This page explains what the app stores, where it is stored, and who can see it. Questions and requests go to <Contact />.
+        Brainwick is an independent student project run by <Operator />. It is not affiliated with or endorsed by any university. This page explains what the app stores, where it is stored, and who can see it. Questions and requests go to <Contact />.
       </p>
 
       <Section title="The short version">
         <ul>
-          <li>You can use Studytime without an account. Then your progress stays in your browser.</li>
+          <li>You can use Brainwick without an account. Then your progress stays in your browser.</li>
           <li>With an account, a copy of your progress is saved so it follows you to other devices.</li>
           <li>Things you choose to share (posts, photos, drops, chat messages) are visible to the people you share them with.</li>
           <li>No ads, no ad trackers, no analytics scripts, and we never sell your data.</li>
@@ -20,12 +20,12 @@ export default function PrivacyPage() {
         </ul>
       </Section>
 
-      <Section title="Who can use Studytime">
-        <p>Studytime is meant for students aged 13 and older. It is not directed at children under 13, and we do not knowingly collect their information. If you believe a child under 13 has created an account, write to <Contact /> and we will delete it.</p>
+      <Section title="Who can use Brainwick">
+        <p>Brainwick is meant for students aged 13 and older. It is not directed at children under 13, and we do not knowingly collect their information. If you believe a child under 13 has created an account, write to <Contact /> and we will delete it.</p>
       </Section>
 
       <Section title="Stored in your browser">
-        <p>Studytime saves these in your browser&rsquo;s local storage, and keeps a copy in your account so they follow you to other devices (see &ldquo;Your account&rdquo;):</p>
+        <p>Brainwick saves these in your browser&rsquo;s local storage, and keeps a copy in your account so they follow you to other devices (see &ldquo;Your account&rdquo;):</p>
         <ul>
           <li>Your profile: name, school, major, year, courses, and your daily and weekly goals.</li>
           <li>Your focus sessions, points, streaks, deadlines, reminders, and check-ins.</li>
@@ -39,7 +39,7 @@ export default function PrivacyPage() {
           <li>Your daily check-ins (mood, energy, stress, sleep and notes), rest days, water log, parked thoughts, and weekly resets. Check-ins and parked thoughts stay in this browser and are not copied to your account.</li>
           <li>Connected calendar links, the events downloaded from them, and your planned study blocks.</li>
         </ul>
-        <p>Clearing your browser data removes all of it. If you have an account, your account copy is restored when you sign in again. Studytime sets one cookie, only to keep you signed in, and only after you sign in.</p>
+        <p>Clearing your browser data removes all of it. If you have an account, your account copy is restored when you sign in again. Brainwick sets one cookie, only to keep you signed in, and only after you sign in.</p>
       </Section>
 
       <Section title="Your account">
@@ -55,7 +55,7 @@ export default function PrivacyPage() {
           <li><strong>Photos.</strong> A photo you add to a post is shrunk in your browser before upload, which also removes hidden location data from the file. It is stored with the post and is only shown to people who can see that post. Do not post photos of other people without their permission.</li>
           <li><strong>Sharing a post.</strong> &ldquo;Share&rdquo; makes an image of the post in your browser, or a message with your invite link, and hands it to the app you pick (for example Instagram, WhatsApp or Messages). Once shared, that app&rsquo;s own terms apply.</li>
           <li><strong>You vs friends.</strong> Friends who follow you back can see your total focus time for the last 7 days, worked out from your saved progress. People who do not follow you back cannot.</li>
-          <li><strong>Chat.</strong> A random chat ID kept in your browser, plus your display name, school, major, year, courses, and a short status (focusing, the place of a drop you are part of, or online), updated every 30 seconds while the app is open. Everyone using Studytime can see this while you show as online; turn off &ldquo;Show me as online&rdquo; to hide it. Messages you send are stored with your name: channel messages can be read by anyone who opens that channel, and direct messages only by the two of you. Each channel keeps its latest 300 messages. You can delete your own messages, and reported messages are kept for review.</li>
+          <li><strong>Chat.</strong> A random chat ID kept in your browser, plus your display name, school, major, year, courses, and a short status (focusing, the place of a drop you are part of, or online), updated every 30 seconds while the app is open. Everyone using Brainwick can see this while you show as online; turn off &ldquo;Show me as online&rdquo; to hide it. Messages you send are stored with your name: channel messages can be read by anyone who opens that channel, and direct messages only by the two of you. Each channel keeps its latest 300 messages. You can delete your own messages, and reported messages are kept for review.</li>
           <li><strong>Focus Buddy.</strong> While you opt in and a session runs: your display name, your subject or course, your school (only used to find a match, never shown), and when your session started and ends. Your buddy sees your name, task and timer. Nothing else is shared, there is no camera or chat, and the record is deleted 30 minutes after the session ends.</li>
           <li><strong>Weekly pacts.</strong> Your display name, the weekly goal, and your focus minutes this week. Your pact partner can see them. Leaving a pact removes you from it.</li>
           <li><strong>Study events.</strong> Everything you enter when you post an event, plus your display name as host, and the names of people who RSVP. Events are visible to students at your school or to everyone, as you choose, and are deleted a day after they end.</li>
@@ -63,8 +63,8 @@ export default function PrivacyPage() {
           <li><strong>Leaderboards.</strong> Your display name, school, major, year, this week&rsquo;s focus minutes, and how many drops you hosted or joined this week. Other students in the same school, major, or year can see your name and minutes. Leaderboard profiles do not expire automatically.</li>
           <li><strong>Study circles.</strong> Member names, focus minutes, and streaks. A circle is deleted 180 days after its last activity.</li>
           <li><strong>Class study rooms.</strong> Participant names, answers, and scores. A room is deleted 2 days after its last activity.</li>
-          <li><strong>Study partner listings.</strong> The name, school, major, year, courses, availability, contact details, and note you enter. Anyone using Studytime can search and see a listing, including the contact details. A listing is deleted 30 days after you last update it, or right away when you remove it.</li>
-          <li><strong>Shared study spots.</strong> The spot&rsquo;s name, map location, tags, note, and the school on your profile. Anyone using Studytime can see shared spots. They stay until you remove them from your spot list.</li>
+          <li><strong>Study partner listings.</strong> The name, school, major, year, courses, availability, contact details, and note you enter. Anyone using Brainwick can search and see a listing, including the contact details. A listing is deleted 30 days after you last update it, or right away when you remove it.</li>
+          <li><strong>Shared study spots.</strong> The spot&rsquo;s name, map location, tags, note, and the school on your profile. Anyone using Brainwick can see shared spots. They stay until you remove them from your spot list.</li>
           <li><strong>Drop a Spot.</strong> When you drop a spot: your display name, the place name, its map location if you added one, what you are studying, your note, the start and end time, who can see it (your friend circle, your school, or everyone), and your school. People who tap &ldquo;I&rsquo;m coming&rdquo; add their display name to it. If you are signed in, the drop also stores your account ID, never shown to anyone, so people who follow you can get a &ldquo;study with them?&rdquo; alert. A drop is deleted an hour after it ends, or as soon as you end it. &ldquo;Just me&rdquo; drops are never sent to the server.</li>
           <li><strong>Study rooms.</strong> Your display name, whether you are focusing, on a break or idle, the subject while your timer runs, this week&rsquo;s focus minutes and weekly goal, and kudos sent in the room. Other people in the room can see this. A room is deleted 7 days after its last visit, and leaving a room removes you from it.</li>
           <li><strong>Calendar subscribe link.</strong> If you create one, the titles and times of your study blocks and the titles and due times of your planner deadlines, so your calendar app can download them. Anyone with the link can see it. It is deleted when you turn the link off, or 180 days after its last update.</li>
@@ -88,7 +88,7 @@ export default function PrivacyPage() {
       </Section>
 
       <Section title="Your location">
-        <p>Studytime asks for your location only when you press &ldquo;Use my location&rdquo;. It is used to place your drop or spot on the map, and it is sent to our server only as part of a drop or a shared spot. Map images are loaded from OpenStreetMap, which receives your IP address and the area of the map you are viewing.</p>
+        <p>Brainwick asks for your location only when you press &ldquo;Use my location&rdquo;. It is used to place your drop or spot on the map, and it is sent to our server only as part of a drop or a shared spot. Map images are loaded from OpenStreetMap, which receives your IP address and the area of the map you are viewing.</p>
       </Section>
 
       <Section title="IP addresses">

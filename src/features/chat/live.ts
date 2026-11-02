@@ -14,7 +14,7 @@ export interface Channel { id: string; name: string; about: string; kind: 'all' 
 
 /** The rooms you belong to: everyone, your school, and one per course. */
 export function channelsFor(p: { school: string; courses: string[] }): Channel[] {
-  const out: Channel[] = [{ id: 'general', name: 'everyone', about: 'Every student on Studytime', kind: 'all' }];
+  const out: Channel[] = [{ id: 'general', name: 'everyone', about: 'Every student on Brainwick', kind: 'all' }];
   if (p.school.trim()) out.push({ id: schoolChannel(p.school), name: p.school.trim().toLowerCase().replace(/\s+/g, '-').slice(0, 30), about: `Students at ${p.school.trim()}`, kind: 'school' });
   const seen = new Set<string>();
   for (const c of p.courses) {

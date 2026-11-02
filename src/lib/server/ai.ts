@@ -142,7 +142,7 @@ async function* openaiCompatible(provider: 'groq' | 'openrouter', req: AiRequest
     headers: {
       'content-type': 'application/json',
       authorization: `Bearer ${key}`,
-      ...(provider === 'openrouter' ? { 'X-Title': 'Studytime' } : {}),
+      ...(provider === 'openrouter' ? { 'X-Title': 'Brainwick' } : {}),
     },
     body: JSON.stringify({
       model: req.model,

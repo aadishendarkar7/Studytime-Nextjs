@@ -330,7 +330,7 @@ export function SignInPage() {
       <div className="relative mx-auto grid min-h-dvh max-w-[1280px] items-center gap-10 px-5 py-8 lg:grid-cols-[1.15fr_1fr] lg:gap-16 lg:px-10">
         {/* The scene */}
         <section className="flex flex-col">
-          <Link href="/" className="flex items-center gap-2.5 text-[17px] font-semibold tracking-tight text-[#f6ecd2]"><Logo className="size-9" /> Studytime</Link>
+          <Link href="/" className="flex items-center gap-2.5 text-[17px] font-semibold tracking-tight text-[#f6ecd2]"><Logo className="size-9" /> Brainwick</Link>
           <Headline />
           <div className="mt-8 lg:mt-10"><Library seat={seat} /></div>
         </section>

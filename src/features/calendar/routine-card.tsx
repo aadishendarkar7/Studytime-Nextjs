@@ -58,7 +58,7 @@ export function RoutineCard({ onConnect }: { onConnect: () => void }) {
   if (!x.calendarFeeds.length)
     return (
       <Card>
-        <CardHeader title="Your weekly routine" description="Connect your class calendar and Studytime builds a week of study around it: a short review after each class while it is fresh, and longer blocks for each course on your lighter days." />
+        <CardHeader title="Your weekly routine" description="Connect your class calendar and Brainwick builds a week of study around it: a short review after each class while it is fresh, and longer blocks for each course on your lighter days." />
         <Empty title="No calendar connected yet" action={<Button onClick={onConnect}>Connect Google or Canvas</Button>}>It takes about a minute. Your calendar link stays in this browser.</Empty>
       </Card>
     );

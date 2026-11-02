@@ -519,7 +519,7 @@ export function CalendarPage() {
     <>
       <div className="mt-6 grid gap-5 max-sm:mt-3 lg:grid-cols-[220px_minmax(0,1fr)] [&>*]:min-w-0">
         <aside className="hidden content-start gap-5 lg:grid">
-          {calList('Studytime', mine)}
+          {calList('Brainwick', mine)}
           <div>
             {subscribed.length > 0 && calList('Subscriptions', subscribed)}
             <button type="button" onClick={() => setPlan('calendars')} className="mt-1 flex items-center gap-2 rounded-md px-2 py-1 text-left text-[13px] text-muted hover:bg-surface-3 hover:text-ink">

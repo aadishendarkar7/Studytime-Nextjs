@@ -103,7 +103,7 @@ export const dropActions = {
     }
     toast((await copyText(`${text} ${url}`)) ? 'Invite link copied.' : 'Could not copy the link.');
   },
-  /** Put the drop on your Studytime calendar as a study block. */
+  /** Put the drop on your Brainwick calendar as a study block. */
   addToCalendar(d: DropView) {
     const x = useExtras.getState();
     if (x.studyBlocks.some((b) => b.href === `/drop?d=${d.id}`)) return toast('Already on your calendar.');

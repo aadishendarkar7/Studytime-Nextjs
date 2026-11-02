@@ -15,9 +15,9 @@ export const POST = handle(async (request: Request) => {
     const link = `${siteUrl(request)}/reset?token=${await createResetToken(a.id)}`;
     await sendEmail(
       a.email,
-      'Reset your Studytime password',
-      emailHtml({ heading: 'Reset your password', paragraphs: [`Hi ${a.name}, someone asked to reset the password for your Studytime account.`, 'The link works once and expires in an hour.'], button: { label: 'Choose a new password', url: link }, footer: 'If you did not ask for this, ignore this email. Your password stays the same.' }),
-      `Reset your Studytime password: ${link}\n\nThe link works once and expires in an hour. If you did not ask for this, ignore this email.`,
+      'Reset your Brainwick password',
+      emailHtml({ heading: 'Reset your password', paragraphs: [`Hi ${a.name}, someone asked to reset the password for your Brainwick account.`, 'The link works once and expires in an hour.'], button: { label: 'Choose a new password', url: link }, footer: 'If you did not ask for this, ignore this email. Your password stays the same.' }),
+      `Reset your Brainwick password: ${link}\n\nThe link works once and expires in an hour. If you did not ask for this, ignore this email.`,
     );
   }
   return json({ ok: true });

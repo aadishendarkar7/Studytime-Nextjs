@@ -92,7 +92,7 @@ export function ConnectCard() {
 
   return (
     <Card id="connect" className="lg:col-span-5">
-      <CardHeader title="Connect your calendars" description="Studytime reads your classes and due dates, then plans study time around them. It refreshes every 15 minutes while the app is open." />
+      <CardHeader title="Connect your calendars" description="Brainwick reads your classes and due dates, then plans study time around them. It refreshes every 15 minutes while the app is open." />
       <Segmented label="Calendar" value={source} onChange={(v) => (setSource(v), setDeadlines(v === 'canvas' || v === 'moodle' || deadlines))} options={(Object.keys(HOW_TO) as Source[]).map((k) => ({ value: k, label: HOW_TO[k].label }))} />
       <ol className="mt-4 grid list-decimal gap-1.5 pl-5 text-[14px] leading-[22px] text-ink-2">
         {how.steps.map((s) => <li key={s}>{s}</li>)}
@@ -273,7 +273,7 @@ export function SubscribeCard() {
   }[app];
   return (
     <Card className="lg:col-span-5">
-      <CardHeader title="See your plan on your phone" description="Subscribe to Studytime from Google, Apple or Outlook Calendar. Study blocks and due dates show up there and stay in sync." />
+      <CardHeader title="See your plan on your phone" description="Subscribe to Brainwick from Google, Apple or Outlook Calendar. Study blocks and due dates show up there and stay in sync." />
       {outgoingFeed ? (
         <>
           <div className="flex gap-2">

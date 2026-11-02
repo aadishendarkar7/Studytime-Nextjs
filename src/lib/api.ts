@@ -14,7 +14,7 @@ async function request<T>(path: string, options: RequestInit & { json?: unknown 
   try {
     response = await fetch(path, { ...rest, cache: 'no-store', headers: { 'Content-Type': 'application/json', ...headers }, body: json === undefined ? rest.body : JSON.stringify(json) });
   } catch {
-    throw new ApiError('Could not reach Studytime. Check your connection.', 0);
+    throw new ApiError('Could not reach Brainwick. Check your connection.', 0);
   }
   const body = (await response.json().catch(() => ({}))) as T & { error?: string };
   if (!response.ok) throw new ApiError(body.error || `Request failed (${response.status})`, response.status);

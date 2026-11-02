@@ -3,7 +3,7 @@ import { create } from 'zustand';
 
 /**
  * In-app replacements for the browser's confirm() and prompt(), which open a grey
- * system box outside the page. These open a dialog inside Studytime instead.
+ * system box outside the page. These open a dialog inside Brainwick instead.
  */
 export interface AskRequest {
   kind: 'confirm' | 'prompt';

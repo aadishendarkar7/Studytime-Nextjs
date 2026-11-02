@@ -3,7 +3,7 @@ import { HttpError } from './http';
 
 /**
  * Email through Resend (resend.com, free for 3,000 emails a month).
- * Needs RESEND_API_KEY and EMAIL_FROM, for example "Studytime <hello@yourdomain.com>".
+ * Needs RESEND_API_KEY and EMAIL_FROM, for example "Brainwick <hello@yourdomain.com>".
  */
 export const emailReady = () => Boolean(process.env.RESEND_API_KEY && process.env.EMAIL_FROM);
 
@@ -14,7 +14,7 @@ export function emailHtml(input: { heading: string; paragraphs: string[]; button
   const p = input.paragraphs.map((t) => `<p style="margin:0 0 14px;font-size:15px;line-height:22px;color:#3f3f46">${escape(t)}</p>`).join('');
   const b = input.button ? `<p style="margin:22px 0"><a href="${escape(input.button.url)}" style="display:inline-block;background:#2f5bd3;color:#fff;text-decoration:none;font-weight:600;font-size:15px;padding:11px 18px;border-radius:8px">${escape(input.button.label)}</a></p>` : '';
   const f = input.footer ? `<p style="margin:28px 0 0;font-size:12px;line-height:18px;color:#a1a1aa">${escape(input.footer)}</p>` : '';
-  return `<!doctype html><html><body style="margin:0;background:#f4f4f5;padding:24px 12px;font-family:-apple-system,Segoe UI,Inter,Arial,sans-serif"><div style="max-width:520px;margin:0 auto;background:#fff;border:1px solid #e4e4e7;border-radius:12px;padding:28px"><p style="margin:0 0 18px;font-size:14px;font-weight:700;color:#18181b">Studytime</p><h1 style="margin:0 0 14px;font-size:21px;line-height:28px;color:#18181b">${escape(input.heading)}</h1>${p}${b}${f}</div></body></html>`;
+  return `<!doctype html><html><body style="margin:0;background:#f4f4f5;padding:24px 12px;font-family:-apple-system,Segoe UI,Inter,Arial,sans-serif"><div style="max-width:520px;margin:0 auto;background:#fff;border:1px solid #e4e4e7;border-radius:12px;padding:28px"><p style="margin:0 0 18px;font-size:14px;font-weight:700;color:#18181b">Brainwick</p><h1 style="margin:0 0 14px;font-size:21px;line-height:28px;color:#18181b">${escape(input.heading)}</h1>${p}${b}${f}</div></body></html>`;
 }
 
 export async function sendEmail(to: string, subject: string, html: string, text: string) {

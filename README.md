@@ -1,4 +1,4 @@
-# Studytime
+# Brainwick
 
 An AI study companion built with **Next.js 16** (App Router), **React 19**, **TypeScript**, and **Tailwind CSS v4**. It includes:
 
@@ -14,7 +14,7 @@ An AI study companion built with **Next.js 16** (App Router), **React 19**, **Ty
 
 You need **Node.js 20.9 or newer** ([nodejs.org](https://nodejs.org), LTS version).
 
-**Windows, easiest:** double-click **`Start Studytime.cmd`**. The first run installs and builds the app (a few minutes). Then it opens http://localhost:3000. Keep the black window open while you use the app.
+**Windows, easiest:** double-click **`Start Brainwick.cmd`**. The first run installs and builds the app (a few minutes). Then it opens http://localhost:3000. Keep the black window open while you use the app.
 
 **Any OS, from a terminal in this folder:**
 
@@ -25,12 +25,12 @@ npm run dev          # development mode with hot reload → http://localhost:300
 
 For a faster production version: `npm run build` then `npm start`.
 
-> If you change the code after using `Start Studytime.cmd`, delete the `.next` folder so it rebuilds.
+> If you change the code after using `Start Brainwick.cmd`, delete the `.next` folder so it rebuilds.
 
 ### Turn on the free AI
 
 1. Get a free key at **https://aistudio.google.com/apikey**. You only need a Google account, no credit card. The key starts with `AIza` or `AQ.`.
-2. In Studytime, open **Settings → AI tutor**, choose **Google Gemini (Free)**, paste the key, and click **Save key**.
+2. In Brainwick, open **Settings → AI tutor**, choose **Google Gemini (Free)**, paste the key, and click **Save key**.
 3. Click **Test connection**.
 
 The key is saved only in your browser. Other free options, Groq and OpenRouter, are in the same menu. They are text-only or have tighter daily limits. Free tiers cap how many requests you can make per minute and per day, and one Snap & solve uses about 3 requests.
@@ -39,7 +39,7 @@ The key is saved only in your browser. Other free options, Groq and OpenRouter, 
 
 ### Friends on the same Wi-Fi
 
-`Start Studytime.cmd` makes the app reachable at `http://YOUR-COMPUTER-IP:3000` (find your IP with `ipconfig`). You may need to allow Node.js through Windows Firewall. To reach friends anywhere, host it online (see below).
+`Start Brainwick.cmd` makes the app reachable at `http://YOUR-COMPUTER-IP:3000` (find your IP with `ipconfig`). You may need to allow Node.js through Windows Firewall. To reach friends anywhere, host it online (see below).
 
 ## Host it on the internet (free)
 
@@ -49,7 +49,7 @@ The key is saved only in your browser. Other free options, Groq and OpenRouter, 
 2. Go to **vercel.com**, sign in with GitHub, click **Add New → Project**, and import the repository. Vercel detects Next.js. Click **Deploy**.
 3. Add a database so circles, classes, leaderboards, and shared decks work online:
    1. In your Vercel project, open **Storage** (or the Marketplace) and add **Upstash for Redis** on the free plan.
-   2. Connect it to the project. This adds `KV_REST_API_URL` and `KV_REST_API_TOKEN`, which Studytime reads automatically. You can also create the database at upstash.com and add `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` under **Settings → Environment Variables**.
+   2. Connect it to the project. This adds `KV_REST_API_URL` and `KV_REST_API_TOKEN`, which Brainwick reads automatically. You can also create the database at upstash.com and add `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` under **Settings → Environment Variables**.
 4. **Optional:** to share an AI key, add these under **Settings → Environment Variables**:
    - `GEMINI_API_KEY`
    - `AI_ACCESS_CODE` (strongly recommended. Without it, anyone who finds your site can use up your free quota.)
@@ -62,8 +62,8 @@ The key is saved only in your browser. Other free options, Groq and OpenRouter, 
 ### Option B: any Docker host (Render, Railway, Fly.io, a VPS)
 
 ```bash
-docker build -t studytime .
-docker run -p 3000:3000 -v studytime-data:/app/.data -e GEMINI_API_KEY=... -e AI_ACCESS_CODE=... studytime
+docker build -t brainwick .
+docker run -p 3000:3000 -v brainwick-data:/app/.data -e GEMINI_API_KEY=... -e AI_ACCESS_CODE=... brainwick
 ```
 
 Without Redis variables, data is saved to `/app/.data`, so keep that volume mounted. With several server instances, use Upstash Redis instead.
@@ -109,4 +109,4 @@ tests/
 
 ## Moving progress from the old HTML version
 
-Browsers keep saved data separately for each web address. If the new app runs at the **same address** you used for the old version, it imports your old profile, sessions, study sets, and AI notes automatically on first load. If it doesn't (for example, the old version was the `Studytime App.html` file and the new one is `localhost:3000`), the new app starts fresh. From then on, use **Settings → Backup & restore** to move progress between devices.
+Browsers keep saved data separately for each web address. If the new app runs at the **same address** you used for the old version, it imports your old profile, sessions, study sets, and AI notes automatically on first load. If it doesn't (for example, the old version was the `Brainwick App.html` file and the new one is `localhost:3000`), the new app starts fresh. From then on, use **Settings → Backup & restore** to move progress between devices.

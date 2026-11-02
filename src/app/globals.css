@@ -1,7 +1,7 @@
 @import 'tailwindcss';
 
 /*
- * Studytime design tokens.
+ * Brainwick design tokens.
  * Neutral surfaces, one accent color, thin borders instead of shadows,
  * and a single sans-serif type family. The accent is chosen by the user
  * and set on <html> by applyAppearance() in src/lib/appearance.ts, which

@@ -138,7 +138,7 @@ function EditCards({ set }: { set: StudySet }) {
   };
   const share = async () => {
     if (set.cards.length < 2) return toast('Add at least two cards first.');
-    if (!await askConfirm(`Share “${set.name}” with everyone on Studytime?`)) return;
+    if (!await askConfirm(`Share “${set.name}” with everyone on Brainwick?`)) return;
     try {
       await api.decks.share({ name: set.name, subject: set.folder === DEFAULT_FOLDER ? '' : set.folder, author: useProfile.getState().name, cards: set.cards.map(({ front, back }) => ({ front, back })) });
       toast('Shared.');

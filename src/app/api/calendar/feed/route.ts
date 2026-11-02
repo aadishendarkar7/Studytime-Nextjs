@@ -12,7 +12,7 @@ const event = z.object({
   description: z.string().optional().transform((v) => (v || '').slice(0, 500)),
 });
 
-/** Creates or updates the student's Studytime subscribe link with their plan. */
+/** Creates or updates the student's Brainwick subscribe link with their plan. */
 export const PUT = handle(async (request: Request) => {
   await rateLimit('calendar-feed', clientIp(request), 120, 3600, 'Too many calendar updates. Try again later.');
   const body = await readJson(request, z.object({ token: z.string().max(64).nullable(), events: z.array(event).max(600) }), 300_000);

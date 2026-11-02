@@ -57,7 +57,7 @@ function AccountCard() {
     return (
       <Card>
         <CardHeader title="Account" />
-        <p className="text-[14px] text-ink-2">You are using Studytime without an account. Everything is saved in this browser only.</p>
+        <p className="text-[14px] text-ink-2">You are using Brainwick without an account. Everything is saved in this browser only.</p>
         <div className="mt-4 flex gap-2">
           <Link href={signInHref('signup')}><Button>Create free account</Button></Link>
           <Link href={signInHref('signin')}><Button variant="secondary">Sign in</Button></Link>
@@ -171,7 +171,7 @@ function DataCard() {
     <Card>
       <CardHeader title="Backup and restore" description="Your progress is saved in this browser. Export a backup to move it to another device." />
       <div className="flex flex-wrap gap-2">
-        <Button variant="secondary" onClick={() => downloadFile(`studytime-backup-${new Date().toISOString().slice(0, 10)}.json`, exportBackup(), 'application/json')}>Export backup</Button>
+        <Button variant="secondary" onClick={() => downloadFile(`brainwick-backup-${new Date().toISOString().slice(0, 10)}.json`, exportBackup(), 'application/json')}>Export backup</Button>
         <Button variant="secondary" onClick={() => fileInput.current?.click()}>Import backup</Button>
         <input
           ref={fileInput}

@@ -74,7 +74,7 @@ export function Breakdown() {
 
   return (
     <Card id="breakdown" className="mt-5">
-      <CardHeader title="Break it down" description="Big assignments feel smaller as a list of steps. The AI can suggest steps, then Studytime schedules each one before the due date." />
+      <CardHeader title="Break it down" description="Big assignments feel smaller as a list of steps. The AI can suggest steps, then Brainwick schedules each one before the due date." />
       {open.length ? (
         <div className="grid gap-x-6 lg:grid-cols-2">
           <div>
