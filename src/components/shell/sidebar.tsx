@@ -76,7 +76,7 @@ function NavLinks({ pathname, large, mini }: { pathname: string; large?: boolean
   return (
     <div ref={box} className="relative grid gap-4">
       <span ref={mark} aria-hidden className="st-navmark pointer-events-none absolute inset-x-0 top-0 rounded-lg border border-line bg-surface opacity-0 shadow-[0_1px_2px_rgba(0,0,0,0.06)]">
-        <i className={cn('absolute top-1.5 bottom-1.5 w-[3px] rounded-full bg-accent-fill shadow-[0_0_10px_var(--accent-fill)]', mini ? 'left-0' : 'left-[3px]')} />
+        <i className={cn('absolute top-1.5 bottom-1.5 w-[3px] rounded-full bg-accent-fill', mini ? 'left-0' : 'left-[3px]')} />
       </span>
       {groups.map(({ g, items }) => (
         <div key={g} className="grid gap-px">
