@@ -19,6 +19,7 @@ import { ACTIONS, actionById } from './actions';
 import { generateCards } from './tasks';
 import { useAiRun } from './use-ai-run';
 import { AiErrorBox } from './ui';
+import { askConfirm } from '@/lib/stores/ask';
 
 /** Study modes. Each one changes how the tutor works, not just the wording. */
 const MODES: { id: string; label: string; note: string; placeholder: string; starters: string[] }[] = [
@@ -434,7 +435,7 @@ export function ChatTool({ compact = false, initialAction = '', onHide }: { comp
                 <span className={cn('block truncate text-[13px]', c.id === ai.activeChat ? 'font-medium text-ink' : 'text-ink-2')}>{c.title}</span>
                 <span className="block text-[11px] text-muted">{c.mode === 'support' ? 'Talk it through' : 'Tutor'}, {shortDate(c.updatedAt)}</span>
               </button>
-              <button type="button" aria-label="Delete chat" onClick={() => confirm('Delete this chat?') && ai.deleteChat(c.id)} className="mr-1 grid size-7 place-items-center rounded-md text-muted opacity-0 group-hover:opacity-100 hover:text-ink focus:opacity-100"><Icon name="close" className="size-3.5" /></button>
+              <button type="button" aria-label="Delete chat" onClick={async () => await askConfirm('Delete this chat?') && ai.deleteChat(c.id)} className="mr-1 grid size-7 place-items-center rounded-md text-muted opacity-0 group-hover:opacity-100 hover:text-ink focus:opacity-100"><Icon name="close" className="size-3.5" /></button>
             </div>
           )) : <p className="px-2.5 text-[13px] text-muted">Your chats show up here.</p>}
         </div>

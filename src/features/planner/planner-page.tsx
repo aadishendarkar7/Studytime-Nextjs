@@ -12,6 +12,7 @@ import type { ReminderType } from '@/lib/types';
 import { cn, dateKey, downloadFile, localDateTimeValue, todayKey } from '@/lib/utils';
 import { minutesOn } from '@/features/focus/logic';
 import { SyllabusImport } from './syllabus-import';
+import { askConfirm } from '@/lib/stores/ask';
 
 export function ReminderForm() {
   const addReminder = useProfile((s) => s.addReminder);
@@ -72,7 +73,7 @@ export function ReminderList() {
   const actions = (id: string, isDone: boolean) => (
     <span className="flex gap-1">
       <Button size="sm" variant="secondary" onClick={() => setReminderDone(id, !isDone)}>{isDone ? 'Reopen' : 'Done'}</Button>
-      <Button size="sm" variant="danger" onClick={() => confirm('Delete this reminder?') && deleteReminder(id)}>Delete</Button>
+      <Button size="sm" variant="danger" onClick={async () => await askConfirm('Delete this reminder?') && deleteReminder(id)}>Delete</Button>
     </span>
   );
   return (

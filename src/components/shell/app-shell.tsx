@@ -2,6 +2,7 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { Logo } from '@/components/ui/icons';
 import { Toaster } from '@/components/ui/toaster';
+import { AskHost } from '@/components/ui/ask-host';
 import { DropComposerHost } from '@/features/drop/composer';
 import { startAccount, useAccount } from '@/features/auth/account';
 import { Welcome } from '@/features/auth/welcome';
@@ -21,7 +22,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   useEffect(() => {
     void startAccount().then(() => setReady(true));
   }, []);
-  if (ready && user && !user.onboarded) return <><Welcome /><Toaster /></>;
+  if (ready && user && !user.onboarded) return <><Welcome /><Toaster /><AskHost /></>;
   if (!ready)
     return (
       <div className="grid min-h-dvh place-items-center" aria-busy="true">
@@ -46,6 +47,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       <DropComposerHost />
       <BottomTabs />
       <Toaster />
+      <AskHost />
     </div>
   );
 }

@@ -19,6 +19,7 @@ import { EventsTab } from './events-tab';
 import { DropSheet, Initial, PrimaryAction, seatsLeft } from './drop-sheet';
 import { refreshDrops, useDrops, whenLabel } from './live';
 import { distanceKm, dropStats, fmtDistance, hotSpots, recentPlaces, vibeLabel } from './logic';
+import { askConfirm } from '@/lib/stores/ask';
 
 const SpotMap = dynamic(() => import('@/features/spots/spot-map').then((m) => m.SpotMap), {
   ssr: false,
@@ -312,7 +313,7 @@ function YoursTab() {
       <section>
         <div className="mb-2 flex items-center justify-between gap-2">
           <h2 className="font-sans text-[13px] font-semibold">History</h2>
-          <Button size="sm" variant="ghost" onClick={() => confirm('Clear your drop history from this browser?') && x.update({ dropLog: [] })}>Clear</Button>
+          <Button size="sm" variant="ghost" onClick={async () => await askConfirm('Clear your drop history from this browser?') && x.update({ dropLog: [] })}>Clear</Button>
         </div>
         <ul className="divide-y divide-line panel">
           {log.map((e) => (

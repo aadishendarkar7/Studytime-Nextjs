@@ -6,6 +6,7 @@ import { toast } from '@/lib/stores/ui';
 import type { DropView } from '@/lib/types';
 import { copyText, uid } from '@/lib/utils';
 import { patchDrop, refreshDrops } from './live';
+import { askConfirm } from '@/lib/stores/ask';
 
 const fail = (e: unknown) => toast((e as Error).message, 'error');
 
@@ -77,7 +78,7 @@ export const dropActions = {
   async end(d: DropView) {
     const x = useExtras.getState();
     const mine = x.myDrops.find((m) => m.id === d.id);
-    if (!mine || !confirm('End this drop? People who joined will see it is over.')) return;
+    if (!mine || !await askConfirm('End this drop? People who joined will see it is over.')) return;
     try {
       await api.drops.end(d.id, mine.token);
       const done = Math.max(1, Math.round((Date.now() - Math.max(d.startsAt, Date.now() - 12 * 3_600_000)) / 60_000));

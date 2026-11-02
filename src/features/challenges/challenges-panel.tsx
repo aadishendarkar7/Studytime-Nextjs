@@ -8,6 +8,7 @@ import { toast } from '@/lib/stores/ui';
 import { useNow } from '@/lib/use-now';
 import { cn, fmtMinutes } from '@/lib/utils';
 import { challengeStates, type ChallengeState } from './logic';
+import { askConfirm } from '@/lib/stores/ask';
 
 const fmt = (s: ChallengeState, n: number) => (s.challenge.unit === 'min' ? fmtMinutes(n) : String(n));
 const left = (ms: number) => {
@@ -26,8 +27,8 @@ function join(id: string) {
   const x = useExtras.getState();
   x.update({ challenges: [...x.challenges, { id, joinedAt: Date.now(), doneAt: null }] });
 }
-function leave(s: ChallengeState) {
-  if (!s.entry || !confirm(`Leave ${s.challenge.title}?`)) return;
+async function leave(s: ChallengeState) {
+  if (!s.entry || !await askConfirm(`Leave ${s.challenge.title}?`)) return;
   const x = useExtras.getState();
   x.update({ challenges: x.challenges.filter((j) => j !== s.entry) });
 }

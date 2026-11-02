@@ -14,6 +14,7 @@ import { toast } from '@/lib/stores/ui';
 import { CATEGORIES, type EventView } from '@/lib/types';
 import { useNow } from '@/lib/use-now';
 import { uid } from '@/lib/utils';
+import { askConfirm } from '@/lib/stores/ask';
 
 /** Posting and RSVPs need an account, so hosts know who is coming. */
 const needAccount = () => {
@@ -123,7 +124,7 @@ function EventRow({ e, reload }: { e: EventView; reload: () => void }) {
           toast('Added to your calendar.');
         }}>Add to calendar</Button>
         {mine ? (
-          <Button size="sm" variant="danger" onClick={() => confirm('Cancel this event for everyone?') && act(async () => { await api.events.remove(e.id, mine.token); x.update({ myEvents: x.myEvents.filter((m) => m.id !== e.id) }); })}>Cancel event</Button>
+          <Button size="sm" variant="danger" onClick={async () => await askConfirm('Cancel this event for everyone?') && act(async () => { await api.events.remove(e.id, mine.token); x.update({ myEvents: x.myEvents.filter((m) => m.id !== e.id) }); })}>Cancel event</Button>
         ) : going ? (
           <Button size="sm" variant="secondary" onClick={() => act(async () => { await api.events.cancel(e.id, going.rsvpId, going.token); x.update({ eventRsvps: x.eventRsvps.filter((r) => r.eventId !== e.id) }); })}>Going</Button>
         ) : (

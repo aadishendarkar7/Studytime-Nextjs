@@ -10,6 +10,7 @@ import { useProfile } from '@/lib/stores/profile';
 import { toast } from '@/lib/stores/ui';
 import { cn } from '@/lib/utils';
 import { lessonsOf, planCourse, progressOf, writeLesson } from './logic';
+import { askConfirm } from '@/lib/stores/ask';
 
 const LESSON_POINTS = 5;
 const IDEAS = ['Bayes theorem', 'Supply and demand', 'Organic reaction mechanisms', 'Big-O notation', 'The French Revolution', 'How vaccines work'];
@@ -164,8 +165,8 @@ function CourseView({ course, onBack }: { course: MiniCourse; onBack: () => void
     const after = all[i + 1];
     return <LessonView key={lesson.id} course={course} lesson={lesson} onBack={() => setLessonId(null)} onNext={after ? () => setLessonId(after.id) : null} />;
   }
-  const remove = () => {
-    if (!confirm(`Delete “${course.title}”? This cannot be undone.`)) return;
+  const remove = async () => {
+    if (!await askConfirm(`Delete “${course.title}”? This cannot be undone.`)) return;
     const x = useExtras.getState();
     x.update({ courses: x.courses.filter((c) => c.id !== course.id) });
     onBack();

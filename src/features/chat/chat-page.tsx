@@ -15,6 +15,7 @@ import type { ChatMessage, ChatPerson } from '@/lib/types';
 import { useNow } from '@/lib/use-now';
 import { cn } from '@/lib/utils';
 import { channelsFor, chatId, markRead, pulse, toneFor, useChat, type Channel } from './live';
+import { askConfirm, askText } from '@/lib/stores/ask';
 
 type Open = { kind: 'channel'; id: string } | { kind: 'dm'; with: string; name: string };
 const keyOf = (o: Open) => (o.kind === 'channel' ? o.id : `dm:${o.with}`);
@@ -315,7 +316,7 @@ function Conversation({ open, channel, onPerson }: { open: Open; channel?: Chann
     }
   };
   const remove = async (m: ChatMessage) => {
-    if (!me || !confirm('Delete this message for everyone?')) return;
+    if (!me || !await askConfirm('Delete this message for everyone?')) return;
     try {
       await api.chat.remove(me.token, channelId, m.id);
       setList((l) => ({ ...l, messages: l.messages.filter((x) => x.id !== m.id) }));
@@ -325,7 +326,7 @@ function Conversation({ open, channel, onPerson }: { open: Open; channel?: Chann
   };
   const report = async (m: ChatMessage) => {
     if (!me) return;
-    const reason = prompt(`Report this message from ${m.name}? Add a short reason (optional).`);
+    const reason = await askText(`Report this message from ${m.name}?`, { placeholder: 'Reason (optional)', ok: 'Report' });
     if (reason === null) return;
     try {
       await api.chat.report(me.token, channelId, m.id, reason.slice(0, 200));

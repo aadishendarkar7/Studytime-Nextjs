@@ -16,6 +16,7 @@ import { exportBackup, importBackup } from '@/lib/stores/hydrate';
 import { toast } from '@/lib/stores/ui';
 import { cn, downloadFile } from '@/lib/utils';
 import { AiSettings } from './ai-settings';
+import { askConfirm } from '@/lib/stores/ask';
 
 function AppearanceCard() {
   return (
@@ -180,7 +181,7 @@ function DataCard() {
           onChange={async (e) => {
             const f = e.target.files?.[0];
             e.target.value = '';
-            if (!f || !confirm('Replace the progress in this browser with this backup?')) return;
+            if (!f || !await askConfirm('Replace the progress in this browser with this backup?')) return;
             try {
               await importBackup(await f.text());
               toast('Backup restored.');

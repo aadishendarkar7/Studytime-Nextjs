@@ -13,6 +13,7 @@ import { cn, uid } from '@/lib/utils';
 import { clock, LecturePlayer } from './lecture-player';
 import { lectureNotes } from './lecture-notes';
 import { generateCards } from './tasks';
+import { askConfirm } from '@/lib/stores/ask';
 
 /** One study action under a lecture: icon, what it does, and a short line about it. */
 export function ActionTile({ icon, label, sub, onClick, busy, disabled, primary }: { icon: IconName; label: string; sub: string; onClick: () => void; busy?: boolean; disabled?: boolean; primary?: boolean }) {
@@ -146,7 +147,7 @@ export function RecordingRow({ l, onChange, onOpenNote, index = 0 }: { l: Lectur
                       {folders.map((f) => <option key={f} value={f}>{f}</option>)}
                     </select>
                   </label>
-                  <button type="button" onClick={async () => { if (confirm('Delete this recording? Notes made from it stay.')) { await deleteLecture(l.id); onChange(); } }} className="ml-auto flex h-8 items-center gap-1.5 rounded-md px-2.5 font-medium text-danger hover:bg-danger-soft"><Icon name="trash" className="size-3.5" />Delete</button>
+                  <button type="button" onClick={async () => { if (await askConfirm('Delete this recording? Notes made from it stay.')) { await deleteLecture(l.id); onChange(); } }} className="ml-auto flex h-8 items-center gap-1.5 rounded-md px-2.5 font-medium text-danger hover:bg-danger-soft"><Icon name="trash" className="size-3.5" />Delete</button>
                 </div>
               </div>
             )}

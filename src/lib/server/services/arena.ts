@@ -32,6 +32,8 @@ const DAY = 86_400;
 /** Time between your answer and the next question, while the right answer is shown. */
 export const FEEDBACK_MS = 1100;
 const GRACE_MS = 1500;
+/** The 3, 2, 1 before the first question. */
+export const COUNTDOWN_MS = 3200;
 const START_RATING = 1000;
 
 /** The day in US Eastern time, so the daily set changes at midnight on campus. */
@@ -95,7 +97,7 @@ function botTimeline(seed: string) {
 export async function startRun(a: Account, input: { mode: ArenaMode; topic?: Topic; to?: string; duelId?: string }, now = Date.now()): Promise<ArenaRunView> {
   const me = await player(a);
   const id = secret(10);
-  let run: Run = { id, userId: a.id, name: a.name, mode: input.mode, topic: input.topic ?? 'mixed', seed: secret(8), i: 0, qAt: now + 600, answers: [], score: 0, startedAt: now, done: false };
+  let run: Run = { id, userId: a.id, name: a.name, mode: input.mode, topic: input.topic ?? 'mixed', seed: secret(8), i: 0, qAt: now + COUNTDOWN_MS, answers: [], score: 0, startedAt: now, done: false };
 
   if (input.mode === 'daily') {
     const date = arenaDate(now);

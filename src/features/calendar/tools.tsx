@@ -16,6 +16,7 @@ import { ProposalList } from './proposal-list';
 import { buildRoutine } from './routine-card';
 import { isCrunch, reviewPlan, startOfDay, suggestBlocks, weekLoads, type Proposal } from './plan';
 import { addFeed, allEvents, busyTimes, feedUrl, guessKind, refreshFeed, syncOutgoing } from './sync';
+import { askConfirm } from '@/lib/stores/ask';
 
 const DAY = 86_400_000;
 
@@ -121,7 +122,7 @@ export function ConnectCard() {
               <div className="mt-2 flex flex-wrap gap-2">
                 <Button size="sm" variant="secondary" onClick={() => refreshFeed(f.id).then((n) => toast(n ? `Updated, ${plural(n, 'new deadline')}.` : 'Updated.'), (e) => toast((e as Error).message, 'error'))}>Refresh</Button>
                 <Button size="sm" variant="ghost" onClick={() => update({ calendarFeeds: calendarFeeds.map((x) => (x.id === f.id ? { ...x, addDeadlines: !x.addDeadlines } : x)) })}>{f.addDeadlines ? 'Stop adding deadlines' : 'Add deadlines'}</Button>
-                <Button size="sm" variant="ghost" className="text-danger" onClick={() => confirm(`Disconnect ${f.name}?`) && update({ calendarFeeds: calendarFeeds.filter((x) => x.id !== f.id) })}>Disconnect</Button>
+                <Button size="sm" variant="ghost" className="text-danger" onClick={async () => await askConfirm(`Disconnect ${f.name}?`) && update({ calendarFeeds: calendarFeeds.filter((x) => x.id !== f.id) })}>Disconnect</Button>
               </div>
             </li>
           ))}
@@ -282,7 +283,7 @@ export function SubscribeCard() {
           <div className="mt-4"><Segmented label="Calendar app" value={app} onChange={setApp} options={[{ value: 'google', label: 'Google' }, { value: 'apple', label: 'Apple' }, { value: 'outlook', label: 'Outlook' }]} /></div>
           <ol className="mt-3 grid list-decimal gap-1.5 pl-5 text-[14px] leading-[22px] text-ink-2">{steps.map((s) => <li key={s}>{s}</li>)}</ol>
           <Button variant="ghost" size="sm" className="mt-3 text-danger" onClick={async () => {
-            if (!confirm('Turn off the subscribe link? Calendars subscribed to it will stop updating.')) return;
+            if (!await askConfirm('Turn off the subscribe link? Calendars subscribed to it will stop updating.')) return;
             await api.calendar.deleteFeed(outgoingFeed.token).catch(() => undefined);
             update({ outgoingFeed: null });
           }}>Turn off link</Button>

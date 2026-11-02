@@ -21,6 +21,7 @@ import { inviteLink } from '@/features/auth/invite-card';
 import { useDropComposer } from '@/features/drop/composer';
 import { useDrops } from '@/features/drop/live';
 import { ShareForm, VISIBILITY } from './share-form';
+import { askConfirm } from '@/lib/stores/ask';
 
 type Scope = 'foryou' | 'following' | 'mine';
 
@@ -188,7 +189,7 @@ function MoreMenu({ post, onGone }: { post: FeedPost; onGone: () => void }) {
     }
   };
   const blockIt = async () => {
-    if (!confirm(`Block ${post.name}? You will stop seeing each other on Studytime.`)) return;
+    if (!await askConfirm(`Block ${post.name}? You will stop seeing each other on Studytime.`)) return;
     try {
       await api.people.block(post.userId, true);
       toast(`${post.name} is blocked. You can undo this in Settings.`);
@@ -256,7 +257,7 @@ export function HighlightCard({ post, onChange, onOpenPerson }: { post: FeedPost
         </div>
         <ShareMenu post={post} />
         {!mine && <MoreMenu post={post} onGone={() => onChange(null)} />}
-        {mine && <button type="button" aria-label="Delete post" title="Delete" onClick={() => confirm('Delete this post?') && api.feed.remove(post.id).then(() => onChange(null), () => toast('Could not delete.', 'error'))} className="grid size-8 place-items-center rounded-lg text-muted hover:bg-surface-3 hover:text-danger"><Icon name="trash" className="size-4" /></button>}
+        {mine && <button type="button" aria-label="Delete post" title="Delete" onClick={async () => await askConfirm('Delete this post?') && api.feed.remove(post.id).then(() => onChange(null), () => toast('Could not delete.', 'error'))} className="grid size-8 place-items-center rounded-lg text-muted hover:bg-surface-3 hover:text-danger"><Icon name="trash" className="size-4" /></button>}
       </header>
       {/* The session itself: a photo with the time on it, or a solid tile like an activity card. */}
       <div className="relative -mx-4 mt-3 overflow-hidden" onDoubleClick={() => !mine && !inCrew && !cheered && void cheer()}>

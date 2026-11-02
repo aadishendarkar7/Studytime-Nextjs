@@ -12,6 +12,7 @@ import { useProfile } from '@/lib/stores/profile';
 import { toast } from '@/lib/stores/ui';
 import type { PactView } from '@/lib/types';
 import { cn, copyText, fmtMinutes } from '@/lib/utils';
+import { askConfirm } from '@/lib/stores/ask';
 
 export const PACT_BONUS = 100;
 const usePact = create<{ pact: PactView | null; error: string }>()(() => ({ pact: null, error: '' }));
@@ -113,7 +114,7 @@ export function PactCard({ className }: { className?: string }) {
   const { pact, error } = usePact();
   const mine = x.pact;
   const leave = async () => {
-    if (!mine || !confirm('Leave this pact? Your partner keeps their progress.')) return;
+    if (!mine || !await askConfirm('Leave this pact? Your partner keeps their progress.')) return;
     await api.pacts.leave(mine.code, mine.memberId, mine.token).catch(() => {});
     x.update({ pact: null });
     usePact.setState({ pact: null });

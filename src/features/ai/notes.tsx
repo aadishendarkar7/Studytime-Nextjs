@@ -22,6 +22,7 @@ import { clock } from './lecture-player';
 import { ActionTile, listLectures, Recorder, RecordingRow } from './lectures';
 import { AiErrorBox, AiOutput } from './ui';
 import { useAiRun } from './use-ai-run';
+import { askConfirm, askText } from '@/lib/stores/ask';
 
 type MakeKind = 'notes' | 'cheatsheet' | 'summary' | 'flashcards' | 'quiz';
 const KIND_LABEL: Record<NoteKind, string> = { notes: 'Notes', cheatsheet: 'Cheatsheet', summary: 'Summary', quiz: 'Practice test', guide: 'Study guide', solution: 'Solution', writing: 'Writing feedback' };
@@ -161,7 +162,7 @@ function NoteView({ note, onOpen, onBack, then }: { note: Note; onOpen: (id: str
                 <MenuItem icon="sparkle" onClick={() => void aiName()}>{naming ? 'Naming…' : 'Name it with AI'}</MenuItem>
                 <MenuItem icon="download" onClick={() => (setMore(false), useUi.getState().print({ title: note.title, markdown: note.content }))}>Download PDF</MenuItem>
                 <MenuItem icon="copy" onClick={async () => (setMore(false), toast((await copyText(note.content)) ? 'Copied.' : 'Could not copy.'))}>Copy text</MenuItem>
-                <MenuItem icon="trash" danger onClick={() => confirm('Delete this note?') && (ai.deleteNote(note.id), onBack())}>Delete</MenuItem>
+                <MenuItem icon="trash" danger onClick={async () => await askConfirm('Delete this note?') && (ai.deleteNote(note.id), onBack())}>Delete</MenuItem>
               </div>
             )}
           </div>
@@ -274,8 +275,8 @@ function Writer({ onOpen }: { onOpen: (id: string) => void }) {
   const [kind, setKind] = useState<MakeKind>('notes');
   const [cards, setCards] = useState<{ status: 'idle' | 'running' | 'done' | 'error'; count: number; error?: Error }>({ status: 'idle', count: 0 });
 
-  const newFolder = () => {
-    const n = prompt('Folder name, like BIO 101')?.trim().slice(0, 40);
+  const newFolder = async () => {
+    const n = (await askText('New folder', { placeholder: 'Folder name, like BIO 101', ok: 'Create' }))?.trim().slice(0, 40);
     if (!n) return;
     ai.addNoteFolder(n);
     setFolder(n);
@@ -374,7 +375,7 @@ function NoteCard({ note, index, selecting, picked, onClick }: { note: Note; ind
         ) : (
           <span className="absolute top-2.5 right-2.5 flex gap-0.5">
             <button type="button" aria-label={note.pinned ? `Unpin ${note.title}` : `Pin ${note.title}`} title={note.pinned ? 'Unpin' : 'Pin to top'} onClick={() => ai.updateNote(note.id, { pinned: !note.pinned })} className={cn('grid size-8 place-items-center rounded-md transition-[opacity,color] hover:bg-surface-3', note.pinned ? 'text-ink' : 'text-muted opacity-0 group-hover:opacity-100 focus:opacity-100 max-sm:opacity-100')}><Icon name="pin" className="size-4" /></button>
-            <button type="button" aria-label={`Delete ${note.title}`} title="Delete" onClick={() => confirm(`Delete “${note.title}”?`) && (ai.deleteNote(note.id), toast('Note deleted.'))} className="grid size-8 place-items-center rounded-md text-muted opacity-0 transition-opacity group-hover:opacity-100 hover:bg-surface-3 hover:text-danger focus:opacity-100 max-sm:hidden"><Icon name="trash" className="size-4" /></button>
+            <button type="button" aria-label={`Delete ${note.title}`} title="Delete" onClick={async () => await askConfirm(`Delete “${note.title}”?`) && (ai.deleteNote(note.id), toast('Note deleted.'))} className="grid size-8 place-items-center rounded-md text-muted opacity-0 transition-opacity group-hover:opacity-100 hover:bg-surface-3 hover:text-danger focus:opacity-100 max-sm:hidden"><Icon name="trash" className="size-4" /></button>
           </span>
         )}
       </div>
@@ -415,10 +416,10 @@ export function NotesTool({ startRecording = false }: { startRecording?: boolean
   }, []);
   const viewing = ai.notes.find((n) => n.id === viewId) ?? null;
   const open = (id: string, next?: 'quiz') => (setAdding(null), setThen(next ?? null), setViewId(id), window.scrollTo({ top: 0, behavior: 'smooth' }));
-  const closeAdding = () => {
+  const closeAdding = async () => {
     // Closing the recorder mid-lecture would throw the audio away, so check first.
     const live = document.querySelector('[data-recorder="recording"], [data-recorder="paused"]');
-    if (live && !confirm('Stop and throw away this recording?')) return;
+    if (live && !await askConfirm('Stop and throw away this recording?')) return;
     setAdding(null);
   };
 
@@ -469,8 +470,8 @@ export function NotesTool({ startRecording = false }: { startRecording?: boolean
             </label>
             {library.length > 0 && <Button variant={selecting ? 'secondary' : 'ghost'} onClick={() => (setSelecting(!selecting), setPicked([]))}>{selecting ? 'Cancel' : 'Select'}</Button>}
             {selecting && (
-              <Button variant="danger" disabled={!picked.length} onClick={() => {
-                if (!confirm(`Delete ${picked.length} note${picked.length === 1 ? '' : 's'}? This cannot be undone.`)) return;
+              <Button variant="danger" disabled={!picked.length} onClick={async () => {
+                if (!await askConfirm(`Delete ${picked.length} note${picked.length === 1 ? '' : 's'}? This cannot be undone.`)) return;
                 picked.forEach((id) => ai.deleteNote(id));
                 toast(`Deleted ${picked.length} note${picked.length === 1 ? '' : 's'}.`);
                 setPicked([]);

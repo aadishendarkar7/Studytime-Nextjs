@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Avatar } from '@/components/ui/avatar';
@@ -55,8 +55,29 @@ function Badge({ item, badges }: { item: NavItem; badges: ReturnType<typeof useB
 function NavLinks({ pathname, large, mini }: { pathname: string; large?: boolean; mini?: boolean }) {
   const badges = useBadges();
   const groups = (['main', 'study', 'together', 'me'] as const).map((g) => ({ g, items: NAV.filter((n) => n.group === g && (large || n.href !== '/settings')) }));
+  const box = useRef<HTMLDivElement>(null);
+  const mark = useRef<HTMLSpanElement>(null);
+  // A marker slides to the page you are on, with a short bar that springs in beside it.
+  useLayoutEffect(() => {
+    const b = box.current;
+    const m = mark.current;
+    if (!b || !m) return;
+    const a = b.querySelector<HTMLElement>('a[aria-current="page"]');
+    if (!a) {
+      m.style.opacity = '0';
+      return;
+    }
+    m.style.height = `${a.offsetHeight}px`;
+    m.style.transform = `translateY(${a.offsetTop}px)`;
+    m.style.opacity = '1';
+    m.querySelector('i')?.animate([{ transform: 'scaleY(0.15)', opacity: 0.4 }, { transform: 'scaleY(1.15)', opacity: 1, offset: 0.6 }, { transform: 'scaleY(1)', opacity: 1 }], { duration: 460, easing: 'cubic-bezier(0.3, 1.2, 0.5, 1)' });
+    if (!m.dataset.ready) requestAnimationFrame(() => (m.dataset.ready = '1'));
+  }, [pathname, mini, large]);
   return (
-    <div className="grid gap-4">
+    <div ref={box} className="relative grid gap-4">
+      <span ref={mark} aria-hidden className="st-navmark pointer-events-none absolute inset-x-0 top-0 rounded-lg border border-line bg-surface opacity-0 shadow-[0_1px_2px_rgba(0,0,0,0.06)]">
+        <i className={cn('absolute top-1.5 bottom-1.5 w-[3px] rounded-full bg-accent-fill shadow-[0_0_10px_var(--accent-fill)]', mini ? 'left-0' : 'left-[3px]')} />
+      </span>
       {groups.map(({ g, items }) => (
         <div key={g} className="grid gap-px">
           {GROUP_LABEL[g] && !mini && <p className="mb-1 px-2.5 text-[12px] font-medium text-muted">{GROUP_LABEL[g]}</p>}
@@ -70,9 +91,9 @@ function NavLinks({ pathname, large, mini }: { pathname: string; large?: boolean
                 aria-current={active ? 'page' : undefined}
                 title={mini ? item.label : undefined}
                 aria-label={mini ? item.label : undefined}
-                className={cn('flex items-center gap-2.5 rounded-lg px-2.5 transition-colors', large ? 'min-h-12 text-[16px]' : mini ? 'h-9 justify-center px-0' : 'h-8 text-[14px]', active ? 'bg-surface-3 font-medium text-ink' : item.href === '/drop' ? 'font-medium text-accent-ink hover:bg-surface-3/70' : 'text-ink-2 hover:bg-surface-3/70 hover:text-ink')}
+                className={cn('relative flex items-center gap-2.5 rounded-lg px-2.5 transition-colors', large ? 'min-h-12 text-[16px]' : mini ? 'h-9 justify-center px-0' : 'h-8 text-[14px]', active ? 'pl-3.5 font-semibold text-ink' : item.href === '/drop' ? 'font-medium text-accent-ink hover:bg-surface-3/70' : 'text-ink-2 hover:bg-surface-3/70 hover:text-ink')}
               >
-                <Icon name={item.icon} className={cn('size-[17px] shrink-0', active ? 'text-ink' : item.href === '/drop' ? 'text-accent-ink' : 'text-muted')} />
+                <Icon key={active ? 'on' : 'off'} name={item.icon} className={cn('size-[17px] shrink-0', active ? 'st-nav-pop text-accent-ink' : item.href === '/drop' ? 'text-accent-ink' : 'text-muted')} />
                 {!mini && <span className="min-w-0 flex-1 truncate">
                   {item.label}
                   {large && item.hint && <small className="block text-[13px] font-normal text-muted">{item.hint}</small>}
@@ -229,13 +250,17 @@ export function BottomTabs() {
   const badges = useBadges();
   return (
     <nav aria-label="Quick navigation" className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden">
-      <div className="mx-auto grid max-w-lg grid-cols-5">
+      <div className="relative mx-auto grid max-w-lg grid-cols-5">
+        {(() => {
+          const i = MOBILE_TABS.findIndex((h) => isActive(pathname, h));
+          return <span aria-hidden className={cn('pointer-events-none absolute -top-px h-[3px] w-[20%] transition-[left,opacity] duration-300 ease-[cubic-bezier(0.3,1.3,0.5,1)]', i < 0 || MOBILE_TABS[i] === '/drop' ? 'opacity-0' : 'opacity-100')} style={{ left: `${Math.max(0, i) * 20}%` }}><span className="mx-auto block h-full w-8 rounded-b-full bg-accent-fill" /></span>;
+        })()}
         {MOBILE_TABS.map((href) => NAV.find((n) => n.href === href)!).map((item) => {
           const active = isActive(pathname, item.href);
           if (item.href === '/drop')
             return (
               <Link key={item.href} href={item.href} aria-current={active ? 'page' : undefined} className="flex min-h-14 flex-col items-center justify-center gap-0.5 text-[11px] font-medium text-ink">
-                <span className="relative grid h-8 w-12 place-items-center rounded-xl bg-accent-fill text-white">{badges.unread > 0 && <span className="absolute -top-1 -left-1 size-2.5 rounded-full border-2 border-surface bg-ink" />}
+                <span className={cn('relative grid h-8 w-12 place-items-center rounded-xl bg-accent-fill text-white transition-transform', active && 'st-nav-pop')}><Icon name="pin" className="size-[18px]" />{badges.unread > 0 && <span className="absolute -top-1 -left-1 size-2.5 rounded-full border-2 border-surface bg-ink" />}
                   {badges.live > 0 && <span className="tnum absolute -top-1.5 -right-1.5 grid h-4 min-w-4 place-items-center rounded-full border-2 border-surface bg-ok px-0.5 text-[10px] leading-none text-white">{badges.live}</span>}
                 </span>
                 Drop
@@ -243,7 +268,7 @@ export function BottomTabs() {
             );
           return (
             <Link key={item.href} href={item.href} aria-current={active ? 'page' : undefined} className={cn('flex min-h-14 flex-col items-center justify-center gap-0.5 text-[11px] font-medium', active ? 'text-ink' : item.href === '/drop' ? 'text-accent-ink' : 'text-muted')}>
-              <span className="grid h-8 w-12 place-items-center"><Icon name={item.icon} className="size-5" /></span>
+              <span className="grid h-8 w-12 place-items-center"><Icon key={active ? 'on' : 'off'} name={item.icon} className={cn('size-5', active && 'st-nav-pop text-accent-ink')} /></span>
               {item.label}
             </Link>
           );

@@ -19,6 +19,7 @@ import { activeCollections, COLLECTIONS, isActive, windowLabel, type Collection 
 import { parseBulkCards, STARTER_DECKS } from './decks';
 import { GameStage, type Mode } from './modes';
 import { isDue } from './srs';
+import { askConfirm, askText } from '@/lib/stores/ask';
 
 /** Adds every deck in a collection you have not added yet. */
 function addCollection(c: Collection) {
@@ -106,8 +107,8 @@ function DeckLibrary({ onAdded }: { onAdded?: () => void }) {
               <h3 className="mt-1 font-semibold">{d.name}</h3>
               <p className="text-[13px] text-muted">{d.cards.length} cards{d.author ? `, by ${d.author}` : ''}</p>
               <p className="flex-1 text-xs text-muted">{d.cards.slice(0, 3).map((c) => c.front).join(', ')}</p>
-              <Button variant="secondary" className="mt-2" onClick={() => {
-                if (added && !confirm('You already added this deck. Add another copy?')) return;
+              <Button variant="secondary" className="mt-2" onClick={async () => {
+                if (added && !await askConfirm('You already added this deck. Add another copy?')) return;
                 l.addSet(d.name, d.cards, d.subject || DEFAULT_FOLDER, d.id);
                 toast(`“${d.name}” added.`);
                 onAdded?.();
@@ -188,7 +189,7 @@ function EditCards({ set }: { set: StudySet }) {
   };
   const share = async () => {
     if (set.cards.length < 2) return toast('Add at least two cards first.');
-    if (!confirm(`Share “${set.name}” with everyone on Studytime?`)) return;
+    if (!await askConfirm(`Share “${set.name}” with everyone on Studytime?`)) return;
     try {
       await api.decks.share({ name: set.name, subject: set.folder === DEFAULT_FOLDER ? '' : set.folder, author: useProfile.getState().name, cards: set.cards.map(({ front, back }) => ({ front, back })) });
       toast('Shared.');
@@ -214,10 +215,10 @@ function EditCards({ set }: { set: StudySet }) {
         ))}
       </ul>
       <div className="flex flex-wrap items-center gap-2">
-        <Select aria-label="Folder" className="h-8 w-auto text-[13px]" value={set.folder} onChange={(e) => {
+        <Select aria-label="Folder" className="h-8 w-auto text-[13px]" value={set.folder} onChange={async (e) => {
           let folder = e.target.value;
           if (folder === '__new') {
-            folder = (prompt('Folder name, like BIO 101') || '').trim().slice(0, 40);
+            folder = ((await askText('New folder', { placeholder: 'Folder name, like BIO 101', ok: 'Create' })) || '').trim().slice(0, 40);
             if (!folder) return;
             l.addFolder(folder);
           }
@@ -226,9 +227,9 @@ function EditCards({ set }: { set: StudySet }) {
           {folders.map((f) => <option key={f}>{f}</option>)}
           <option value="__new">New folder…</option>
         </Select>
-        <Button size="sm" variant="ghost" onClick={() => { const n = prompt('Rename', set.name)?.trim(); if (n) l.updateSet(set.id, { name: n.slice(0, 60) }); }}>Rename</Button>
+        <Button size="sm" variant="ghost" onClick={async () => { const n = (await askText('Rename set', { value: set.name }))?.trim(); if (n) l.updateSet(set.id, { name: n.slice(0, 60) }); }}>Rename</Button>
         <Button size="sm" variant="ghost" onClick={share}>Share</Button>
-        <Button size="sm" variant="ghost" className="ml-auto text-danger" onClick={() => confirm(`Delete “${set.name}”?`) && l.deleteSet(set.id)}>Delete set</Button>
+        <Button size="sm" variant="ghost" className="ml-auto text-danger" onClick={async () => await askConfirm(`Delete “${set.name}”?`) && l.deleteSet(set.id)}>Delete set</Button>
       </div>
     </div>
   );
@@ -296,8 +297,8 @@ export function GamesPage({ embedded = false }: { embedded?: boolean } = {}) {
   const [selecting, setSelecting] = useState(false);
   const [picked, setPicked] = useState<string[]>([]);
   const toggle = (id: string) => setPicked((p) => (p.includes(id) ? p.filter((x) => x !== id) : [...p, id]));
-  const removePicked = () => {
-    if (!picked.length || !confirm(`Delete ${picked.length} set${picked.length === 1 ? '' : 's'}? This cannot be undone.`)) return;
+  const removePicked = async () => {
+    if (!picked.length || !await askConfirm(`Delete ${picked.length} set${picked.length === 1 ? '' : 's'}? This cannot be undone.`)) return;
     picked.forEach((id) => l.deleteSet(id));
     toast(`Deleted ${picked.length} set${picked.length === 1 ? '' : 's'}.`);
     setPicked([]);
@@ -353,7 +354,7 @@ export function GamesPage({ embedded = false }: { embedded?: boolean } = {}) {
                   {selecting ? (
                     <input type="checkbox" aria-label={`Select ${s.name}`} checked={picked.includes(s.id)} onChange={() => toggle(s.id)} className="absolute top-3 right-3 size-5" />
                   ) : (
-                    <button type="button" aria-label={`Delete ${s.name}`} title="Delete set" onClick={() => confirm(`Delete “${s.name}”?`) && (l.deleteSet(s.id), toast('Set deleted.'))} className="absolute top-2.5 right-2.5 grid size-8 place-items-center rounded-lg text-muted hover:bg-surface-3 hover:text-danger"><Icon name="trash" className="size-4" /></button>
+                    <button type="button" aria-label={`Delete ${s.name}`} title="Delete set" onClick={async () => await askConfirm(`Delete “${s.name}”?`) && (l.deleteSet(s.id), toast('Set deleted.'))} className="absolute top-2.5 right-2.5 grid size-8 place-items-center rounded-lg text-muted hover:bg-surface-3 hover:text-danger"><Icon name="trash" className="size-4" /></button>
                   )}
                   <button type="button" onClick={() => (selecting ? toggle(s.id) : go(s.id))} className="grid min-w-0 pr-8 text-left">
                     <span className="text-[12px] text-muted">{s.folder}</span>
