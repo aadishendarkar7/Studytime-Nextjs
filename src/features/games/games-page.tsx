@@ -4,22 +4,22 @@ import { Badge, PageHeader } from '@/components/ui/card';
 import { Dialog } from '@/components/ui/dialog';
 import { Hero, HeroButton } from '@/components/ui/hero';
 import { Button } from '@/components/ui/button';
-import { Input, Select, Textarea } from '@/components/ui/field';
+import { Input, Select } from '@/components/ui/field';
 import { Icon, type IconName } from '@/components/ui/icons';
 import { Segmented } from '@/components/ui/segmented';
 import { api } from '@/lib/api';
 import { resolveConnection } from '@/lib/ai/client';
-import { generateCards } from '@/features/ai/tasks';
 import { allFolders, DEFAULT_FOLDER, useLearning } from '@/lib/stores/learning';
 import { useProfile } from '@/lib/stores/profile';
 import { toast } from '@/lib/stores/ui';
 import type { Deck, StudySet } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { activeCollections, COLLECTIONS, isActive, windowLabel, type Collection } from './collections';
-import { parseBulkCards, STARTER_DECKS } from './decks';
+import { STARTER_DECKS } from './decks';
 import { GameStage, type Mode } from './modes';
 import { isDue } from './srs';
 import { askConfirm, askText } from '@/lib/stores/ask';
+import { moreCards, NewSet } from './new-set';
 
 /** Adds every deck in a collection you have not added yet. */
 function addCollection(c: Collection) {
@@ -124,57 +124,6 @@ function DeckLibrary({ onAdded }: { onAdded?: () => void }) {
 
 const dueIn = (set: StudySet) => set.cards.filter((c) => isDue(c)).length;
 
-/** Make a new set: from a topic with AI, by typing a list, or empty. */
-function NewSet({ onDone }: { onDone: (id: string) => void }) {
-  const l = useLearning();
-  const [how, setHow] = useState<'ai' | 'paste'>('ai');
-  const [topic, setTopic] = useState('');
-  const [count, setCount] = useState(15);
-  const [name, setName] = useState('');
-  const [bulk, setBulk] = useState('');
-  const [busy, setBusy] = useState(false);
-  const generate = async () => {
-    if (!topic.trim()) return;
-    if (resolveConnection().mode === 'none') return toast('The AI tutor is not set up on this site yet.', 'error');
-    setBusy(true);
-    try {
-      const cards = await generateCards(topic, count);
-      const created = l.addSet(topic.length <= 50 ? topic : `${topic.slice(0, 47)}…`, cards, DEFAULT_FOLDER);
-      onDone(created.id);
-    } catch (error) {
-      toast((error as Error).message, 'error');
-    } finally {
-      setBusy(false);
-    }
-  };
-  const paste = () => {
-    const cards = parseBulkCards(bulk);
-    if (!name.trim()) return toast('Name the set.');
-    onDone(l.addSet(name, cards, DEFAULT_FOLDER).id);
-  };
-  return (
-    <div>
-      <Segmented label="How to make it" value={how} onChange={setHow} options={[{ value: 'ai', label: 'From a topic' }, { value: 'paste', label: 'Type my own' }]} />
-      {how === 'ai' ? (
-        <form className="mt-3 flex flex-wrap gap-2" onSubmit={(e) => (e.preventDefault(), void generate())}>
-          <Input autoFocus className="min-w-48 flex-[2]" maxLength={2000} value={topic} onChange={(e) => setTopic(e.target.value)} placeholder="Cell respiration, Spanish verbs, or paste notes" aria-label="Topic" />
-          <Select className="w-auto" value={count} onChange={(e) => setCount(Number(e.target.value))} aria-label="Number of cards">{[10, 15, 25].map((n) => <option key={n} value={n}>{n} cards</option>)}</Select>
-          <Button type="submit" loading={busy} disabled={!topic.trim()}>Make cards</Button>
-        </form>
-      ) : (
-        <div className="mt-3 grid gap-2">
-          <Input autoFocus value={name} maxLength={60} onChange={(e) => setName(e.target.value)} placeholder="Set name" aria-label="Set name" />
-          <Textarea rows={5} value={bulk} onChange={(e) => setBulk(e.target.value)} aria-label="Cards, one per line" placeholder={'mitosis - cell division into two identical cells\nosmosis - water moving across a membrane'} />
-          <div className="flex items-center justify-between gap-2">
-            <span className="text-[12px] text-muted">{parseBulkCards(bulk).length} cards</span>
-            <Button onClick={paste} disabled={!name.trim()}>Create set</Button>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
 /** The list of cards in a set, with a row to add one. */
 function EditCards({ set }: { set: StudySet }) {
   const l = useLearning();
@@ -198,8 +147,29 @@ function EditCards({ set }: { set: StudySet }) {
       toast((error as Error).message, 'error');
     }
   };
+  const [more, setMore] = useState(false);
+  const addMore = async () => {
+    if (resolveConnection().mode === 'none') return toast('The AI tutor is not set up on this site yet.', 'error');
+    setMore(true);
+    try {
+      const cards = await moreCards(set.name, set.cards);
+      const have = new Set(set.cards.map((c) => c.front.trim().toLowerCase()));
+      const fresh = cards.filter((c) => !have.has(c.front.trim().toLowerCase()));
+      l.addCards(set.id, fresh);
+      toast(`${fresh.length} new cards added.`);
+    } catch (error) {
+      toast((error as Error).message, 'error');
+    } finally {
+      setMore(false);
+    }
+  };
   return (
     <div className="grid gap-3">
+      <div className="flex items-center gap-3 rounded-[10px] border border-line bg-surface-2 px-3 py-2.5">
+        <Icon name="sparkle" className="size-4 shrink-0 text-accent-ink" />
+        <p className="min-w-0 flex-1 text-[13px] text-ink-2">Let the AI add cards this set is missing.</p>
+        <Button size="sm" variant="secondary" loading={more} onClick={() => void addMore()}>Add 10 more</Button>
+      </div>
       <form className="flex flex-wrap gap-2" onSubmit={(e) => (e.preventDefault(), add())}>
         <Input className="min-w-36 flex-1" maxLength={180} value={front} onChange={(e) => setFront(e.target.value)} placeholder="Front" aria-label="Front" />
         <Input className="min-w-36 flex-1" maxLength={180} value={back} onChange={(e) => setBack(e.target.value)} placeholder="Back" aria-label="Back" />
@@ -323,7 +293,7 @@ export function GamesPage({ embedded = false }: { embedded?: boolean } = {}) {
               action={<HeroButton onClick={() => { const first = shown.find((x) => dueIn(x) > 0); if (first) go(first.id); }}>Review now</HeroButton>}
             />
           ) : l.sets.length === 0 ? (
-            <Hero title="Make your first flashcard set" sub="Type a topic and the AI writes the cards, or pick a ready-made deck." action={<HeroButton onClick={() => setPanel('new')}>New set</HeroButton>} />
+            <Hero title="Make your first flashcard set" sub="Upload slides, snap a page or pick one of your notes. The AI writes the cards." action={<HeroButton onClick={() => setPanel('new')}>New set</HeroButton>} />
           ) : null}
           <div className="flex flex-wrap items-center gap-2">
             <Button onClick={() => setPanel('new')}>New set</Button>
